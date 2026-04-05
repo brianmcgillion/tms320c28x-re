@@ -1,0 +1,656 @@
+# TMS320C28x System Instructions
+# Opcodes from INL bn-tic28x-arch opcodes.h (MIT)
+
+instructions:
+  - name: NOP
+    full_name: "No operation"
+    format: 16
+    opcode: 0x7700
+    mask: 0xFF00
+    semantics: { type: nop }
+
+  - name: NOP_ZERO
+    full_name: "No operation (zero word / alignment padding)"
+    format: 16
+    opcode: 0x0000
+    mask: 0xFFFF
+    semantics: { type: nop }
+
+  - name: MAC_P_LOC16_PMA
+    full_name: "Multiply accumulate with program memory"
+    format: 32
+    opcode: 0x56080000
+    mask: 0xFFFF0000
+    operands:
+      - { name: loc16, type: loc16, bits: [7, 0] }
+    semantics: { type: mpy }
+
+  - name: IACK_CONST16
+    full_name: "Interrupt acknowledge"
+    format: 16
+    opcode: 0x3E80
+    mask: 0xFFFF
+    semantics: { type: system }
+
+  - name: NORM_ACC_IND
+    full_name: "Normalize ACC content"
+    format: 16
+    opcode: 0x5631
+    mask: 0xFFFF
+    semantics: { type: system }
+
+  - name: EALLOW
+    full_name: "Enable EALLOW-protected register access"
+    format: 16
+    opcode: 0x7622
+    mask: 0xFFFF
+    semantics:
+      type: system
+      side_effects: ["ST1.EALLOW = 1"]
+
+  - name: EDIS
+    full_name: "Disable EALLOW-protected register access"
+    format: 16
+    opcode: 0x761A
+    mask: 0xFFFF
+    semantics:
+      type: system
+      side_effects: ["ST1.EALLOW = 0"]
+
+  - name: ESTOP0
+    full_name: "Emulation stop 0"
+    format: 16
+    opcode: 0x7625
+    mask: 0xFFFF
+    semantics: { type: trap }
+
+  - name: ESTOP1
+    full_name: "Emulation stop 1"
+    format: 16
+    opcode: 0x7624
+    mask: 0xFFFF
+    semantics: { type: trap }
+
+  - name: ABORTI
+    full_name: "Abort interrupt"
+    format: 16
+    opcode: 0x0001
+    mask: 0xFFFF
+    semantics: { type: system }
+
+  - name: IDLE
+    full_name: "Idle until interrupt"
+    format: 16
+    opcode: 0x7621
+    mask: 0xFFFF
+    semantics: { type: system }
+
+  - name: SETC_MODE
+    full_name: "Set status bit"
+    format: 16
+    opcode: 0x3B00
+    mask: 0xFF00
+    operands:
+      - { name: mode, type: imm8, bits: [7, 0] }
+    semantics:
+      type: system
+      side_effects: ["set mode bit"]
+
+  - name: CLRC_MODE
+    full_name: "Clear status bit"
+    format: 16
+    opcode: 0x2900
+    mask: 0xFF00
+    operands:
+      - { name: mode, type: imm8, bits: [7, 0] }
+    semantics:
+      type: system
+      side_effects: ["clear mode bit"]
+
+  - name: TRAP
+    full_name: "Software trap"
+    format: 16
+    opcode: 0x0020
+    mask: 0xFFE0
+    operands:
+      - { name: vector, type: imm5, bits: [4, 0] }
+    semantics: { type: trap }
+
+  - name: INTR
+    full_name: "Software interrupt"
+    format: 16
+    opcode: 0x0010
+    mask: 0xFFF0
+    operands:
+      - { name: intx, type: imm4, bits: [3, 0] }
+    semantics: { type: trap }
+
+  - name: RPT_CONST8
+    full_name: "Repeat next instruction N+1 times"
+    format: 16
+    opcode: 0xF600
+    mask: 0xFF00
+    operands:
+      - { name: count, type: imm8, bits: [7, 0] }
+    semantics:
+      type: system
+      side_effects: ["repeat next instruction count+1 times"]
+
+  - name: SPM_SHIFT
+    full_name: "Set product shift mode"
+    format: 16
+    opcode: 0xFF68
+    mask: 0xFFFC
+    operands:
+      - { name: shift, type: imm2, bits: [1, 0] }
+    semantics:
+      type: system
+      side_effects: ["PM = shift"]
+
+  - name: CLRC_AMODE
+    full_name: "Clear AMODE status bit"
+    format: 16
+    opcode: 0x5616
+    mask: 0xFFFF
+    semantics:
+      type: system
+      side_effects: ["ST1.AMODE = 0"]
+
+  - name: CLRC_M0M1MAP
+    full_name: "Clear M0M1MAP status bit"
+    format: 16
+    opcode: 0x563F
+    mask: 0xFFFF
+    semantics:
+      type: system
+      side_effects: ["ST1.M0M1MAP = 0"]
+
+  - name: CLRC_OBJMODE
+    full_name: "Clear OBJMODE status bit"
+    format: 16
+    opcode: 0x5636
+    mask: 0xFFFF
+    semantics:
+      type: system
+      side_effects: ["ST1.OBJMODE = 0"]
+
+  - name: CLRC_OVC
+    full_name: "Clear overflow counter"
+    format: 16
+    opcode: 0x565C
+    mask: 0xFFFF
+    semantics:
+      type: system
+      side_effects: ["ST0.OVC = 0"]
+
+  - name: CLRC_XF
+    full_name: "Clear XF status bit"
+    format: 16
+    opcode: 0x561B
+    mask: 0xFFFF
+    semantics:
+      type: system
+      side_effects: ["ST1.XF = 0"]
+
+  - name: SETC_M0M1MAP
+    full_name: "Set M0M1MAP status bit"
+    format: 16
+    opcode: 0x561A
+    mask: 0xFFFF
+    semantics:
+      type: system
+      side_effects: ["ST1.M0M1MAP = 1"]
+
+  - name: SETC_OBJMODE
+    full_name: "Set OBJMODE status bit"
+    format: 16
+    opcode: 0x561F
+    mask: 0xFFFF
+    semantics:
+      type: system
+      side_effects: ["ST1.OBJMODE = 1"]
+
+  - name: SETC_XF
+    full_name: "Set XF status bit"
+    format: 16
+    opcode: 0x5626
+    mask: 0xFFFF
+    semantics:
+      type: system
+      side_effects: ["ST1.XF = 1"]
+
+  - name: LPADDR
+    full_name: "Set large pointer address mode"
+    format: 16
+    opcode: 0x561E
+    mask: 0xFFFF
+    semantics:
+      type: system
+      side_effects: ["ST1.AMODE = 1"]
+
+  - name: ASP
+    full_name: "Align stack pointer"
+    format: 16
+    opcode: 0x761B
+    mask: 0xFFFF
+    semantics:
+      type: system
+      side_effects: ["SP = align(SP)"]
+
+  - name: NASP
+    full_name: "Unalign stack pointer"
+    format: 16
+    opcode: 0x7617
+    mask: 0xFFFF
+    semantics:
+      type: system
+      side_effects: ["SP = unalign(SP)"]
+
+  - name: AND_IER_CONST16
+    full_name: "AND IER with 16-bit constant"
+    format: 32
+    opcode: 0x76260000
+    mask: 0xFFFF0000
+    operands:
+      - { name: const16, type: imm16, bits: [15, 0] }
+    semantics:
+      type: system
+      side_effects: ["IER = IER & const16"]
+
+  - name: AND_IFR_CONST16
+    full_name: "AND IFR with 16-bit constant"
+    format: 32
+    opcode: 0x762F0000
+    mask: 0xFFFF0000
+    operands:
+      - { name: const16, type: imm16, bits: [15, 0] }
+    semantics:
+      type: system
+      side_effects: ["IFR = IFR & const16"]
+
+  - name: OR_IER_CONST16
+    full_name: "OR IER with 16-bit constant"
+    format: 32
+    opcode: 0x76230000
+    mask: 0xFFFF0000
+    operands:
+      - { name: const16, type: imm16, bits: [15, 0] }
+    semantics:
+      type: system
+      side_effects: ["IER = IER | const16"]
+
+  - name: OR_IFR_CONST16
+    full_name: "OR IFR with 16-bit constant"
+    format: 32
+    opcode: 0x76270000
+    mask: 0xFFFF0000
+    operands:
+      - { name: const16, type: imm16, bits: [15, 0] }
+    semantics:
+      type: system
+      side_effects: ["IFR = IFR | const16"]
+
+  - name: IACK_CONST16
+    full_name: "Interrupt acknowledge"
+    format: 32
+    opcode: 0x763F0000
+    mask: 0xFFFF0000
+    operands:
+      - { name: const16, type: imm16, bits: [15, 0] }
+    semantics:
+      type: system
+      side_effects: ["acknowledge interrupt const16"]
+
+  - name: INTR_NMI
+    full_name: "Non-maskable interrupt"
+    format: 16
+    opcode: 0x7616
+    mask: 0xFFFF
+    semantics: { type: trap }
+
+  - name: INTR_EMUINT
+    full_name: "Emulation interrupt"
+    format: 16
+    opcode: 0x761C
+    mask: 0xFFFF
+    semantics: { type: trap }
+
+  - name: RPT_LOC16
+    full_name: "Repeat next instruction by loc16 count"
+    format: 16
+    opcode: 0xF700
+    mask: 0xFF00
+    operands:
+      - { name: loc16, type: loc16, bits: [7, 0] }
+    semantics:
+      type: system
+      side_effects: ["repeat next instruction loc16+1 times"]
+
+  - name: NOP_IND_ARPN
+    full_name: "No operation with ARP update"
+    format: 16
+    opcode: 0x7700
+    mask: 0xFF00
+    semantics: { type: nop }
+
+  - name: NORM_ACC_XARN_POSTINC
+    full_name: "Normalize ACC with XARn post-increment"
+    format: 16
+    opcode: 0xFF78
+    mask: 0xFFF8
+    operands:
+      - { name: n, type: reg3, bits: [2, 0] }
+    semantics:
+      type: system
+      side_effects: ["normalize ACC", "XAR{n} += 1"]
+      flags: [N, Z]
+
+  - name: NORM_ACC_XARN_POSTDEC
+    full_name: "Normalize ACC with XARn post-decrement"
+    format: 16
+    opcode: 0xFF70
+    mask: 0xFFF8
+    operands:
+      - { name: n, type: reg3, bits: [2, 0] }
+    semantics:
+      type: system
+      side_effects: ["normalize ACC", "XAR{n} -= 1"]
+      flags: [N, Z]
+
+  - name: PREAD_LOC16_XAR7
+    full_name: "Read program memory via XAR7"
+    format: 16
+    opcode: 0x2400
+    mask: 0xFF00
+    operands:
+      - { name: loc16, type: loc16, bits: [7, 0] }
+    semantics:
+      type: mov
+      dest: "loc16"
+      src: "prog[XAR7]"
+
+  - name: PWRITE_XAR7_LOC16
+    full_name: "Write program memory via XAR7"
+    format: 16
+    opcode: 0x2600
+    mask: 0xFF00
+    operands:
+      - { name: loc16, type: loc16, bits: [7, 0] }
+    semantics:
+      type: mov
+      dest: "prog[XAR7]"
+      src: "loc16"
+
+  - name: IN_LOC16_PA
+    full_name: "Input data from I/O port"
+    format: 32
+    opcode: 0xB4000000
+    mask: 0xFF000000
+    operands:
+      - { name: loc16, type: loc16, bits: [23, 16] }
+      - { name: pa, type: imm16, bits: [15, 0] }
+    semantics:
+      type: system
+      side_effects: ["loc16 = IO[pa]"]
+
+  - name: OUT_PA_LOC16
+    full_name: "Output data to I/O port"
+    format: 32
+    opcode: 0xBC000000
+    mask: 0xFF000000
+    operands:
+      - { name: pa, type: imm16, bits: [15, 0] }
+      - { name: loc16, type: loc16, bits: [23, 16] }
+    semantics:
+      type: system
+      side_effects: ["IO[pa] = loc16"]
+
+  - name: UOUT_PA_LOC16
+    full_name: "Unprotected output data to I/O port"
+    format: 32
+    opcode: 0xB0000000
+    mask: 0xFF000000
+    operands:
+      - { name: pa, type: imm16, bits: [15, 0] }
+      - { name: loc16, type: loc16, bits: [23, 16] }
+    semantics:
+      type: system
+      side_effects: ["IO[pa] = loc16"]
+
+  - name: TBIT_LOC16_BIT
+    full_name: "Test bit of loc16"
+    format: 16
+    opcode: 0x4000
+    mask: 0xF000
+    operands:
+      - { name: loc16, type: loc16, bits: [7, 0] }
+      - { name: bit, type: imm4, bits: [11, 8] }
+    semantics:
+      type: test
+      src: "loc16"
+      flags: [TC]
+
+  - name: TBIT_LOC16_T
+    full_name: "Test bit of loc16 specified by T"
+    format: 32
+    opcode: 0x56250000
+    mask: 0xFFFF0000
+    operands:
+      - { name: loc16, type: loc16, bits: [7, 0] }
+    semantics:
+      type: test
+      src: "loc16"
+      flags: [TC]
+
+  - name: TCLR_LOC16_BIT
+    full_name: "Test and clear bit of loc16"
+    format: 32
+    opcode: 0x56090000
+    mask: 0xFFF00000
+    operands:
+      - { name: loc16, type: loc16, bits: [7, 0] }
+      - { name: bit, type: imm4, bits: [19, 16] }
+    semantics:
+      type: test
+      src: "loc16"
+      side_effects: ["clear bit"]
+      flags: [TC]
+
+  - name: TSET_LOC16_BIT
+    full_name: "Test and set bit of loc16"
+    format: 32
+    opcode: 0x560D0000
+    mask: 0xFFF00000
+    operands:
+      - { name: loc16, type: loc16, bits: [7, 0] }
+      - { name: bit, type: imm4, bits: [19, 16] }
+    semantics:
+      type: test
+      src: "loc16"
+      side_effects: ["set bit"]
+      flags: [TC]
+
+  - name: MAC_P_LOC16_XAR7
+    full_name: "Multiply and accumulate with program memory"
+    format: 32
+    opcode: 0x5607C700
+    mask: 0xFFFFFF00
+    operands:
+      - { name: loc16, type: loc16, bits: [7, 0] }
+    semantics:
+      type: mac
+      dest: "ACC, P"
+      src1: "loc16"
+      src2: "prog[XAR7]"
+
+  - name: MAC_P_LOC16_XAR7_POSTINC
+    full_name: "Multiply and accumulate with program memory, XAR7++"
+    format: 32
+    opcode: 0x56078700
+    mask: 0xFFFFFF00
+    operands:
+      - { name: loc16, type: loc16, bits: [7, 0] }
+    semantics:
+      type: mac
+      dest: "ACC, P"
+      src1: "loc16"
+      src2: "prog[XAR7]"
+      side_effects: ["XAR7 += 1"]
+
+  - name: MAX_AX_LOC16
+    full_name: "Maximum of AX and loc16"
+    format: 32
+    opcode: 0x56720000
+    mask: 0xFFFE0000
+    operands:
+      - { name: ax, type: ax, bits: [16, 16] }
+      - { name: loc16, type: loc16, bits: [7, 0] }
+    semantics:
+      type: max
+      dest: "AX"
+      src1: "AX"
+      src2: "loc16"
+      flags: [N, Z, C, V]
+
+  - name: MIN_AX_LOC16
+    full_name: "Minimum of AX and loc16"
+    format: 32
+    opcode: 0x56740000
+    mask: 0xFFFE0000
+    operands:
+      - { name: ax, type: ax, bits: [16, 16] }
+      - { name: loc16, type: loc16, bits: [7, 0] }
+    semantics:
+      type: min
+      dest: "AX"
+      src1: "AX"
+      src2: "loc16"
+      flags: [N, Z, C, V]
+
+  - name: MAXL_ACC_LOC32
+    full_name: "Maximum of ACC and loc32"
+    format: 32
+    opcode: 0x56610000
+    mask: 0xFFFF0000
+    operands:
+      - { name: loc32, type: loc32, bits: [7, 0] }
+    semantics:
+      type: max
+      dest: ACC
+      src1: ACC
+      src2: "loc32"
+      flags: [N, Z, C, V]
+
+  - name: MINL_ACC_LOC32
+    full_name: "Minimum of ACC and loc32"
+    format: 32
+    opcode: 0x56500000
+    mask: 0xFFFF0000
+    operands:
+      - { name: loc32, type: loc32, bits: [7, 0] }
+    semantics:
+      type: min
+      dest: ACC
+      src1: ACC
+      src2: "loc32"
+      flags: [N, Z, C, V]
+
+  - name: MAXCUL_P_LOC32
+    full_name: "Unsigned maximum of P and loc32 with carry"
+    format: 32
+    opcode: 0x56510000
+    mask: 0xFFFF0000
+    operands:
+      - { name: loc32, type: loc32, bits: [7, 0] }
+    semantics:
+      type: max
+      dest: P
+      src1: P
+      src2: "loc32"
+      flags: [N, Z, C, V]
+
+  - name: MINCUL_P_LOC32
+    full_name: "Unsigned minimum of P and loc32 with carry"
+    format: 32
+    opcode: 0x56590000
+    mask: 0xFFFF0000
+    operands:
+      - { name: loc32, type: loc32, bits: [7, 0] }
+    semantics:
+      type: min
+      dest: P
+      src1: P
+      src2: "loc32"
+      flags: [N, Z, C, V]
+
+  - name: ZAPA
+    full_name: "Zero ACC, P, and OVC"
+    format: 16
+    opcode: 0x5633
+    mask: 0xFFFF
+    semantics:
+      type: system
+      side_effects: ["ACC = 0", "P = 0", "OVC = 0"]
+
+  - name: MOV_MEM16_LOC16
+    full_name: "Move loc16 to memory16"
+    format: 32
+    opcode: 0xF4000000
+    mask: 0xFF000000
+    operands:
+      - { name: loc16, type: loc16, bits: [23, 16] }
+      - { name: mem16, type: imm16, bits: [15, 0] }
+    semantics:
+      type: mov
+      dest: "mem16"
+      src: "loc16"
+
+  - name: MOV_LOC16_MEM16
+    full_name: "Move memory16 to loc16"
+    format: 32
+    opcode: 0xF5000000
+    mask: 0xFF000000
+    operands:
+      - { name: loc16, type: loc16, bits: [23, 16] }
+      - { name: mem16, type: imm16, bits: [15, 0] }
+    semantics:
+      type: mov
+      dest: "loc16"
+      src: "mem16"
+
+  - name: XPREAD_LOC16_PMA
+    full_name: "Extended program read from address"
+    format: 32
+    opcode: 0xAC000000
+    mask: 0xFF000000
+    operands:
+      - { name: loc16, type: loc16, bits: [23, 16] }
+      - { name: pma, type: imm16, bits: [15, 0] }
+    semantics:
+      type: mov
+      dest: "loc16"
+      src: "prog[pma]"
+
+  - name: XPREAD_LOC16_AL
+    full_name: "Extended program read via AL"
+    format: 32
+    opcode: 0x563C0000
+    mask: 0xFFFF0000
+    operands:
+      - { name: loc16, type: loc16, bits: [7, 0] }
+    semantics:
+      type: mov
+      dest: "loc16"
+      src: "prog[AL]"
+
+  - name: XPWRITE_AL_LOC16
+    full_name: "Extended program write via AL"
+    format: 32
+    opcode: 0x563D0000
+    mask: 0xFFFF0000
+    operands:
+      - { name: loc16, type: loc16, bits: [7, 0] }
+    semantics:
+      type: mov
+      dest: "prog[AL]"
+      src: "loc16"

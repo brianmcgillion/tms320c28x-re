@@ -1,0 +1,18 @@
+[package]
+name = "tms320c28x-binja"
+version = "0.1.0"
+edition = "2021"
+description = "TMS320C28x architecture plugin for Binary Ninja (Rust)"
+license = "MIT"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+# Pinned to ABI 160 to match BN 5.2.8722
+binaryninja = { git = "https://github.com/Vector35/binaryninja-api", rev = "f01a269d" }
+log = "0.4"
+
+[build-dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_yaml = "0.9"

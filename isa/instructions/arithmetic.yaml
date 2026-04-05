@@ -1,0 +1,931 @@
+# TMS320C28x Arithmetic Instructions
+# Opcodes from INL bn-tic28x-arch opcodes.h (MIT)
+
+instructions:
+  - name: ADD_ACC_LOC16
+    full_name: "Add loc16 to ACC"
+    format: 16
+    opcode: 0x8100
+    mask: 0xFF00
+    objmode: 1
+    operands:
+      - { name: loc16, type: loc16, bits: [7, 0] }
+    semantics:
+      type: add
+      dest: ACC
+      src1: ACC
+      src2: "sign_extend(loc16)"
+      flags: [N, Z, C, V]
+
+  - name: ADD_AX_LOC16
+    full_name: "Add loc16 to AX"
+    format: 16
+    opcode: 0x9400
+    mask: 0xFE00
+    objmode: 1
+    operands:
+      - { name: ax, type: ax, bits: [8, 8] }
+      - { name: loc16, type: loc16, bits: [7, 0] }
+    semantics:
+      type: add
+      dest: "AX"
+      src1: "AX"
+      src2: "loc16"
+      flags: [N, Z, C, V]
+
+  - name: ADD_ACC_CONST16_SHIFT
+    full_name: "Add 16-bit constant shifted to ACC"
+    format: 32
+    opcode: 0xFF100000
+    mask: 0xFF000000
+    objmode: 1
+    operands:
+      - { name: const16, type: imm16, bits: [15, 0] }
+      - { name: shift, type: shift4, bits: [19, 16] }
+    semantics:
+      type: add
+      dest: ACC
+      src1: ACC
+      src2: "const16 << shift"
+      flags: [N, Z, C, V]
+
+  - name: ADDB_ACC_CONST8
+    full_name: "Add 8-bit constant to ACC"
+    format: 16
+    opcode: 0x0900
+    mask: 0xFF00
+    objmode: 1
+    operands:
+      - { name: const8, type: imm8, bits: [7, 0] }
+    semantics:
+      type: add
+      dest: ACC
+      src1: ACC
+      src2: "zero_extend(const8)"
+      flags: [N, Z, C, V]
+
+  - name: ADDB_SP_CONST7
+    full_name: "Add 7-bit constant to SP"
+    format: 16
+    opcode: 0xFE00
+    mask: 0xFF80
+    objmode: 1
+    operands:
+      - { name: const7, type: imm7, bits: [6, 0] }
+    semantics:
+      type: add
+      dest: SP
+      src1: SP
+      src2: "const7"
+
+  - name: ADDL_ACC_LOC32
+    full_name: "Add loc32 to ACC"
+    format: 16
+    opcode: 0x0700
+    mask: 0xFF00
+    objmode: 1
+    operands:
+      - { name: loc32, type: loc32, bits: [7, 0] }
+    semantics:
+      type: add
+      dest: ACC
+      src1: ACC
+      src2: "loc32"
+      flags: [N, Z, C, V]
+
+  - name: SUB_ACC_LOC16
+    full_name: "Subtract loc16 from ACC"
+    format: 16
+    opcode: 0xAE00
+    mask: 0xFF00
+    objmode: 1
+    operands:
+      - { name: loc16, type: loc16, bits: [7, 0] }
+    semantics:
+      type: sub
+      dest: ACC
+      src1: ACC
+      src2: "sign_extend(loc16)"
+      flags: [N, Z, C, V]
+
+  - name: SUB_AX_LOC16
+    full_name: "Subtract loc16 from AX"
+    format: 16
+    opcode: 0x9E00
+    mask: 0xFE00
+    objmode: 1
+    operands:
+      - { name: ax, type: ax, bits: [8, 8] }
+      - { name: loc16, type: loc16, bits: [7, 0] }
+    semantics:
+      type: sub
+      dest: "AX"
+      src1: "AX"
+      src2: "loc16"
+      flags: [N, Z, C, V]
+
+  - name: SUBB_ACC_CONST8
+    full_name: "Subtract 8-bit constant from ACC"
+    format: 16
+    opcode: 0x1900
+    mask: 0xFF00
+    objmode: 1
+    operands:
+      - { name: const8, type: imm8, bits: [7, 0] }
+    semantics:
+      type: sub
+      dest: ACC
+      src1: ACC
+      src2: "zero_extend(const8)"
+      flags: [N, Z, C, V]
+
+  - name: SUBB_SP_CONST7
+    full_name: "Subtract 7-bit constant from SP"
+    format: 16
+    opcode: 0xFE80
+    mask: 0xFF80
+    objmode: 1
+    operands:
+      - { name: const7, type: imm7, bits: [6, 0] }
+    semantics:
+      type: sub
+      dest: SP
+      src1: SP
+      src2: "const7"
+
+  - name: CMP_AX_LOC16
+    full_name: "Compare AX with loc16"
+    format: 16
+    opcode: 0x5400
+    mask: 0xFE00
+    objmode: 1
+    operands:
+      - { name: ax, type: ax, bits: [8, 8] }
+      - { name: loc16, type: loc16, bits: [7, 0] }
+    semantics:
+      type: cmp
+      src1: "AX"
+      src2: "loc16"
+      flags: [N, Z, C, V]
+
+  - name: CMPB_AX_CONST8
+    full_name: "Compare AX with 8-bit constant"
+    format: 16
+    opcode: 0x5200
+    mask: 0xFE00
+    objmode: 1
+    operands:
+      - { name: ax, type: ax, bits: [8, 8] }
+      - { name: const8, type: imm8, bits: [7, 0] }
+    semantics:
+      type: cmp
+      src1: "AX"
+      src2: "zero_extend(const8)"
+      flags: [N, Z, C, V]
+
+  - name: INC_LOC16
+    full_name: "Increment loc16"
+    format: 16
+    opcode: 0x0A00
+    mask: 0xFF00
+    objmode: 1
+    operands:
+      - { name: loc16, type: loc16, bits: [7, 0] }
+    semantics:
+      type: add
+      dest: "loc16"
+      src1: "loc16"
+      src2: 1
+      flags: [N, Z, C, V]
+
+  - name: DEC_LOC16
+    full_name: "Decrement loc16"
+    format: 16
+    opcode: 0x0B00
+    mask: 0xFF00
+    objmode: 1
+    operands:
+      - { name: loc16, type: loc16, bits: [7, 0] }
+    semantics:
+      type: sub
+      dest: "loc16"
+      src1: "loc16"
+      src2: 1
+      flags: [N, Z, C, V]
+
+  - name: ABS_ACC
+    full_name: "Absolute value of ACC"
+    format: 16
+    opcode: 0xFF56
+    mask: 0xFFFF
+    semantics:
+      type: abs
+      dest: ACC
+      src: ACC
+      flags: [N, Z, C, V]
+
+  - name: NEG_ACC
+    full_name: "Negate ACC"
+    format: 16
+    opcode: 0xFF54
+    mask: 0xFFFF
+    semantics:
+      type: neg
+      dest: ACC
+      src: ACC
+      flags: [N, Z, C, V]
+
+  - name: NEG_AX
+    full_name: "Negate AX"
+    format: 16
+    opcode: 0xFF5C
+    mask: 0xFFFE
+    operands:
+      - { name: ax, type: ax, bits: [0, 0] }
+    semantics:
+      type: neg
+      dest: "AX"
+      src: "AX"
+      flags: [N, Z, C, V]
+
+  - name: ADD_LOC16_AX
+    full_name: "Add AX to loc16"
+    format: 16
+    opcode: 0x7200
+    mask: 0xFE00
+    operands:
+      - { name: loc16, type: loc16, bits: [7, 0] }
+      - { name: ax, type: ax, bits: [8, 8] }
+    semantics:
+      type: add
+      dest: "loc16"
+      src1: "loc16"
+      src2: "AX"
+      flags: [N, Z, C, V]
+
+  - name: ADD_LOC16_CONST16
+    full_name: "Add 16-bit constant to loc16"
+    format: 32
+    opcode: 0x08000000
+    mask: 0xFF000000
+    operands:
+      - { name: loc16, type: loc16, bits: [23, 16] }
+      - { name: const16, type: imm16, bits: [15, 0] }
+    semantics:
+      type: add
+      dest: "loc16"
+      src1: "loc16"
+      src2: "const16"
+      flags: [N, Z, C, V]
+
+  - name: ADD_ACC_LOC16_SHIFT16
+    full_name: "Add loc16 shifted left 16 to ACC"
+    format: 16
+    opcode: 0x0500
+    mask: 0xFF00
+    operands:
+      - { name: loc16, type: loc16, bits: [7, 0] }
+    semantics:
+      type: add
+      dest: ACC
+      src1: ACC
+      src2: "loc16 << 16"
+      flags: [N, Z, C, V]
+
+  - name: ADDL_LOC32_ACC
+    full_name: "Add ACC to loc32"
+    format: 32
+    opcode: 0x56010000
+    mask: 0xFFFF0000
+    operands:
+      - { name: loc32, type: loc32, bits: [7, 0] }
+    semantics:
+      type: add
+      dest: "loc32"
+      src1: "loc32"
+      src2: ACC
+      flags: [N, Z, C, V]
+
+  - name: ADDCL_ACC_LOC32
+    full_name: "Add loc32 with carry to ACC"
+    format: 32
+    opcode: 0x56400000
+    mask: 0xFFFF0000
+    operands:
+      - { name: loc32, type: loc32, bits: [7, 0] }
+    semantics:
+      type: addc
+      dest: ACC
+      src1: ACC
+      src2: "loc32"
+      flags: [N, Z, C, V]
+
+  - name: ADDCU_ACC_LOC16
+    full_name: "Unsigned add loc16 with carry to ACC"
+    format: 16
+    opcode: 0x0C00
+    mask: 0xFF00
+    operands:
+      - { name: loc16, type: loc16, bits: [7, 0] }
+    semantics:
+      type: addc
+      dest: ACC
+      src1: ACC
+      src2: "zero_extend(loc16)"
+      flags: [N, Z, C, V]
+
+  - name: ADDU_ACC_LOC16
+    full_name: "Unsigned add loc16 to ACC"
+    format: 16
+    opcode: 0x0D00
+    mask: 0xFF00
+    operands:
+      - { name: loc16, type: loc16, bits: [7, 0] }
+    semantics:
+      type: add
+      dest: ACC
+      src1: ACC
+      src2: "zero_extend(loc16)"
+      flags: [N, Z, C, V]
+
+  - name: ADDUL_ACC_LOC32
+    full_name: "Unsigned add loc32 to ACC"
+    format: 32
+    opcode: 0x56530000
+    mask: 0xFFFF0000
+    operands:
+      - { name: loc32, type: loc32, bits: [7, 0] }
+    semantics:
+      type: add
+      dest: ACC
+      src1: ACC
+      src2: "loc32"
+      flags: [N, Z, C, V]
+
+  - name: ADDUL_P_LOC32
+    full_name: "Unsigned add loc32 to P"
+    format: 32
+    opcode: 0x56570000
+    mask: 0xFFFF0000
+    operands:
+      - { name: loc32, type: loc32, bits: [7, 0] }
+    semantics:
+      type: add
+      dest: P
+      src1: P
+      src2: "loc32"
+      flags: [N, Z, C, V]
+
+  - name: ADDB_XARN_CONST7
+    full_name: "Add 7-bit constant to XARn"
+    format: 16
+    opcode: 0xD800
+    mask: 0xF880
+    operands:
+      - { name: n, type: reg3, bits: [10, 8] }
+      - { name: const7, type: imm7, bits: [6, 0] }
+    semantics:
+      type: add
+      dest: "XAR{n}"
+      src1: "XAR{n}"
+      src2: "const7"
+
+  - name: ADRK_IMM8
+    full_name: "Add to auxiliary register"
+    format: 16
+    opcode: 0xFC00
+    mask: 0xFF00
+    operands:
+      - { name: imm8, type: imm8, bits: [7, 0] }
+    semantics:
+      type: add
+      dest: "XAR(ARP)"
+      src1: "XAR(ARP)"
+      src2: "imm8"
+
+  - name: SUB_LOC16_AX
+    full_name: "Subtract AX from loc16"
+    format: 16
+    opcode: 0x7400
+    mask: 0xFE00
+    operands:
+      - { name: loc16, type: loc16, bits: [7, 0] }
+      - { name: ax, type: ax, bits: [8, 8] }
+    semantics:
+      type: sub
+      dest: "loc16"
+      src1: "loc16"
+      src2: "AX"
+      flags: [N, Z, C, V]
+
+  - name: SUB_ACC_LOC16_SHIFT16
+    full_name: "Subtract loc16 shifted left 16 from ACC"
+    format: 16
+    opcode: 0x0400
+    mask: 0xFF00
+    operands:
+      - { name: loc16, type: loc16, bits: [7, 0] }
+    semantics:
+      type: sub
+      dest: ACC
+      src1: ACC
+      src2: "loc16 << 16"
+      flags: [N, Z, C, V]
+
+  - name: SUBRL_LOC32_ACC
+    full_name: "Reverse subtract: loc32 = ACC - loc32"
+    format: 16
+    opcode: 0x1400
+    mask: 0xFF00
+    operands:
+      - { name: loc32, type: loc32, bits: [7, 0] }
+    semantics:
+      type: sub
+      dest: "loc32"
+      src1: ACC
+      src2: "loc32"
+      flags: [N, Z, C, V]
+
+  - name: ADDCL_ACC_LOC32
+    full_name: "Add with carry long: ACC += loc32 + C"
+    format: 16
+    opcode: 0x8400
+    mask: 0xFF00
+    operands:
+      - { name: loc32, type: loc32, bits: [7, 0] }
+    semantics:
+      type: add
+      dest: ACC
+      flags: [N, Z, C, V]
+
+  - name: MINL_ACC_LOC32
+    full_name: "Minimum long: ACC = min(ACC, loc32)"
+    format: 16
+    opcode: 0xB500
+    mask: 0xFF00
+    operands:
+      - { name: loc32, type: loc32, bits: [7, 0] }
+    semantics:
+      type: cmp
+      dest: ACC
+      flags: [N, Z, C, V]
+
+  - name: SUBL_ACC_LOC32
+    full_name: "Subtract loc32 from ACC"
+    format: 16
+    opcode: 0x0300
+    mask: 0xFF00
+    operands:
+      - { name: loc32, type: loc32, bits: [7, 0] }
+    semantics:
+      type: sub
+      dest: ACC
+      src1: ACC
+      src2: "loc32"
+      flags: [N, Z, C, V]
+
+  - name: SUBL_LOC32_ACC
+    full_name: "Subtract ACC from loc32"
+    format: 32
+    opcode: 0x56410000
+    mask: 0xFFFF0000
+    operands:
+      - { name: loc32, type: loc32, bits: [7, 0] }
+    semantics:
+      type: sub
+      dest: "loc32"
+      src1: "loc32"
+      src2: ACC
+      flags: [N, Z, C, V]
+
+  - name: SUBBL_ACC_LOC32
+    full_name: "Subtract loc32 with borrow from ACC"
+    format: 32
+    opcode: 0x56540000
+    mask: 0xFFFF0000
+    operands:
+      - { name: loc32, type: loc32, bits: [7, 0] }
+    semantics:
+      type: subb
+      dest: ACC
+      src1: ACC
+      src2: "loc32"
+      flags: [N, Z, C, V]
+
+  - name: SUBU_ACC_LOC16
+    full_name: "Unsigned subtract loc16 from ACC"
+    format: 16
+    opcode: 0x0100
+    mask: 0xFF00
+    operands:
+      - { name: loc16, type: loc16, bits: [7, 0] }
+    semantics:
+      type: sub
+      dest: ACC
+      src1: ACC
+      src2: "zero_extend(loc16)"
+      flags: [N, Z, C, V]
+
+  - name: SUBUL_ACC_LOC32
+    full_name: "Unsigned subtract loc32 from ACC"
+    format: 32
+    opcode: 0x56550000
+    mask: 0xFFFF0000
+    operands:
+      - { name: loc32, type: loc32, bits: [7, 0] }
+    semantics:
+      type: sub
+      dest: ACC
+      src1: ACC
+      src2: "loc32"
+      flags: [N, Z, C, V]
+
+  - name: SUBUL_P_LOC32
+    full_name: "Unsigned subtract loc32 from P"
+    format: 32
+    opcode: 0x565D0000
+    mask: 0xFFFF0000
+    operands:
+      - { name: loc32, type: loc32, bits: [7, 0] }
+    semantics:
+      type: sub
+      dest: P
+      src1: P
+      src2: "loc32"
+      flags: [N, Z, C, V]
+
+  - name: SUBCU_ACC_LOC16
+    full_name: "Conditional subtract for division"
+    format: 16
+    opcode: 0x1F00
+    mask: 0xFF00
+    operands:
+      - { name: loc16, type: loc16, bits: [7, 0] }
+    semantics:
+      type: subcu
+      dest: ACC
+      src1: ACC
+      src2: "loc16"
+      flags: [N, Z, C, V]
+
+  - name: SUBCUL_ACC_LOC32
+    full_name: "Conditional subtract long for division"
+    format: 32
+    opcode: 0x56170000
+    mask: 0xFFFF0000
+    operands:
+      - { name: loc32, type: loc32, bits: [7, 0] }
+    semantics:
+      type: subcu
+      dest: ACC
+      src1: ACC
+      src2: "loc32"
+      flags: [N, Z, C, V]
+
+  - name: SUBR_LOC16_AX
+    full_name: "Reverse subtract: AX - loc16 -> loc16"
+    format: 16
+    opcode: 0xEA00
+    mask: 0xFE00
+    operands:
+      - { name: loc16, type: loc16, bits: [7, 0] }
+      - { name: ax, type: ax, bits: [8, 8] }
+    semantics:
+      type: sub
+      dest: "loc16"
+      src1: "AX"
+      src2: "loc16"
+      flags: [N, Z, C, V]
+
+  - name: SUBRL_LOC32_ACC
+    full_name: "Reverse subtract: ACC - loc32 -> loc32"
+    format: 32
+    opcode: 0x56490000
+    mask: 0xFFFF0000
+    operands:
+      - { name: loc32, type: loc32, bits: [7, 0] }
+    semantics:
+      type: sub
+      dest: "loc32"
+      src1: ACC
+      src2: "loc32"
+      flags: [N, Z, C, V]
+
+  - name: SBBU_ACC_LOC16
+    full_name: "Subtract with borrow unsigned"
+    format: 16
+    opcode: 0x1D00
+    mask: 0xFF00
+    operands:
+      - { name: loc16, type: loc16, bits: [7, 0] }
+    semantics:
+      type: subb
+      dest: ACC
+      src1: ACC
+      src2: "zero_extend(loc16)"
+      flags: [N, Z, C, V]
+
+  - name: SUBB_XARN_CONST7
+    full_name: "Subtract 7-bit constant from XARn"
+    format: 16
+    opcode: 0xD880
+    mask: 0xF880
+    operands:
+      - { name: n, type: reg3, bits: [10, 8] }
+      - { name: const7, type: imm7, bits: [6, 0] }
+    semantics:
+      type: sub
+      dest: "XAR{n}"
+      src1: "XAR{n}"
+      src2: "const7"
+
+  - name: SBRK_CONST8
+    full_name: "Subtract from auxiliary register"
+    format: 16
+    opcode: 0xFD00
+    mask: 0xFF00
+    operands:
+      - { name: imm8, type: imm8, bits: [7, 0] }
+    semantics:
+      type: sub
+      dest: "XAR(ARP)"
+      src1: "XAR(ARP)"
+      src2: "imm8"
+
+  - name: CMP_LOC16_CONST16
+    full_name: "Compare loc16 with 16-bit constant"
+    format: 32
+    opcode: 0x1B000000
+    mask: 0xFF000000
+    operands:
+      - { name: loc16, type: loc16, bits: [23, 16] }
+      - { name: const16, type: imm16, bits: [15, 0] }
+    semantics:
+      type: cmp
+      src1: "loc16"
+      src2: "const16"
+      flags: [N, Z, C, V]
+
+  - name: CMP64_ACC_P
+    full_name: "Compare 64-bit ACC:P with zero"
+    format: 16
+    opcode: 0x565E
+    mask: 0xFFFF
+    semantics:
+      type: cmp
+      src1: "ACC:P"
+      src2: 0
+      flags: [N, Z, C, V]
+
+  - name: CMPL_ACC_LOC32
+    full_name: "Compare ACC with loc32"
+    format: 16
+    opcode: 0x0F00
+    mask: 0xFF00
+    operands:
+      - { name: loc32, type: loc32, bits: [7, 0] }
+    semantics:
+      type: cmp
+      src1: ACC
+      src2: "loc32"
+      flags: [N, Z, C, V]
+
+  - name: CMPL_ACC_P_SHIFT_PM
+    full_name: "Compare ACC with P shifted by PM"
+    format: 16
+    opcode: 0xFF59
+    mask: 0xFFFF
+    semantics:
+      type: cmp
+      src1: ACC
+      src2: "P << PM"
+      flags: [N, Z, C, V]
+
+  - name: CMPR_0
+    full_name: "Compare AR0 with AR(ARP), test for equal"
+    format: 16
+    opcode: 0x561D
+    mask: 0xFFFF
+    semantics:
+      type: cmp
+      src1: "AR(ARP)"
+      src2: "AR0"
+      condition: "equal"
+      flags: [N, Z, C, V]
+
+  - name: CMPR_1
+    full_name: "Compare AR0 with AR(ARP), test for greater"
+    format: 16
+    opcode: 0x5619
+    mask: 0xFFFF
+    semantics:
+      type: cmp
+      src1: "AR(ARP)"
+      src2: "AR0"
+      condition: "greater"
+      flags: [N, Z, C, V]
+
+  - name: CMPR_2
+    full_name: "Compare AR0 with AR(ARP), test for less"
+    format: 16
+    opcode: 0x5618
+    mask: 0xFFFF
+    semantics:
+      type: cmp
+      src1: "AR(ARP)"
+      src2: "AR0"
+      condition: "less"
+      flags: [N, Z, C, V]
+
+  - name: CMPR_3
+    full_name: "Compare AR0 with AR(ARP), test for not equal"
+    format: 16
+    opcode: 0x561C
+    mask: 0xFFFF
+    semantics:
+      type: cmp
+      src1: "AR(ARP)"
+      src2: "AR0"
+      condition: "not_equal"
+      flags: [N, Z, C, V]
+
+  - name: NEG64_ACC_P
+    full_name: "Negate 64-bit ACC:P"
+    format: 16
+    opcode: 0x5658
+    mask: 0xFFFF
+    semantics:
+      type: neg
+      dest: "ACC:P"
+      src: "ACC:P"
+      flags: [N, Z, C, V]
+
+  - name: NEGTC_ACC
+    full_name: "Negate ACC conditionally on TC"
+    format: 16
+    opcode: 0x5632
+    mask: 0xFFFF
+    semantics:
+      type: neg
+      dest: ACC
+      src: ACC
+      condition: "TC"
+      flags: [N, Z, C, V]
+
+  - name: ABSTC_ACC
+    full_name: "Absolute value of ACC conditionally on TC"
+    format: 16
+    opcode: 0x565F
+    mask: 0xFFFF
+    semantics:
+      type: abs
+      dest: ACC
+      src: ACC
+      condition: "TC"
+      flags: [N, Z, C, V]
+
+  - name: SAT_ACC
+    full_name: "Saturate ACC"
+    format: 16
+    opcode: 0xFF57
+    mask: 0xFFFF
+    semantics:
+      type: sat
+      dest: ACC
+      flags: [N, Z, C, V]
+
+  - name: SAT64_ACC_P
+    full_name: "Saturate 64-bit ACC:P"
+    format: 16
+    opcode: 0x563E
+    mask: 0xFFFF
+    semantics:
+      type: sat
+      dest: "ACC:P"
+      flags: [N, Z, C, V]
+
+  - name: CSB_ACC
+    full_name: "Count sign bits of ACC"
+    format: 16
+    opcode: 0x5635
+    mask: 0xFFFF
+    semantics:
+      type: csb
+      dest: T
+      src: ACC
+      flags: [N, Z, C, V]
+
+  - name: TEST_ACC
+    full_name: "Test ACC and set flags"
+    format: 16
+    opcode: 0xFF58
+    mask: 0xFFFF
+    semantics:
+      type: test
+      src: ACC
+      flags: [N, Z]
+
+  - name: ADD_ACC_LOC16_SHIFT1_15
+    full_name: "Add loc16 shifted 1-15 to ACC"
+    format: 32
+    opcode: 0x56040000
+    mask: 0xFFFC0000
+    objmode: 1
+    operands:
+      - { name: loc16, type: loc16, bits: [7, 0] }
+      - { name: shift, type: shift4, bits: [11, 8] }
+    semantics:
+      type: add
+      dest: ACC
+      src1: ACC
+      src2: "sign_extend(loc16) << shift"
+      flags: [N, Z, C, V]
+
+  - name: ADD_ACC_LOC16_SHIFT_T
+    full_name: "Add loc16 shifted by T to ACC"
+    format: 32
+    opcode: 0x56230000
+    mask: 0xFFFF0000
+    objmode: 1
+    operands:
+      - { name: loc16, type: loc16, bits: [7, 0] }
+    semantics:
+      type: add
+      dest: ACC
+      src1: ACC
+      src2: "sign_extend(loc16) << T"
+      flags: [N, Z, C, V]
+
+  - name: SUB_ACC_LOC16_SHIFT1_15_OBJMODE1
+    full_name: "Subtract loc16 shifted 1-15 from ACC"
+    format: 32
+    opcode: 0x56000000
+    mask: 0xFFFC0000
+    objmode: 1
+    operands:
+      - { name: loc16, type: loc16, bits: [7, 0] }
+      - { name: shift, type: shift4, bits: [11, 8] }
+    semantics:
+      type: sub
+      dest: ACC
+      src1: ACC
+      src2: "sign_extend(loc16) << shift"
+      flags: [N, Z, C, V]
+
+  - name: SUB_ACC_LOC16_SHIFT_T
+    full_name: "Subtract loc16 shifted by T from ACC"
+    format: 32
+    opcode: 0x56270000
+    mask: 0xFFFF0000
+    objmode: 1
+    operands:
+      - { name: loc16, type: loc16, bits: [7, 0] }
+    semantics:
+      type: sub
+      dest: ACC
+      src1: ACC
+      src2: "sign_extend(loc16) << T"
+      flags: [N, Z, C, V]
+
+  - name: SUB_ACC_CONST16_SHIFT
+    full_name: "Subtract 16-bit constant shifted from ACC"
+    format: 32
+    opcode: 0xFF000000
+    mask: 0xFF000000
+    objmode: 1
+    operands:
+      - { name: const16, type: imm16, bits: [15, 0] }
+      - { name: shift, type: shift4, bits: [19, 16] }
+    semantics:
+      type: sub
+      dest: ACC
+      src1: ACC
+      src2: "const16 << shift"
+      flags: [N, Z, C, V]
+
+  - name: ADD_ACC_LOC16_SHIFT0_15
+    full_name: "Add loc16 with shift 0-15 to ACC"
+    format: 16
+    opcode: 0xA000
+    mask: 0xF000
+    objmode: 1
+    operands:
+      - { name: loc16, type: loc16, bits: [7, 0] }
+      - { name: shift, type: shift4, bits: [11, 8] }
+    semantics:
+      type: add
+      dest: ACC
+      flags: [N, Z, C, V]
+
+  - name: ADDB_AX_CONST8
+    full_name: "Add 8-bit constant to AX"
+    format: 16
+    opcode: 0x9C00
+    mask: 0xFE00
+    objmode: 1
+    operands:
+      - { name: ax, type: ax, bits: [8, 8] }
+      - { name: const8, type: imm8, bits: [7, 0] }
+    semantics:
+      type: add
+      flags: [N, Z, C, V]

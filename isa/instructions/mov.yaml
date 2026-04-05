@@ -1,0 +1,1124 @@
+# TMS320C28x Move Instructions
+# Opcodes from INL bn-tic28x-arch opcodes.h (MIT)
+
+instructions:
+  # --- AX / ACC general moves ---
+  - name: MOV_AX_LOC16
+    full_name: "Move loc16 to AX"
+    format: 16
+    opcode: 0x9200
+    mask: 0xFE00
+    objmode: 1
+    operands:
+      - { name: ax, type: ax, bits: [8, 8] }
+      - { name: loc16, type: loc16, bits: [7, 0] }
+    semantics: { type: mov, dest: "AX", src: "loc16" }
+
+  - name: MOV_LOC16_AX
+    full_name: "Move AX to loc16"
+    format: 16
+    opcode: 0x9600
+    mask: 0xFE00
+    objmode: 1
+    operands:
+      - { name: loc16, type: loc16, bits: [7, 0] }
+      - { name: ax, type: ax, bits: [8, 8] }
+    semantics: { type: mov, dest: "loc16", src: "AX" }
+
+  - name: MOV_ACC_LOC16
+    full_name: "Move loc16 to ACC (sign-extended)"
+    format: 16
+    opcode: 0x8500
+    mask: 0xFF00
+    objmode: 1
+    operands:
+      - { name: loc16, type: loc16, bits: [7, 0] }
+    semantics: { type: mov, dest: ACC, src: "sign_extend(loc16)", flags: [N, Z] }
+
+  - name: MOV_ACC_CONST16_SHIFT
+    full_name: "Move 16-bit constant shifted to ACC"
+    format: 32
+    opcode: 0xFF200000
+    mask: 0xFF000000
+    objmode: 1
+    operands:
+      - { name: const16, type: imm16, bits: [15, 0] }
+      - { name: shift, type: shift4, bits: [19, 16] }
+    semantics: { type: mov, dest: ACC, flags: [N, Z] }
+
+  - name: MOV_LOC16_CONST16
+    full_name: "Move 16-bit constant to loc16"
+    format: 32
+    opcode: 0x28000000
+    mask: 0xFF000000
+    objmode: 1
+    operands:
+      - { name: loc16, type: loc16, bits: [23, 16] }
+      - { name: const16, type: imm16, bits: [15, 0] }
+    semantics: { type: mov, dest: "loc16", src: "const16" }
+
+  - name: MOV_ACC_LOC16_SHIFT16
+    full_name: "Move loc16 to high half of ACC"
+    format: 16
+    opcode: 0x2500
+    mask: 0xFF00
+    objmode: 1
+    operands:
+      - { name: loc16, type: loc16, bits: [7, 0] }
+    semantics: { type: mov, dest: ACC, flags: [N, Z] }
+
+  - name: MOV_LOC16_ACC_SHIFT1
+    full_name: "Move ACC>>1 to loc16"
+    format: 16
+    opcode: 0xB100
+    mask: 0xFF00
+    objmode: 1
+    operands:
+      - { name: loc16, type: loc16, bits: [7, 0] }
+    semantics: { type: mov }
+
+  - name: MOVH_LOC16_ACC_SHIFT1
+    full_name: "Move high ACC>>1 to loc16"
+    format: 16
+    opcode: 0xB300
+    mask: 0xFF00
+    objmode: 1
+    operands:
+      - { name: loc16, type: loc16, bits: [7, 0] }
+    semantics: { type: mov }
+
+  - name: MOVH_LOC16_P
+    full_name: "Move PH to loc16"
+    format: 16
+    opcode: 0x5700
+    mask: 0xFF00
+    objmode: 1
+    operands:
+      - { name: loc16, type: loc16, bits: [7, 0] }
+    semantics: { type: mov }
+
+  - name: MOV_LOC16_0
+    full_name: "Move zero to loc16"
+    format: 16
+    opcode: 0x2B00
+    mask: 0xFF00
+    objmode: 1
+    operands:
+      - { name: loc16, type: loc16, bits: [7, 0] }
+    semantics: { type: mov, src: 0 }
+
+  # --- DP moves ---
+  - name: MOV_DP_CONST10
+    full_name: "Move 10-bit constant to DP"
+    format: 16
+    opcode: 0xF800
+    mask: 0xFC00
+    objmode: 1
+    operands:
+      - { name: const10, type: imm10, bits: [9, 0] }
+    semantics: { type: mov, dest: DP }
+
+  - name: MOVW_DP_CONST16
+    full_name: "Move 16-bit constant to DP"
+    format: 32
+    opcode: 0x761F0000
+    mask: 0xFFFF0000
+    objmode: 1
+    operands:
+      - { name: const16, type: imm16, bits: [15, 0] }
+    semantics: { type: mov, dest: DP }
+
+  # --- MOVB (byte) ---
+  - name: MOVB_AX_CONST8
+    full_name: "Move 8-bit constant to AX"
+    format: 16
+    opcode: 0x9A00
+    mask: 0xFE00
+    objmode: 1
+    operands:
+      - { name: ax, type: ax, bits: [8, 8] }
+      - { name: const8, type: imm8, bits: [7, 0] }
+    semantics: { type: mov }
+
+  - name: MOVB_ACC_CONST8
+    full_name: "Move 8-bit constant to ACC"
+    format: 16
+    opcode: 0x0200
+    mask: 0xFF00
+    objmode: 1
+    operands:
+      - { name: const8, type: imm8, bits: [7, 0] }
+    semantics: { type: mov, dest: ACC, flags: [N, Z] }
+
+  - name: MOVB_XAR0_CONST8
+    full_name: "Move 8-bit constant to XAR0"
+    format: 16
+    opcode: 0xD000
+    mask: 0xFF00
+    operands:
+      - { name: const8, type: imm8, bits: [7, 0] }
+    semantics: { type: mov, dest: XAR0 }
+
+  - name: MOVB_XAR1_CONST8
+    full_name: "Move 8-bit constant to XAR1"
+    format: 16
+    opcode: 0xD100
+    mask: 0xFF00
+    operands:
+      - { name: const8, type: imm8, bits: [7, 0] }
+    semantics: { type: mov, dest: XAR1 }
+
+  - name: MOVB_XAR2_CONST8
+    full_name: "Move 8-bit constant to XAR2"
+    format: 16
+    opcode: 0xD200
+    mask: 0xFF00
+    operands:
+      - { name: const8, type: imm8, bits: [7, 0] }
+    semantics: { type: mov, dest: XAR2 }
+
+  - name: MOVB_XAR3_CONST8
+    full_name: "Move 8-bit constant to XAR3"
+    format: 16
+    opcode: 0xD300
+    mask: 0xFF00
+    operands:
+      - { name: const8, type: imm8, bits: [7, 0] }
+    semantics: { type: mov, dest: XAR3 }
+
+  - name: MOVB_XAR4_CONST8
+    full_name: "Move 8-bit constant to XAR4"
+    format: 16
+    opcode: 0xD400
+    mask: 0xFF00
+    operands:
+      - { name: const8, type: imm8, bits: [7, 0] }
+    semantics: { type: mov, dest: XAR4 }
+
+  - name: MOVB_XAR5_CONST8
+    full_name: "Move 8-bit constant to XAR5"
+    format: 16
+    opcode: 0xD500
+    mask: 0xFF00
+    operands:
+      - { name: const8, type: imm8, bits: [7, 0] }
+    semantics: { type: mov, dest: XAR5 }
+
+  - name: MOVB_XAR6_CONST8
+    full_name: "Move 8-bit constant to XAR6"
+    format: 16
+    opcode: 0xBE00
+    mask: 0xFF00
+    operands:
+      - { name: const8, type: imm8, bits: [7, 0] }
+    semantics: { type: mov, dest: XAR6 }
+
+  - name: MOVB_XAR7_CONST8
+    full_name: "Move 8-bit constant to XAR7"
+    format: 16
+    opcode: 0xB600
+    mask: 0xFF00
+    operands:
+      - { name: const8, type: imm8, bits: [7, 0] }
+    semantics: { type: mov, dest: XAR7 }
+
+  - name: MOVB_AR6_CONST8
+    full_name: "Move 8-bit constant to AR6"
+    format: 16
+    opcode: 0xD600
+    mask: 0xFF00
+    operands:
+      - { name: const8, type: imm8, bits: [7, 0] }
+    semantics: { type: mov, dest: AR6 }
+
+  - name: MOVB_AR7_CONST8
+    full_name: "Move 8-bit constant to AR7"
+    format: 16
+    opcode: 0xD700
+    mask: 0xFF00
+    operands:
+      - { name: const8, type: imm8, bits: [7, 0] }
+    semantics: { type: mov, dest: AR7 }
+
+  - name: MOVB_AXLSB_LOC16
+    full_name: "Move low byte of loc16 to AX LSB"
+    format: 16
+    opcode: 0xC600
+    mask: 0xFE00
+    objmode: 1
+    operands:
+      - { name: ax, type: ax, bits: [8, 8] }
+      - { name: loc16, type: loc16, bits: [7, 0] }
+    semantics: { type: mov }
+
+  - name: MOVB_AXMSB_LOC16
+    full_name: "Move low byte of loc16 to AX MSB"
+    format: 16
+    opcode: 0x3800
+    mask: 0xFE00
+    objmode: 1
+    operands:
+      - { name: ax, type: ax, bits: [8, 8] }
+      - { name: loc16, type: loc16, bits: [7, 0] }
+    semantics: { type: mov }
+
+  - name: MOVB_LOC16_AXLSB
+    full_name: "Move AX LSB to loc16"
+    format: 16
+    opcode: 0x3C00
+    mask: 0xFE00
+    objmode: 1
+    operands:
+      - { name: loc16, type: loc16, bits: [7, 0] }
+      - { name: ax, type: ax, bits: [8, 8] }
+    semantics: { type: mov }
+
+  - name: MOVB_LOC16_AXMSB
+    full_name: "Move AX MSB to loc16"
+    format: 16
+    opcode: 0xC800
+    mask: 0xFE00
+    objmode: 1
+    operands:
+      - { name: loc16, type: loc16, bits: [7, 0] }
+      - { name: ax, type: ax, bits: [8, 8] }
+    semantics: { type: mov }
+
+  # --- MOVL (32-bit) ---
+  - name: MOVL_ACC_LOC32
+    full_name: "Move loc32 to ACC"
+    format: 16
+    opcode: 0x0600
+    mask: 0xFF00
+    objmode: 1
+    operands:
+      - { name: loc32, type: loc32, bits: [7, 0] }
+    semantics: { type: mov, dest: ACC, flags: [N, Z] }
+
+  - name: MOVL_LOC32_ACC
+    full_name: "Move ACC to loc32"
+    format: 16
+    opcode: 0x1E00
+    mask: 0xFF00
+    objmode: 1
+    operands:
+      - { name: loc32, type: loc32, bits: [7, 0] }
+    semantics: { type: mov, src: ACC }
+
+  - name: MOVL_XAR0_CONST22
+    full_name: "Move 22-bit constant to XAR0"
+    format: 32
+    opcode: 0x8D000000
+    mask: 0xFFC00000
+    operands: [{ name: const22, type: imm22, bits: [21, 0] }]
+    semantics: { type: mov, dest: XAR0 }
+
+  - name: MOVL_XAR1_CONST22
+    full_name: "Move 22-bit constant to XAR1"
+    format: 32
+    opcode: 0x8D400000
+    mask: 0xFFC00000
+    operands: [{ name: const22, type: imm22, bits: [21, 0] }]
+    semantics: { type: mov, dest: XAR1 }
+
+  - name: MOVL_XAR2_CONST22
+    full_name: "Move 22-bit constant to XAR2"
+    format: 32
+    opcode: 0x8D800000
+    mask: 0xFFC00000
+    operands: [{ name: const22, type: imm22, bits: [21, 0] }]
+    semantics: { type: mov, dest: XAR2 }
+
+  - name: MOVL_XAR3_CONST22
+    full_name: "Move 22-bit constant to XAR3"
+    format: 32
+    opcode: 0x8DC00000
+    mask: 0xFFC00000
+    operands: [{ name: const22, type: imm22, bits: [21, 0] }]
+    semantics: { type: mov, dest: XAR3 }
+
+  - name: MOVL_XAR4_CONST22
+    full_name: "Move 22-bit constant to XAR4"
+    format: 32
+    opcode: 0x8F000000
+    mask: 0xFFC00000
+    operands: [{ name: const22, type: imm22, bits: [21, 0] }]
+    semantics: { type: mov, dest: XAR4 }
+
+  - name: MOVL_XAR5_CONST22
+    full_name: "Move 22-bit constant to XAR5"
+    format: 32
+    opcode: 0x8F400000
+    mask: 0xFFC00000
+    operands: [{ name: const22, type: imm22, bits: [21, 0] }]
+    semantics: { type: mov, dest: XAR5 }
+
+  - name: MOVL_XAR6_CONST22
+    full_name: "Move 22-bit constant to XAR6"
+    format: 32
+    opcode: 0x76800000
+    mask: 0xFFC00000
+    operands: [{ name: const22, type: imm22, bits: [21, 0] }]
+    semantics: { type: mov, dest: XAR6 }
+
+  - name: MOVL_XAR7_CONST22
+    full_name: "Move 22-bit constant to XAR7"
+    format: 32
+    opcode: 0x76C00000
+    mask: 0xFFC00000
+    operands: [{ name: const22, type: imm22, bits: [21, 0] }]
+    semantics: { type: mov, dest: XAR7 }
+
+  - name: MOVL_XAR0_LOC32
+    full_name: "Move loc32 to XAR0"
+    format: 16
+    opcode: 0x8E00
+    mask: 0xFF00
+    operands: [{ name: loc32, type: loc32, bits: [7, 0] }]
+    semantics: { type: mov, dest: XAR0 }
+
+  - name: MOVL_XAR1_LOC32
+    full_name: "Move loc32 to XAR1"
+    format: 16
+    opcode: 0x8B00
+    mask: 0xFF00
+    operands: [{ name: loc32, type: loc32, bits: [7, 0] }]
+    semantics: { type: mov, dest: XAR1 }
+
+  - name: MOVL_XAR2_LOC32
+    full_name: "Move loc32 to XAR2"
+    format: 16
+    opcode: 0x8600
+    mask: 0xFF00
+    operands: [{ name: loc32, type: loc32, bits: [7, 0] }]
+    semantics: { type: mov, dest: XAR2 }
+
+  - name: MOVL_XAR3_LOC32
+    full_name: "Move loc32 to XAR3"
+    format: 16
+    opcode: 0x8200
+    mask: 0xFF00
+    operands: [{ name: loc32, type: loc32, bits: [7, 0] }]
+    semantics: { type: mov, dest: XAR3 }
+
+  - name: MOVL_XAR4_LOC32
+    full_name: "Move loc32 to XAR4"
+    format: 16
+    opcode: 0x8A00
+    mask: 0xFF00
+    operands: [{ name: loc32, type: loc32, bits: [7, 0] }]
+    semantics: { type: mov, dest: XAR4 }
+
+  - name: MOVL_XAR5_LOC32
+    full_name: "Move loc32 to XAR5"
+    format: 16
+    opcode: 0x8300
+    mask: 0xFF00
+    operands: [{ name: loc32, type: loc32, bits: [7, 0] }]
+    semantics: { type: mov, dest: XAR5 }
+
+  - name: MOVL_XAR6_LOC32
+    full_name: "Move loc32 to XAR6"
+    format: 16
+    opcode: 0xC400
+    mask: 0xFF00
+    operands: [{ name: loc32, type: loc32, bits: [7, 0] }]
+    semantics: { type: mov, dest: XAR6 }
+
+  - name: MOVL_XAR7_LOC32
+    full_name: "Move loc32 to XAR7"
+    format: 16
+    opcode: 0xC500
+    mask: 0xFF00
+    operands: [{ name: loc32, type: loc32, bits: [7, 0] }]
+    semantics: { type: mov, dest: XAR7 }
+
+  - name: MOVL_LOC32_XAR0
+    full_name: "Move XAR0 to loc32"
+    format: 16
+    opcode: 0x3A00
+    mask: 0xFF00
+    operands: [{ name: loc32, type: loc32, bits: [7, 0] }]
+    semantics: { type: mov, src: XAR0 }
+
+  - name: MOVL_LOC32_XAR1
+    full_name: "Move XAR1 to loc32"
+    format: 16
+    opcode: 0xB200
+    mask: 0xFF00
+    operands: [{ name: loc32, type: loc32, bits: [7, 0] }]
+    semantics: { type: mov, src: XAR1 }
+
+  - name: MOVL_LOC32_XAR2
+    full_name: "Move XAR2 to loc32"
+    format: 16
+    opcode: 0xAA00
+    mask: 0xFF00
+    operands: [{ name: loc32, type: loc32, bits: [7, 0] }]
+    semantics: { type: mov, src: XAR2 }
+
+  - name: MOVL_LOC32_XAR3
+    full_name: "Move XAR3 to loc32"
+    format: 16
+    opcode: 0xA200
+    mask: 0xFF00
+    operands: [{ name: loc32, type: loc32, bits: [7, 0] }]
+    semantics: { type: mov, src: XAR3 }
+
+  - name: MOVL_LOC32_XAR4
+    full_name: "Move XAR4 to loc32"
+    format: 16
+    opcode: 0xA800
+    mask: 0xFF00
+    operands: [{ name: loc32, type: loc32, bits: [7, 0] }]
+    semantics: { type: mov, src: XAR4 }
+
+  - name: MOVL_LOC32_XAR5
+    full_name: "Move XAR5 to loc32"
+    format: 16
+    opcode: 0xA000
+    mask: 0xFF00
+    operands: [{ name: loc32, type: loc32, bits: [7, 0] }]
+    semantics: { type: mov, src: XAR5 }
+
+  - name: MOVL_LOC32_XAR6
+    full_name: "Move XAR6 to loc32"
+    format: 16
+    opcode: 0xC200
+    mask: 0xFF00
+    operands: [{ name: loc32, type: loc32, bits: [7, 0] }]
+    semantics: { type: mov, src: XAR6 }
+
+  - name: MOVL_LOC32_XAR7
+    full_name: "Move XAR7 to loc32"
+    format: 16
+    opcode: 0xC300
+    mask: 0xFF00
+    operands: [{ name: loc32, type: loc32, bits: [7, 0] }]
+    semantics: { type: mov, src: XAR7 }
+
+  - name: MOVL_LOC32_P
+    full_name: "Move P to loc32"
+    format: 16
+    opcode: 0xA900
+    mask: 0xFF00
+    operands: [{ name: loc32, type: loc32, bits: [7, 0] }]
+    semantics: { type: mov, src: P }
+
+  - name: MOVL_LOC32_XT
+    full_name: "Move XT to loc32"
+    format: 16
+    opcode: 0xAB00
+    mask: 0xFF00
+    operands: [{ name: loc32, type: loc32, bits: [7, 0] }]
+    semantics: { type: mov, src: XT }
+
+  - name: MOVL_P_LOC32
+    full_name: "Move loc32 to P"
+    format: 16
+    opcode: 0xA300
+    mask: 0xFF00
+    operands: [{ name: loc32, type: loc32, bits: [7, 0] }]
+    semantics: { type: mov, dest: P }
+
+  - name: MOVL_P_ACC
+    full_name: "Move ACC to P"
+    format: 16
+    opcode: 0xFF5A
+    mask: 0xFFFF
+    semantics: { type: mov, dest: P, src: ACC }
+
+  - name: MOVL_XT_LOC32
+    full_name: "Move loc32 to XT"
+    format: 16
+    opcode: 0x8700
+    mask: 0xFF00
+    operands: [{ name: loc32, type: loc32, bits: [7, 0] }]
+    semantics: { type: mov, dest: XT }
+
+  # --- MOVZ (zero-extend to ARn) ---
+  - name: MOVZ_AR0_LOC16
+    full_name: "Move loc16 zero-extended to AR0"
+    format: 16
+    opcode: 0x5800
+    mask: 0xFF00
+    operands: [{ name: loc16, type: loc16, bits: [7, 0] }]
+    semantics: { type: mov, dest: AR0 }
+
+  - name: MOVZ_AR1_LOC16
+    full_name: "Move loc16 zero-extended to AR1"
+    format: 16
+    opcode: 0x5900
+    mask: 0xFF00
+    operands: [{ name: loc16, type: loc16, bits: [7, 0] }]
+    semantics: { type: mov, dest: AR1 }
+
+  - name: MOVZ_AR2_LOC16
+    full_name: "Move loc16 zero-extended to AR2"
+    format: 16
+    opcode: 0x5A00
+    mask: 0xFF00
+    operands: [{ name: loc16, type: loc16, bits: [7, 0] }]
+    semantics: { type: mov, dest: AR2 }
+
+  - name: MOVZ_AR3_LOC16
+    full_name: "Move loc16 zero-extended to AR3"
+    format: 16
+    opcode: 0x5B00
+    mask: 0xFF00
+    operands: [{ name: loc16, type: loc16, bits: [7, 0] }]
+    semantics: { type: mov, dest: AR3 }
+
+  - name: MOVZ_AR4_LOC16
+    full_name: "Move loc16 zero-extended to AR4"
+    format: 16
+    opcode: 0x5C00
+    mask: 0xFF00
+    operands: [{ name: loc16, type: loc16, bits: [7, 0] }]
+    semantics: { type: mov, dest: AR4 }
+
+  - name: MOVZ_AR5_LOC16
+    full_name: "Move loc16 zero-extended to AR5"
+    format: 16
+    opcode: 0x5D00
+    mask: 0xFF00
+    operands: [{ name: loc16, type: loc16, bits: [7, 0] }]
+    semantics: { type: mov, dest: AR5 }
+
+  - name: MOVZ_AR6_LOC16
+    full_name: "Move loc16 zero-extended to AR6"
+    format: 16
+    opcode: 0x8800
+    mask: 0xFF00
+    operands: [{ name: loc16, type: loc16, bits: [7, 0] }]
+    semantics: { type: mov, dest: AR6 }
+
+  - name: MOVZ_AR7_LOC16
+    full_name: "Move loc16 zero-extended to AR7"
+    format: 16
+    opcode: 0x8000
+    mask: 0xFF00
+    operands: [{ name: loc16, type: loc16, bits: [7, 0] }]
+    semantics: { type: mov, dest: AR7 }
+
+  # --- System register moves ---
+  - name: MOV_T_LOC16
+    full_name: "Move loc16 to T register"
+    format: 16
+    opcode: 0x2D00
+    mask: 0xFF00
+    operands: [{ name: loc16, type: loc16, bits: [7, 0] }]
+    semantics: { type: mov, dest: T }
+
+  - name: MOV_LOC16_T
+    full_name: "Move T register to loc16"
+    format: 16
+    opcode: 0x2100
+    mask: 0xFF00
+    operands: [{ name: loc16, type: loc16, bits: [7, 0] }]
+    semantics: { type: mov, src: T }
+
+  - name: MOV_PH_LOC16
+    full_name: "Move loc16 to PH"
+    format: 16
+    opcode: 0x2F00
+    mask: 0xFF00
+    operands: [{ name: loc16, type: loc16, bits: [7, 0] }]
+    semantics: { type: mov, dest: PH }
+
+  - name: MOV_PL_LOC16
+    full_name: "Move loc16 to PL"
+    format: 16
+    opcode: 0x2700
+    mask: 0xFF00
+    operands: [{ name: loc16, type: loc16, bits: [7, 0] }]
+    semantics: { type: mov, dest: PL }
+
+  - name: MOV_LOC16_P
+    full_name: "Move PL to loc16"
+    format: 16
+    opcode: 0x3F00
+    mask: 0xFF00
+    operands: [{ name: loc16, type: loc16, bits: [7, 0] }]
+    semantics: { type: mov, src: P }
+
+  - name: MOV_IER_LOC16
+    full_name: "Move loc16 to IER"
+    format: 16
+    opcode: 0x2300
+    mask: 0xFF00
+    operands: [{ name: loc16, type: loc16, bits: [7, 0] }]
+    semantics: { type: mov, dest: IER }
+
+  - name: MOV_LOC16_IER
+    full_name: "Move IER to loc16"
+    format: 16
+    opcode: 0x2000
+    mask: 0xFF00
+    operands: [{ name: loc16, type: loc16, bits: [7, 0] }]
+    semantics: { type: mov, src: IER }
+
+  - name: MOV_AR6_LOC16
+    full_name: "Move loc16 to AR6"
+    format: 16
+    opcode: 0x5E00
+    mask: 0xFF00
+    operands: [{ name: loc16, type: loc16, bits: [7, 0] }]
+    semantics: { type: mov, dest: AR6 }
+
+  - name: MOV_AR7_LOC16
+    full_name: "Move loc16 to AR7"
+    format: 16
+    opcode: 0x5F00
+    mask: 0xFF00
+    operands: [{ name: loc16, type: loc16, bits: [7, 0] }]
+    semantics: { type: mov, dest: AR7 }
+
+  - name: MOV_LOC16_ARN
+    full_name: "Move ARn to loc16"
+    format: 16
+    opcode: 0x7800
+    mask: 0xF800
+    operands:
+      - { name: loc16, type: loc16, bits: [7, 0] }
+      - { name: n, type: reg3, bits: [10, 8] }
+    semantics: { type: mov }
+
+  - name: MOV_TL_0
+    full_name: "Clear TL register"
+    format: 16
+    opcode: 0x5656
+    mask: 0xFFFF
+    semantics: { type: mov, dest: TL, src: 0 }
+
+  - name: MOV_XARN_PC
+    full_name: "Move PC to XARn"
+    format: 16
+    opcode: 0x3E58
+    mask: 0xFFF8
+    operands:
+      - { name: n, type: reg3, bits: [2, 0] }
+    semantics: { type: mov, dest: "XARn", src: PC }
+
+  - name: MOV_PM_AX
+    full_name: "Move AX to PM field"
+    format: 16
+    opcode: 0x5638
+    mask: 0xFFFE
+    operands:
+      - { name: ax, type: ax, bits: [0, 0] }
+    semantics: { type: mov }
+
+  - name: MOVU_ACC_LOC16
+    full_name: "Move loc16 to ACC (zero-extended)"
+    format: 16
+    opcode: 0x0E00
+    mask: 0xFF00
+    objmode: 1
+    operands:
+      - { name: loc16, type: loc16, bits: [7, 0] }
+    semantics: { type: mov, dest: ACC, flags: [N, Z] }
+
+  - name: MOVA_T_LOC16
+    full_name: "Move loc16 to T and add prev product"
+    format: 16
+    opcode: 0x1000
+    mask: 0xFF00
+    operands: [{ name: loc16, type: loc16, bits: [7, 0] }]
+    semantics: { type: mov, dest: T }
+
+  - name: MOVS_T_LOC16
+    full_name: "Move loc16 to T and subtract prev product"
+    format: 16
+    opcode: 0x1100
+    mask: 0xFF00
+    operands: [{ name: loc16, type: loc16, bits: [7, 0] }]
+    semantics: { type: mov, dest: T }
+
+  - name: MOVP_T_LOC16
+    full_name: "Move loc16 to T and store P"
+    format: 16
+    opcode: 0x1600
+    mask: 0xFF00
+    operands: [{ name: loc16, type: loc16, bits: [7, 0] }]
+    semantics: { type: mov, dest: T }
+
+  - name: MOVAD_T_LOC16
+    full_name: "Move loc16 to T, add prev product and DMOV"
+    format: 16
+    opcode: 0xA700
+    mask: 0xFF00
+    operands: [{ name: loc16, type: loc16, bits: [7, 0] }]
+    semantics: { type: mov, dest: T }
+
+  - name: MOVDL_XT_LOC32
+    full_name: "Move loc32 to XT with data move"
+    format: 16
+    opcode: 0xA600
+    mask: 0xFF00
+    operands: [{ name: loc32, type: loc32, bits: [7, 0] }]
+    semantics: { type: mov, dest: XT }
+
+  - name: DMOV_LOC16
+    full_name: "Data move loc16"
+    format: 16
+    opcode: 0xA500
+    mask: 0xFF00
+    operands: [{ name: loc16, type: loc16, bits: [7, 0] }]
+    semantics: { type: mov }
+
+  # --- PUSH / POP ---
+  - name: PUSH_LOC16
+    full_name: "Push loc16 to stack"
+    format: 16
+    opcode: 0x2200
+    mask: 0xFF00
+    objmode: 1
+    operands: [{ name: loc16, type: loc16, bits: [7, 0] }]
+    semantics: { type: push }
+
+  - name: POP_LOC16
+    full_name: "Pop from stack to loc16"
+    format: 16
+    opcode: 0x2A00
+    mask: 0xFF00
+    objmode: 1
+    operands: [{ name: loc16, type: loc16, bits: [7, 0] }]
+    semantics: { type: pop }
+
+  - name: PUSH_AR1_AR0
+    full_name: "Push AR1:AR0"
+    format: 16
+    opcode: 0x760D
+    mask: 0xFFFF
+    semantics: { type: push, src: "AR1:AR0" }
+
+  - name: PUSH_AR3_AR2
+    full_name: "Push AR3:AR2"
+    format: 16
+    opcode: 0x760F
+    mask: 0xFFFF
+    semantics: { type: push, src: "AR3:AR2" }
+
+  - name: PUSH_AR5_AR4
+    full_name: "Push AR5:AR4"
+    format: 16
+    opcode: 0x760C
+    mask: 0xFFFF
+    semantics: { type: push, src: "AR5:AR4" }
+
+  - name: PUSH_AR1H_AR0H
+    full_name: "Push AR1H:AR0H"
+    format: 16
+    opcode: 0x0005
+    mask: 0xFFFF
+    semantics: { type: push }
+
+  - name: PUSH_DP
+    full_name: "Push DP"
+    format: 16
+    opcode: 0x760B
+    mask: 0xFFFF
+    semantics: { type: push, src: DP }
+
+  - name: PUSH_DP_ST1
+    full_name: "Push DP:ST1"
+    format: 16
+    opcode: 0x7609
+    mask: 0xFFFF
+    semantics: { type: push, src: "DP:ST1" }
+
+  - name: PUSH_IFR
+    full_name: "Push IFR"
+    format: 16
+    opcode: 0x760A
+    mask: 0xFFFF
+    semantics: { type: push, src: IFR }
+
+  - name: PUSH_P
+    full_name: "Push P"
+    format: 16
+    opcode: 0x761D
+    mask: 0xFFFF
+    semantics: { type: push, src: P }
+
+  - name: PUSH_RPC
+    full_name: "Push RPC"
+    format: 16
+    opcode: 0x0004
+    mask: 0xFFFF
+    semantics: { type: push, src: RPC }
+
+  - name: PUSH_ST0
+    full_name: "Push ST0"
+    format: 16
+    opcode: 0x7618
+    mask: 0xFFFF
+    semantics: { type: push, src: ST0 }
+
+  - name: PUSH_ST1
+    full_name: "Push ST1"
+    format: 16
+    opcode: 0x7608
+    mask: 0xFFFF
+    semantics: { type: push, src: ST1 }
+
+  - name: PUSH_T_ST0
+    full_name: "Push T:ST0"
+    format: 16
+    opcode: 0x7619
+    mask: 0xFFFF
+    semantics: { type: push, src: "T:ST0" }
+
+  - name: PUSH_XT
+    full_name: "Push XT"
+    format: 16
+    opcode: 0xABBD
+    mask: 0xFFFF
+    semantics: { type: push, src: XT }
+
+  - name: PUSH_DBGIER
+    full_name: "Push DBGIER"
+    format: 16
+    opcode: 0x760E
+    mask: 0xFFFF
+    semantics: { type: push, src: DBGIER }
+
+  - name: POP_AR1_AR0
+    full_name: "Pop AR1:AR0"
+    format: 16
+    opcode: 0x7607
+    mask: 0xFFFF
+    semantics: { type: pop, dest: "AR1:AR0" }
+
+  - name: POP_AR3_AR2
+    full_name: "Pop AR3:AR2"
+    format: 16
+    opcode: 0x7605
+    mask: 0xFFFF
+    semantics: { type: pop, dest: "AR3:AR2" }
+
+  - name: POP_AR5_AR4
+    full_name: "Pop AR5:AR4"
+    format: 16
+    opcode: 0x7606
+    mask: 0xFFFF
+    semantics: { type: pop, dest: "AR5:AR4" }
+
+  - name: POP_AR1H_AR0H
+    full_name: "Pop AR1H:AR0H"
+    format: 16
+    opcode: 0x0003
+    mask: 0xFFFF
+    semantics: { type: pop }
+
+  - name: POP_DP
+    full_name: "Pop DP"
+    format: 16
+    opcode: 0x7603
+    mask: 0xFFFF
+    semantics: { type: pop, dest: DP }
+
+  - name: POP_DP_ST1
+    full_name: "Pop DP:ST1"
+    format: 16
+    opcode: 0x7601
+    mask: 0xFFFF
+    semantics: { type: pop, dest: "DP:ST1" }
+
+  - name: POP_IFR
+    full_name: "Pop IFR"
+    format: 16
+    opcode: 0x0002
+    mask: 0xFFFF
+    semantics: { type: pop, dest: IFR }
+
+  - name: POP_P
+    full_name: "Pop P"
+    format: 16
+    opcode: 0x7611
+    mask: 0xFFFF
+    semantics: { type: pop, dest: P }
+
+  - name: POP_RPC
+    full_name: "Pop RPC"
+    format: 16
+    opcode: 0x0007
+    mask: 0xFFFF
+    semantics: { type: pop, dest: RPC }
+
+  - name: POP_ST0
+    full_name: "Pop ST0"
+    format: 16
+    opcode: 0x7613
+    mask: 0xFFFF
+    semantics: { type: pop, dest: ST0 }
+
+  - name: POP_ST1
+    full_name: "Pop ST1"
+    format: 16
+    opcode: 0x7600
+    mask: 0xFFFF
+    semantics: { type: pop, dest: ST1 }
+
+  - name: POP_T_ST0
+    full_name: "Pop T:ST0"
+    format: 16
+    opcode: 0x7615
+    mask: 0xFFFF
+    semantics: { type: pop, dest: "T:ST0" }
+
+  - name: POP_XT
+    full_name: "Pop XT"
+    format: 16
+    opcode: 0x87BE
+    mask: 0xFFFF
+    semantics: { type: pop, dest: XT }
+
+  - name: POP_DBGIER
+    full_name: "Pop DBGIER"
+    format: 16
+    opcode: 0x7612
+    mask: 0xFFFF
+    semantics: { type: pop, dest: DBGIER }
+
+  - name: ZALR_ACC_LOC16
+    full_name: "Zero ACC low, load ACC high, round"
+    format: 32
+    opcode: 0x56130000
+    mask: 0xFFFF0000
+    operands: [{ name: loc16, type: loc16, bits: [7, 0] }]
+    semantics: { type: mov, dest: ACC }
+
+  - name: MOVX_TL_LOC16
+    full_name: "Move loc16 sign-extended to TL"
+    format: 32
+    opcode: 0x56210000
+    mask: 0xFFFF0000
+    operands: [{ name: loc16, type: loc16, bits: [7, 0] }]
+    semantics: { type: mov, dest: TL }
+
+  - name: MOV_ACC_LOC16_SHIFT1_15_OBJMODE1
+    full_name: "Move loc16 shifted 1-15 to ACC"
+    format: 32
+    opcode: 0x56030000
+    mask: 0xFFFC0000
+    objmode: 1
+    operands:
+      - { name: loc16, type: loc16, bits: [7, 0] }
+      - { name: shift, type: shift4, bits: [11, 8] }
+    semantics: { type: mov, dest: ACC, flags: [N, Z] }
+
+  - name: MOV_ACC_LOC16_SHIFT_T
+    full_name: "Move loc16 shifted by T to ACC"
+    format: 32
+    opcode: 0x56060000
+    mask: 0xFFFF0000
+    objmode: 1
+    operands:
+      - { name: loc16, type: loc16, bits: [7, 0] }
+    semantics: { type: mov, dest: ACC, flags: [N, Z] }
+
+  - name: MOV_LOC16_ACC_SHIFT2_8_OBJMODE_1
+    full_name: "Move ACC shifted right 2-8 to loc16"
+    format: 32
+    opcode: 0x562D0000
+    mask: 0xFFFF0000
+    objmode: 1
+    operands:
+      - { name: loc16, type: loc16, bits: [7, 0] }
+      - { name: shift, type: shift4, bits: [11, 8] }
+    semantics: { type: mov }
+
+  - name: MOVH_LOC16_ACC_SHIFT2_8_OBJMODE_1
+    full_name: "Move high ACC shifted right 2-8 to loc16"
+    format: 32
+    opcode: 0x562F0000
+    mask: 0xFFFF0000
+    objmode: 1
+    operands:
+      - { name: loc16, type: loc16, bits: [7, 0] }
+      - { name: shift, type: shift4, bits: [11, 8] }
+    semantics: { type: mov }
+
+  - name: MOVU_LOC16_OVC
+    full_name: "Move OVC to loc16 unsigned"
+    format: 32
+    opcode: 0x56280000
+    mask: 0xFFFF0000
+    operands:
+      - { name: loc16, type: loc16, bits: [7, 0] }
+    semantics: { type: mov }
+
+  - name: MOV_OVC_LOC16
+    full_name: "Move loc16 to OVC"
+    format: 32
+    opcode: 0x56020000
+    mask: 0xFFFF0000
+    operands:
+      - { name: loc16, type: loc16, bits: [7, 0] }
+    semantics: { type: mov }
+
+  - name: MOV_LOC16_OVC
+    full_name: "Move OVC to loc16"
+    format: 32
+    opcode: 0x56290000
+    mask: 0xFFFF0000
+    operands:
+      - { name: loc16, type: loc16, bits: [7, 0] }
+    semantics: { type: mov }
+
+  - name: MOV_LOC16_AX_COND
+    full_name: "Conditional move AX to loc16"
+    format: 32
+    opcode: 0x562A0000
+    mask: 0xFFFE0000
+    operands:
+      - { name: loc16, type: loc16, bits: [7, 0] }
+      - { name: ax, type: ax, bits: [16, 16] }
+      - { name: cond, type: cond4, bits: [11, 8] }
+    semantics: { type: mov }
+
+  - name: MOVB_LOC16_CONST8_COND
+    full_name: "Conditional move 8-bit const to loc16"
+    format: 32
+    opcode: 0x56B00000
+    mask: 0xFFF00000
+    operands:
+      - { name: loc16, type: loc16, bits: [7, 0] }
+      - { name: const8, type: imm8, bits: [15, 8] }
+      - { name: cond, type: cond4, bits: [19, 16] }
+    semantics: { type: mov }
+
+  - name: MOVL_LOC32_ACC_COND
+    full_name: "Conditional move ACC to loc32"
+    format: 32
+    opcode: 0x56480000
+    mask: 0xFFF00000
+    operands:
+      - { name: loc32, type: loc32, bits: [7, 0] }
+      - { name: cond, type: cond4, bits: [19, 16] }
+    semantics: { type: mov }
+
+  # --- MOV with absolute 16-bit addressing ---
+  - name: MOV_LOC16_ABS16
+    full_name: "Move from absolute 16-bit address to loc16"
+    format: 32
+    opcode: 0xBF000000
+    mask: 0xFF000000
+    objmode: 1
+    operands:
+      - { name: loc16, type: loc16, bits: [23, 16] }
+      - { name: addr16, type: imm16, bits: [15, 0] }
+    semantics: { type: mov, src: "*(0:addr16)" }
+
+  - name: MOV_ABS16_LOC16
+    full_name: "Move loc16 to absolute 16-bit address"
+    format: 32
+    opcode: 0xBD000000
+    mask: 0xFF000000
+    objmode: 1
+    operands:
+      - { name: addr16, type: imm16, bits: [15, 0] }
+      - { name: loc16, type: loc16, bits: [23, 16] }
+    semantics: { type: mov, dest: "*(0:addr16)" }

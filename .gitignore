@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+.eggs/
+.pytest_cache/
+.venv/
+
+# Rust
+rust/target/
+
+# Nix
+result
+.direnv/
+
+# Build artifacts
+build/
+*.so
+*.out
+
+# Test fixtures (compiled binaries — rebuilt from source)
+tests/fixtures/build/
+tests/fixtures/c2000ware/build/
+tests/fixtures/c2000ware/sdk/
+
+# Editor / tool state
+.claude/
+*.swp
+*~
+
+# Package manager locks (reproducible via flake.lock / uv.lock)
+uv.lock

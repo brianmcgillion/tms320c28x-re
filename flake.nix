@@ -1,0 +1,117 @@
+{
+  description = "TMS320C28x reverse engineering tools";
+
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+  };
+
+  outputs = { self, nixpkgs }:
+    let
+      systems = [ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" ];
+      forAllSystems = f: nixpkgs.lib.genAttrs systems (system: f nixpkgs.legacyPackages.${system});
+
+      # TI C2000 Code Generation Tools (cl2000 compiler) — x86_64-linux only
+      ti-cgt-c2000 = { pkgs }: pkgs.stdenv.mkDerivation rec {
+        pname = "ti-cgt-c2000";
+        version = "22.6.3.LTS";
+        src = pkgs.fetchurl {
+          url = "https://dr-download.ti.com/software-development/ide-configuration-compiler-or-debugger/MD-xqxJ05PLfM/${version}/ti_cgt_c2000_${version}_linux-x64_installer.bin";
+          hash = "sha256-9mUf4hVzxWSVccrDTMBxnwELQ+a9ZARc3xV9zmMWZ+U=";
+        };
+        nativeBuildInputs = [ pkgs.autoPatchelfHook ];
+        buildInputs = [ pkgs.stdenv.cc.cc.lib pkgs.ncurses ];
+        dontUnpack = true;
+        installPhase = ''
+          # Patch the installer's ELF interpreter so it can run in the nix sandbox
+          install -m755 $src $TMPDIR/installer.bin
+          patchelf --set-interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" $TMPDIR/installer.bin
+          $TMPDIR/installer.bin --mode unattended --prefix $TMPDIR/cgt
+          # Flatten: move from cgt/ti-cgt-c2000_VERSION/* to $out/*
+          mkdir -p $out
+          mv $TMPDIR/cgt/ti-cgt-c2000_${version}/* $out/
+        '';
+        meta = {
+          description = "TI C2000 Code Generation Tools (cl2000 cross-compiler)";
+          homepage = "https://www.ti.com/tool/C2000-CGT";
+          platforms = [ "x86_64-linux" ];
+        };
+      };
+    in
+    {
+      # nix run .#tests — full test suite (run from repo root)
+      apps = forAllSystems (pkgs: {
+        tests = {
+          type = "app";
+          program = let
+            testScript = pkgs.writeShellScript "run-tests" ''
+              export PATH="${pkgs.lib.makeBinPath (with pkgs; [
+                rustc cargo patchelf python313 uv git coreutils
+              ] ++ pkgs.lib.optionals (pkgs.stdenv.isLinux && pkgs.stdenv.isx86_64) [
+                (ti-cgt-c2000 { inherit pkgs; })
+              ])}:$PATH"
+              export LIBCLANG_PATH="${pkgs.llvmPackages.libclang.lib}/lib"
+              export BINDGEN_EXTRA_CLANG_ARGS="-isystem ${pkgs.llvmPackages.libcxx.dev}/include/c++/v1 -isystem ${pkgs.glibc.dev}/include"
+
+              # Auto-detect BN from system PATH (not from nix — BN is impure)
+              for p in $(echo "$ORIGINAL_PATH" | tr ':' ' ') /usr/bin /usr/local/bin; do
+                if [ -x "$p/binaryninja" ]; then
+                  _bn_real="$(readlink -f "$p/binaryninja")"
+                  _bn_prefix="$(dirname "$(dirname "$_bn_real")")"
+                  export BINARYNINJADIR="$_bn_prefix/opt/binaryninja"
+                  export PATH="$p:$PATH"
+                  break
+                fi
+              done
+
+              exec ${./scripts/run_all_tests.sh}
+            '';
+          in "${testScript}";
+        };
+      });
+
+      devShells = forAllSystems (pkgs: {
+        default = pkgs.mkShell {
+          packages = with pkgs; [
+            # Python
+            python313
+            uv
+
+            # Rust
+            rustc
+            cargo
+            rust-analyzer
+            clippy
+            rustfmt
+            pkg-config
+            llvmPackages.libclang
+
+            # LSP servers
+            basedpyright # type checking + completions
+            ruff # linting + formatting (includes ruff server)
+            semgrep # security/SAST analysis (includes semgrep lsp)
+          ] ++ pkgs.lib.optionals (pkgs.stdenv.isLinux && pkgs.stdenv.isx86_64) [
+            # TI C2000 cross-compiler (x86_64-linux only)
+            (ti-cgt-c2000 { inherit pkgs; })
+          ];
+
+          LIBCLANG_PATH = "${pkgs.llvmPackages.libclang.lib}/lib";
+          BINDGEN_EXTRA_CLANG_ARGS = "-isystem ${pkgs.llvmPackages.libcxx.dev}/include/c++/v1 -isystem ${pkgs.glibc.dev}/include";
+
+          shellHook = ''
+            # Auto-detect BINARYNINJADIR from PATH (needed by binaryninjacore-sys)
+            if command -v binaryninja &>/dev/null && [ -z "''${BINARYNINJADIR:-}" ]; then
+              _bn_real="$(readlink -f "$(which binaryninja)")"
+              _bn_prefix="$(dirname "$(dirname "$_bn_real")")"
+              export BINARYNINJADIR="$_bn_prefix/opt/binaryninja"
+            fi
+
+            # Activate venv if it exists, otherwise create it
+            if [ ! -d .venv ]; then
+              uv venv
+            fi
+            source .venv/bin/activate
+          '';
+        };
+      });
+    };
+}

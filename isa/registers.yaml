@@ -1,0 +1,94 @@
+# TMS320C28x Register File
+# Reference: TI SPRU430F, Chapter 2; INL bn-tic28x-arch registers.h
+#
+# Sizes are in bytes. The C28x is word-addressable (16-bit words) but
+# we use byte sizes for compatibility with Binary Ninja and other tools.
+# PC and RPC are 22-bit but modeled as 4-byte for alignment.
+
+registers:
+  # 32-bit accumulator
+  ACC:
+    size: 4
+    sub:
+      AH: { offset: 2, size: 2 }
+      AL: { offset: 0, size: 2 }
+
+  # 32-bit auxiliary registers (8 total)
+  XAR0:
+    size: 4
+    sub:
+      AR0: { offset: 0, size: 2 }
+      AR0H: { offset: 2, size: 2 }
+  XAR1:
+    size: 4
+    sub:
+      AR1: { offset: 0, size: 2 }
+      AR1H: { offset: 2, size: 2 }
+  XAR2:
+    size: 4
+    sub:
+      AR2: { offset: 0, size: 2 }
+      AR2H: { offset: 2, size: 2 }
+  XAR3:
+    size: 4
+    sub:
+      AR3: { offset: 0, size: 2 }
+      AR3H: { offset: 2, size: 2 }
+  XAR4:
+    size: 4
+    sub:
+      AR4: { offset: 0, size: 2 }
+      AR4H: { offset: 2, size: 2 }
+  XAR5:
+    size: 4
+    sub:
+      AR5: { offset: 0, size: 2 }
+      AR5H: { offset: 2, size: 2 }
+  XAR6:
+    size: 4
+    sub:
+      AR6: { offset: 0, size: 2 }
+      AR6H: { offset: 2, size: 2 }
+  XAR7:
+    size: 4
+    sub:
+      AR7: { offset: 0, size: 2 }
+      AR7H: { offset: 2, size: 2 }
+
+  # 32-bit product register
+  P:
+    size: 4
+    sub:
+      PH: { offset: 2, size: 2 }
+      PL: { offset: 0, size: 2 }
+
+  # 32-bit multiplicand register
+  XT:
+    size: 4
+    sub:
+      T: { offset: 2, size: 2 }
+      TH: { offset: 2, size: 2 }  # alias for T
+      TL: { offset: 0, size: 2 }
+
+  # System registers
+  SP: { size: 2 }
+  DP: { size: 2 }
+  PC: { size: 4 }   # 22-bit, modeled as 4-byte
+  RPC: { size: 4 }  # 22-bit, modeled as 4-byte
+  ST0: { size: 2 }
+  ST1: { size: 2 }
+  IER: { size: 2 }
+  IFR: { size: 2 }
+  DBGIER: { size: 2 }
+
+  # FPU registers (for future FPU instruction support)
+  R0H: { size: 4 }
+  R1H: { size: 4 }
+  R2H: { size: 4 }
+  R3H: { size: 4 }
+  R4H: { size: 4 }
+  R5H: { size: 4 }
+  R6H: { size: 4 }
+  R7H: { size: 4 }
+  STF: { size: 4 }
+  RB: { size: 4 }

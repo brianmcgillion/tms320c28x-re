@@ -1,0 +1,76 @@
+# TMS320C28x Status Register Flags
+# Reference: TI SPRU430F, Section 2.4; INL bn-tic28x-arch flags.h
+
+st0_flags:
+  SXM:
+    bit: 0
+    description: "Sign extension mode"
+  OVM:
+    bit: 1
+    description: "Overflow mode (saturation on overflow)"
+  TC:
+    bit: 2
+    description: "Test/control flag"
+  C:
+    bit: 3
+    description: "Carry flag"
+    role: carry
+  Z:
+    bit: 4
+    description: "Zero flag"
+    role: zero
+  N:
+    bit: 5
+    description: "Negative flag"
+    role: negative
+  V:
+    bit: 6
+    description: "Overflow flag"
+    role: overflow
+  PM:
+    bits: [8, 7]
+    description: "Product shift mode (2 bits)"
+  OVC:
+    bits: [14, 9]
+    description: "Overflow counter (6 bits)"
+
+st1_flags:
+  INTM:
+    bit: 0
+    description: "Interrupt global mask"
+  DBGM:
+    bit: 1
+    description: "Debug events mask"
+  PAGE0:
+    bit: 2
+    description: "Stack addressing mode"
+  VMAP:
+    bit: 3
+    description: "Vector map (0=low, 1=high)"
+  SPA:
+    bit: 4
+    description: "Stack pointer alignment"
+  LOOP:
+    bit: 5
+    description: "Loop instruction active"
+  EALLOW:
+    bit: 6
+    description: "Emulation access enable"
+  IDLESTAT:
+    bit: 7
+    description: "Idle status"
+  AMODE:
+    bit: 8
+    description: "Addressing mode (0=C28x, 1=C2xLP)"
+  OBJMODE:
+    bit: 9
+    description: "Object compatibility mode (0=C27x, 1=C28x)"
+  M0M1MAP:
+    bit: 11
+    description: "M0/M1 mapping"
+  XF:
+    bit: 12
+    description: "External flag output"
+  ARP:
+    bits: [15, 13]
+    description: "Auxiliary register pointer (3 bits)"

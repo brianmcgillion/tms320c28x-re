@@ -1,0 +1,682 @@
+# Expected semantic properties for all 28 test binaries.
+# Used by scripts/validate_functional.py for functional equivalence checking.
+#
+# Legacy checks (flat booleans — backward compat):
+#   exists, has_loop, has_conditional, has_stores, has_calls,
+#   has_float_ops, has_body, has_arithmetic, has_mask
+#
+# Functional checks (nested under 'functional:'):
+#   callees: [list]           — expected function calls (BN API + HLIL regex)
+#   no_callees: true          — must NOT call other functions
+#   mmio_patterns: [regex]    — hex address patterns in stores
+#   no_mmio_writes: true      — must NOT store to MMIO addresses
+#   constants: [regex]        — numeric constants that must appear
+#   comparison_constants: [regex] — constants near comparisons
+#   loop_type: infinite|counted|conditional
+#   arithmetic_ops: [ops]     — specific operators present
+#   min_branches: N           — minimum if-statement count
+#   min_stores: N             — minimum store operations
+#   global_writes: [names]    — named globals that are written
+#
+# For COFF binaries, only 'exists' and decode quality checks run.
+
+# ============================================================
+# Synthetic fixtures (ELF, -O2, FPU32)
+# ============================================================
+
+led_blink.out:
+  format: elf
+  source: synthetic
+  functions:
+    delay:
+      exists: true
+      has_loop: true
+      has_body: true
+      functional:
+        loop_type: counted
+        no_mmio_writes: true
+    gpio_toggle:
+      exists: true
+      has_stores: true
+      has_body: true
+      functional:
+        mmio_patterns: ["0x[Dd][Ff]0[Cc]"]
+        arithmetic_ops: ["<<"]
+    main:
+      exists: true
+      has_loop: true
+      has_calls: true
+      has_body: true
+      functional:
+        callees: ["gpio_toggle", "delay"]
+        loop_type: infinite
+
+pid_loop.out:
+  format: elf
+  source: synthetic
+  functions:
+    pid_init:
+      exists: true
+      has_stores: true
+      has_body: true
+      functional:
+        min_stores: 6
+    pid_compute:
+      exists: true
+      has_conditional: true
+      has_body: true
+      has_float_ops: true
+      functional:
+        min_branches: 1
+        arithmetic_ops: ["+", "-", "*"]
+    run_pid_loop:
+      exists: true
+      has_body: true
+      has_calls: true
+      functional:
+        callees: ["pid_init", "pid_compute"]
+        loop_type: counted
+        constants: ["0x64|100"]
+    main:
+      exists: true
+      has_body: true
+      functional:
+        callees: ["run_pid_loop"]
+
+switch_table.out:
+  format: elf
+  source: synthetic
+  functions:
+    process_command:
+      exists: true
+      has_conditional: true
+      has_arithmetic: true
+      has_body: true
+      functional:
+        min_branches: 4
+        # >> may appear as ASR (arithmetic shift), << is in pointer math
+        # & 0xF mask may be optimized away at -O2
+        arithmetic_ops: ["+", "-", "&", "|", "^"]
+    run_commands:
+      exists: true
+      has_loop: true
+      has_calls: true
+      has_body: true
+      functional:
+        callees: ["process_command"]
+        loop_type: counted
+        constants: ["0x2[Aa]|42", "\\b8\\b|0x8"]
+    main:
+      exists: true
+      has_calls: true
+      has_body: true
+      functional:
+        callees: ["run_commands"]
+
+isr_handler.out:
+  format: elf
+  source: synthetic
+  functions:
+    buf_init:
+      exists: true
+      has_stores: true
+      has_body: true
+      functional:
+        global_writes: ["rx_head", "rx_tail", "rx_count"]
+        constants: ["\\b0\\b"]
+    buf_put:
+      exists: true
+      has_conditional: true
+      has_stores: true
+      has_mask: true
+      has_body: true
+      functional:
+        comparison_constants: ["0x10|16"]
+        constants: ["0x[Ff]\\b"]
+        arithmetic_ops: ["&", "+"]
+    buf_get:
+      exists: true
+      has_conditional: true
+      has_stores: true
+      has_body: true
+      functional:
+        constants: ["0x[Ff]\\b"]
+    sci_rx_isr:
+      exists: true
+      has_stores: true
+      has_calls: true
+      has_body: true
+      functional:
+        mmio_patterns: ["0x[Ee]0[Aa]0"]
+        callees: ["buf_put"]
+    process_received:
+      exists: true
+      has_loop: true
+      has_calls: true
+      has_body: true
+      functional:
+        callees: ["buf_get"]
+        loop_type: conditional
+        arithmetic_ops: ["+"]
+    main:
+      exists: true
+      has_calls: true
+      has_body: true
+      functional:
+        callees: ["buf_init", "process_received"]
+
+# ============================================================
+# C2000Ware f28004x (ELF, -O0, FPU32, large memory model)
+# ============================================================
+
+led_blink.out:c2000ware:
+  format: elf
+  source: c2000ware
+  fixture_name: led_blink.out
+  functions:
+    main:
+      exists: true
+      has_loop: true
+      has_stores: true
+      has_calls: true
+      has_body: true
+      functional:
+        callees: ["InitSysCtrl", "InitGpio", "GPIO_SetupPinMux", "GPIO_SetupPinOptions", "InitPieCtrl", "InitPieVectTable", "GPIO_WritePin", "F28x_usDelay"]
+    InitSysCtrl:
+      exists: true
+      has_stores: true
+      has_body: true
+      functional:
+        callees: ["DisableDog", "InitPeripheralClocks"]
+    InitGpio:
+      exists: true
+      has_stores: true
+      has_body: true
+    InitPieCtrl:
+      exists: true
+      has_stores: true
+      has_body: true
+    InitPieVectTable:
+      exists: true
+      has_stores: true
+      has_body: true
+    GPIO_SetupPinOptions:
+      exists: true
+      has_stores: true
+      has_body: true
+
+adc_epwm.out:
+  format: elf
+  source: c2000ware
+  functions:
+    main:
+      exists: true
+      has_loop: true
+      has_stores: true
+      has_calls: true
+      has_body: true
+      functional:
+        callees: ["InitSysCtrl", "InitGpio", "InitPieCtrl", "InitPieVectTable", "initADC", "initEPWM", "initADCSOC"]
+    initADC:
+      exists: true
+      has_stores: true
+      has_body: true
+      functional:
+        callees: ["F28x_usDelay"]
+    initEPWM:
+      exists: true
+      has_stores: true
+      has_body: true
+    initADCSOC:
+      exists: true
+      has_stores: true
+      has_body: true
+    adcA1ISR:
+      exists: true
+      has_stores: true
+      has_body: true
+    InitSysCtrl:
+      exists: true
+      has_stores: true
+      has_body: true
+    GPIO_WritePin:
+      exists: true
+      has_conditional: true
+      has_body: true
+
+sci_echoback.out:
+  format: elf
+  source: c2000ware
+  functions:
+    main:
+      exists: true
+      has_loop: true
+      has_calls: true
+      has_body: true
+      functional:
+        callees: ["InitSysCtrl", "InitGpio", "InitPieCtrl", "InitPieVectTable", "initSCIAEchoback", "initSCIAFIFO", "transmitSCIAMessage"]
+    initSCIAEchoback:
+      exists: true
+      has_stores: true
+      has_body: true
+    transmitSCIAChar:
+      exists: true
+      has_loop: true
+      has_stores: true
+      has_body: true
+    transmitSCIAMessage:
+      exists: true
+      has_loop: true
+      has_calls: true
+      has_body: true
+      functional:
+        callees: ["transmitSCIAChar"]
+    initSCIAFIFO:
+      exists: true
+      has_stores: true
+      has_body: true
+    InitSysCtrl:
+      exists: true
+      has_stores: true
+      has_body: true
+
+gpio_setup.out:
+  format: elf
+  source: c2000ware
+  functions:
+    main:
+      exists: true
+      has_calls: true
+      has_body: true
+      functional:
+        callees: ["InitSysCtrl", "InitGpio", "InitPieCtrl", "InitPieVectTable", "setup1GPIO"]
+    setup1GPIO:
+      exists: true
+      has_stores: true
+      has_body: true
+    setup2GPIO:
+      exists: true
+      has_stores: true
+      has_body: true
+    InitSysCtrl:
+      exists: true
+      has_stores: true
+      has_body: true
+    InitGpio:
+      exists: true
+      has_stores: true
+      has_body: true
+
+timer_cputimers.out:
+  format: elf
+  source: c2000ware
+  functions:
+    main:
+      exists: true
+      has_stores: true
+      has_calls: true
+      has_body: true
+      functional:
+        callees: ["InitSysCtrl", "InitGpio", "InitPieCtrl", "InitPieVectTable", "InitCpuTimers", "ConfigCpuTimer"]
+    cpuTimer0ISR:
+      exists: true
+      has_stores: true
+      has_body: true
+    cpuTimer1ISR:
+      exists: true
+      has_stores: true
+      has_body: true
+    cpuTimer2ISR:
+      exists: true
+      has_stores: true
+      has_body: true
+    InitSysCtrl:
+      exists: true
+      has_stores: true
+      has_body: true
+    InitPieCtrl:
+      exists: true
+      has_stores: true
+      has_body: true
+
+ecap_apwm.out:
+  format: elf
+  source: c2000ware
+  functions:
+    main:
+      exists: true
+      has_loop: true
+      has_conditional: true
+      has_stores: true
+      has_body: true
+      functional:
+        callees: ["InitSysCtrl", "InitAPwm1Gpio", "InitPieCtrl", "InitPieVectTable"]
+    InitAPwm1Gpio:
+      exists: true
+      has_stores: true
+      has_body: true
+    InitSysCtrl:
+      exists: true
+      has_stores: true
+      has_body: true
+
+dma_transfer.out:
+  format: elf
+  source: c2000ware
+  functions:
+    main:
+      exists: true
+      has_loop: true
+      has_calls: true
+      has_body: true
+      functional:
+        callees: ["InitSysCtrl", "InitPieCtrl", "InitPieVectTable", "dma_init"]
+    dma_init:
+      exists: true
+      has_calls: true
+      has_stores: true
+      has_body: true
+      functional:
+        callees: ["DMAInitialize", "DMACH6BurstConfig", "DMACH6TransferConfig", "DMACH6ModeConfig"]
+    local_D_INTCH6_ISR:
+      exists: true
+      has_loop: true
+      has_conditional: true
+      has_body: true
+    error:
+      exists: true
+      # error() is ESTOP0 + infinite loop — may appear as tailcall in HLIL
+    InitSysCtrl:
+      exists: true
+      has_stores: true
+      has_body: true
+
+spi_loopback.out:
+  format: elf
+  source: c2000ware
+  functions:
+    main:
+      exists: true
+      has_loop: true
+      has_body: true
+      functional:
+        callees: ["InitSysCtrl", "InitGpio", "InitSpiaGpio", "initSPIFIFO", "transmitData"]
+    error:
+      exists: true
+      # error() is ESTOP0 + loop — may be tail-called/optimized away
+    transmitData:
+      exists: true
+      has_body: true
+    initSPIFIFO:
+      exists: true
+      has_stores: true
+      has_body: true
+      functional:
+        callees: ["InitSpi"]
+    InitSpi:
+      exists: true
+      has_stores: true
+      has_body: true
+    InitSpiaGpio:
+      exists: true
+      has_stores: true
+      has_body: true
+    InitSysCtrl:
+      exists: true
+      has_stores: true
+      has_body: true
+
+interrupts_prio.out:
+  format: elf
+  source: c2000ware
+  functions:
+    main:
+      exists: true
+      has_conditional: true
+      has_stores: true
+      has_calls: true
+      has_body: true
+      functional:
+        callees: ["InitSysCtrl", "InitPieCtrl", "InitPieVectTable"]
+    InitSysCtrl:
+      exists: true
+      has_stores: true
+      has_body: true
+    InitPieCtrl:
+      exists: true
+      has_stores: true
+      has_body: true
+
+# ============================================================
+# C2000Ware f2833x (COFF, -O2, FPU32)
+# COFF files: only symbol existence + decode quality checks
+# ============================================================
+
+f2833x_led_blink.out:
+  format: coff
+  source: c2000ware
+  functions:
+    main:
+      exists: true
+    cpu_timer0_isr:
+      exists: true
+    InitSysCtrl:
+      exists: true
+    InitCpuTimers:
+      exists: true
+
+f2833x_cpu_timer.out:
+  format: coff
+  source: c2000ware
+  functions:
+    main:
+      exists: true
+    cpu_timer0_isr:
+      exists: true
+    cpu_timer1_isr:
+      exists: true
+    cpu_timer2_isr:
+      exists: true
+    InitSysCtrl:
+      exists: true
+    InitCpuTimers:
+      exists: true
+
+f2833x_adc_soc.out:
+  format: coff
+  source: c2000ware
+  functions:
+    main:
+      exists: true
+    adc_isr:
+      exists: true
+    InitSysCtrl:
+      exists: true
+    InitAdc:
+      exists: true
+
+f2833x_gpio_setup.out:
+  format: coff
+  source: c2000ware
+  functions:
+    main:
+      exists: true
+    Gpio_setup1:
+      exists: true
+    Gpio_setup2:
+      exists: true
+    InitSysCtrl:
+      exists: true
+    InitPeripheralClocks:
+      exists: true
+
+f2833x_gpio_toggle.out:
+  format: coff
+  source: c2000ware
+  functions:
+    main:
+      exists: true
+    delay_loop:
+      exists: true
+    Gpio_example1:
+      exists: true
+    Gpio_example2:
+      exists: true
+    Gpio_example3:
+      exists: true
+    Gpio_select:
+      exists: true
+    InitSysCtrl:
+      exists: true
+    InitPeripheralClocks:
+      exists: true
+
+f2833x_sci_echoback.out:
+  format: coff
+  source: c2000ware
+  functions:
+    main:
+      exists: true
+    scia_echoback_init:
+      exists: true
+    scia_xmit:
+      exists: true
+    scia_msg:
+      exists: true
+    scia_fifo_init:
+      exists: true
+    InitSysCtrl:
+      exists: true
+    InitSci:
+      exists: true
+
+f2833x_spi_loopback.out:
+  format: coff
+  source: c2000ware
+  functions:
+    main:
+      exists: true
+    delay_loop:
+      exists: true
+    error:
+      exists: true
+    spi_init:
+      exists: true
+    spi_xmit:
+      exists: true
+    spi_fifo_init:
+      exists: true
+    InitSysCtrl:
+      exists: true
+    InitSpi:
+      exists: true
+
+f2833x_epwm_int.out:
+  format: coff
+  source: c2000ware
+  functions:
+    main:
+      exists: true
+    InitEPwmTimer:
+      exists: true
+    epwm1_timer_isr:
+      exists: true
+    epwm2_timer_isr:
+      exists: true
+    epwm3_timer_isr:
+      exists: true
+    InitSysCtrl:
+      exists: true
+
+f2833x_ecap_apwm.out:
+  format: coff
+  source: c2000ware
+  functions:
+    main:
+      exists: true
+    InitSysCtrl:
+      exists: true
+    InitECap:
+      exists: true
+
+f2833x_ecan.out:
+  format: coff
+  source: c2000ware
+  functions:
+    main:
+      exists: true
+    mailbox_read:
+      exists: true
+    mailbox_check:
+      exists: true
+    InitSysCtrl:
+      exists: true
+    InitECan:
+      exists: true
+
+f2833x_i2c.out:
+  format: coff
+  source: c2000ware
+  functions:
+    main:
+      exists: true
+    I2CA_Init:
+      exists: true
+    I2CA_WriteData:
+      exists: true
+    I2CA_ReadData:
+      exists: true
+    i2c_int1a_isr:
+      exists: true
+    InitSysCtrl:
+      exists: true
+    InitI2C:
+      exists: true
+
+f2833x_dma.out:
+  format: coff
+  source: c2000ware
+  functions:
+    main:
+      exists: true
+    local_DINTCH1_ISR:
+      exists: true
+    InitSysCtrl:
+      exists: true
+    DMACH1ModeConfig:
+      exists: true
+
+f2833x_ext_int.out:
+  format: coff
+  source: c2000ware
+  functions:
+    main:
+      exists: true
+    xint1_isr:
+      exists: true
+    xint2_isr:
+      exists: true
+    InitSysCtrl:
+      exists: true
+    InitPieCtrl:
+      exists: true
+
+f2833x_fpu.out:
+  format: coff
+  source: c2000ware
+  functions:
+    main:
+      exists: true
+    InitSysCtrl:
+      exists: true
+
+f2833x_watchdog.out:
+  format: coff
+  source: c2000ware
+  functions:
+    main:
+      exists: true
+    wakeint_isr:
+      exists: true
+    InitSysCtrl:
+      exists: true

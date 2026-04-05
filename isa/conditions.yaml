@@ -1,0 +1,73 @@
+# TMS320C28x Branch Condition Codes
+# Reference: TI SPRU430F; INL bn-tic28x-arch conditions.h
+#
+# 4-bit condition field used in B, SB, BF, XCALL, XRETC instructions.
+# flag_test describes which ST0 flags are checked and how.
+
+conditions:
+  - code: 0x0
+    name: NEQ
+    description: "Not equal (Z=0)"
+    flag_test: { Z: 0 }
+  - code: 0x1
+    name: EQ
+    description: "Equal (Z=1)"
+    flag_test: { Z: 1 }
+  - code: 0x2
+    name: GT
+    description: "Greater than (Z=0 AND N=0)"
+    flag_test: { Z: 0, N: 0 }
+  - code: 0x3
+    name: GEQ
+    description: "Greater than or equal (N=0)"
+    flag_test: { N: 0 }
+  - code: 0x4
+    name: LT
+    description: "Less than (N=1)"
+    flag_test: { N: 1 }
+  - code: 0x5
+    name: LEQ
+    description: "Less than or equal (Z=1 OR N=1)"
+    flag_test: { Z: 1, N: 1, logic: or }
+  - code: 0x6
+    name: HI
+    description: "Higher (C=1 AND Z=0)"
+    flag_test: { C: 1, Z: 0 }
+  - code: 0x7
+    name: HIS
+    description: "Higher or same / Carry set (C=1)"
+    aliases: [C]
+    flag_test: { C: 1 }
+  - code: 0x8
+    name: LO
+    description: "Lower / No carry (C=0)"
+    aliases: [NC]
+    flag_test: { C: 0 }
+  - code: 0x9
+    name: LOS
+    description: "Lower or same (C=0 OR Z=1)"
+    flag_test: { C: 0, Z: 1, logic: or }
+  - code: 0xA
+    name: NOV
+    description: "No overflow (V=0)"
+    flag_test: { V: 0 }
+  - code: 0xB
+    name: OV
+    description: "Overflow (V=1)"
+    flag_test: { V: 1 }
+  - code: 0xC
+    name: NTC
+    description: "Test/control not set (TC=0)"
+    flag_test: { TC: 0 }
+  - code: 0xD
+    name: TC
+    description: "Test/control set (TC=1)"
+    flag_test: { TC: 1 }
+  - code: 0xE
+    name: NBIO
+    description: "BIO input low"
+    flag_test: null
+  - code: 0xF
+    name: UNC
+    description: "Unconditional"
+    flag_test: null

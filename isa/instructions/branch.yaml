@@ -1,0 +1,305 @@
+# TMS320C28x Branch Instructions
+# Opcodes from INL bn-tic28x-arch opcodes.h (MIT)
+
+instructions:
+  - name: B
+    full_name: "Branch conditionally"
+    format: 32
+    opcode: 0xFFE00000
+    mask: 0xFFE00000
+    objmode: 1
+    operands:
+      - { name: offset, type: imm16, bits: [15, 0], signed: true }
+      - { name: cond, type: cond4, bits: [19, 16] }
+    semantics:
+      type: cond_branch
+      target: "PC + 1 + sign_extend(offset)"
+
+  - name: SB
+    full_name: "Short branch conditionally"
+    format: 16
+    opcode: 0x6000
+    mask: 0xF000
+    objmode: 1
+    operands:
+      - { name: offset, type: imm8, bits: [7, 0], signed: true }
+      - { name: cond, type: cond4, bits: [11, 8] }
+    semantics:
+      type: cond_branch
+      target: "PC + 1 + sign_extend(offset)"
+
+  - name: BF
+    full_name: "Branch fast conditionally"
+    format: 32
+    opcode: 0x56C00000
+    mask: 0xFFC00000
+    objmode: 1
+    operands:
+      - { name: offset, type: imm16, bits: [15, 0], signed: true }
+      - { name: cond, type: cond4, bits: [19, 16] }
+    semantics:
+      type: cond_branch
+      target: "PC + 1 + sign_extend(offset)"
+
+  - name: SBF
+    full_name: "Short branch fast if equal"
+    format: 16
+    opcode: 0xEC00
+    mask: 0xFC00
+    objmode: 1
+    variants:
+      - { name: "SBF off8,EQ", opcode: 0xEC00, cond: EQ }
+      - { name: "SBF off8,NEQ", opcode: 0xED00, cond: NEQ }
+      - { name: "SBF off8,TC", opcode: 0xEE00, cond: TC }
+      - { name: "SBF off8,NTC", opcode: 0xEF00, cond: NTC }
+    operands:
+      - { name: offset, type: imm8, bits: [7, 0], signed: true }
+    semantics:
+      type: cond_branch
+      target: "PC + 1 + sign_extend(offset)"
+
+  - name: LB
+    full_name: "Long branch (absolute)"
+    format: 32
+    opcode: 0x00400000
+    mask: 0xFFC00000
+    objmode: 1
+    operands:
+      - { name: addr, type: imm22, bits: [21, 0] }
+    semantics:
+      type: branch
+      target: "addr"
+
+  - name: LB_XAR7
+    full_name: "Long branch indirect via XAR7"
+    format: 16
+    opcode: 0x7620
+    mask: 0xFFFF
+    objmode: 1
+    semantics:
+      type: branch
+      target: "XAR7"
+
+  - name: LC
+    full_name: "Long call (absolute)"
+    format: 32
+    opcode: 0x00800000
+    mask: 0xFFC00000
+    objmode: 1
+    operands:
+      - { name: addr, type: imm22, bits: [21, 0] }
+    semantics:
+      type: call
+      target: "addr"
+      side_effects: ["RPC = return_address"]
+
+  - name: LC_XAR7
+    full_name: "Long call indirect via XAR7"
+    format: 16
+    opcode: 0x7604
+    mask: 0xFFFF
+    objmode: 1
+    semantics:
+      type: call
+      target: "XAR7"
+      side_effects: ["RPC = return_address"]
+
+  - name: LCR
+    full_name: "Long call with return address push"
+    format: 32
+    opcode: 0x76400000
+    mask: 0xFFC00000
+    objmode: 1
+    operands:
+      - { name: addr, type: imm22, bits: [21, 0] }
+    semantics:
+      type: call
+      target: "addr"
+      side_effects: ["push RPC", "RPC = return_address"]
+
+  - name: LCR_XARN
+    full_name: "Long call with return via XARn"
+    format: 16
+    opcode: 0x3E60
+    mask: 0xFFF8
+    objmode: 1
+    operands:
+      - { name: n, type: reg3, bits: [2, 0] }
+    semantics:
+      type: call
+      target: "XAR{n}"
+      side_effects: ["push RPC", "RPC = return_address"]
+
+  - name: LRET
+    full_name: "Long return"
+    format: 16
+    opcode: 0x7614
+    mask: 0xFFFF
+    objmode: 1
+    semantics:
+      type: return
+      target: "pop RPC"
+
+  - name: LRETE
+    full_name: "Long return and enable interrupts"
+    format: 16
+    opcode: 0x7610
+    mask: 0xFFFF
+    objmode: 1
+    semantics:
+      type: return
+      target: "pop RPC"
+      side_effects: ["INTM = 0"]
+
+  - name: LRETR
+    full_name: "Long return via RPC"
+    format: 16
+    opcode: 0x0006
+    mask: 0xFFFF
+    objmode: 1
+    semantics:
+      type: return
+      target: "RPC"
+      side_effects: ["RPC = pop stack"]
+
+  - name: IRET
+    full_name: "Interrupt return"
+    format: 16
+    opcode: 0x7602
+    mask: 0xFFFF
+    semantics:
+      type: return
+      target: "pop PC from stack"
+      side_effects: ["restore ST0, ST1, etc."]
+
+  - name: FFC
+    full_name: "Fast function call"
+    format: 32
+    opcode: 0x00C00000
+    mask: 0xFFC00000
+    objmode: 1
+    operands:
+      - { name: addr, type: imm22, bits: [21, 0] }
+    semantics:
+      type: call
+      target: "addr"
+      side_effects: ["XAR7 = return_address"]
+
+  - name: BANZ
+    full_name: "Branch if ARn not zero"
+    format: 32
+    opcode: 0x00080000
+    mask: 0xFFF80000
+    objmode: 1
+    operands:
+      - { name: offset, type: imm16, bits: [15, 0], signed: true }
+      - { name: n, type: reg3, bits: [18, 16] }
+    semantics:
+      type: cond_branch
+      condition: "AR{n} != 0"
+      target: "PC + 1 + sign_extend(offset)"
+      side_effects: ["AR{n} -= 1"]
+
+  - name: BAR_OFF16_ARN_ARM_EQ
+    full_name: "Branch if ARn == ARm"
+    format: 32
+    opcode: 0x8F800000
+    mask: 0xFFC00000
+    operands:
+      - { name: offset, type: imm16, bits: [15, 0], signed: true }
+      - { name: arn, type: reg3, bits: [18, 16] }
+      - { name: arm, type: reg3, bits: [21, 19] }
+    semantics:
+      type: cond_branch
+      condition: "AR{n} == AR{m}"
+      target: "PC + 1 + sign_extend(offset)"
+
+  - name: BAR_OFF16_ARN_ARM_NEQ
+    full_name: "Branch if ARn != ARm"
+    format: 32
+    opcode: 0x8FC00000
+    mask: 0xFFC00000
+    operands:
+      - { name: offset, type: imm16, bits: [15, 0], signed: true }
+      - { name: arn, type: reg3, bits: [18, 16] }
+      - { name: arm, type: reg3, bits: [21, 19] }
+    semantics:
+      type: cond_branch
+      condition: "AR{n} != AR{m}"
+      target: "PC + 1 + sign_extend(offset)"
+
+  - name: XB_AL
+    full_name: "Branch to address in AL"
+    format: 16
+    opcode: 0x5614
+    mask: 0xFFFF
+    semantics:
+      type: branch
+      target: "AL"
+
+  - name: XB_PMA_COND
+    full_name: "Branch to program memory address conditionally"
+    format: 32
+    opcode: 0x56D00000
+    mask: 0xFFF00000
+    operands:
+      - { name: pma, type: imm16, bits: [15, 0] }
+      - { name: cond, type: cond4, bits: [19, 16] }
+    semantics:
+      type: cond_branch
+      target: "pma"
+
+  - name: XCALL_AL
+    full_name: "Call to address in AL"
+    format: 16
+    opcode: 0x5634
+    mask: 0xFFFF
+    semantics:
+      type: call
+      target: "AL"
+
+  - name: XCALL_PMA_COND
+    full_name: "Call to program memory address conditionally"
+    format: 32
+    opcode: 0x56E00000
+    mask: 0xFFF00000
+    operands:
+      - { name: pma, type: imm16, bits: [15, 0] }
+      - { name: cond, type: cond4, bits: [19, 16] }
+    semantics:
+      type: call
+      target: "pma"
+
+  - name: XRETC_COND
+    full_name: "Conditional return"
+    format: 16
+    opcode: 0x56F0
+    mask: 0xFFF0
+    operands:
+      - { name: cond, type: cond4, bits: [3, 0] }
+    semantics:
+      type: return
+
+  - name: LOOPNZ_LOC16_CONST16
+    full_name: "Loop while loc16 not zero"
+    format: 32
+    opcode: 0x2E000000
+    mask: 0xFF000000
+    operands:
+      - { name: loc16, type: loc16, bits: [23, 16] }
+      - { name: const16, type: imm16, bits: [15, 0] }
+    semantics:
+      type: cond_branch
+      condition: "loc16 != 0"
+
+  - name: LOOPZ_LOC16_CONST16
+    full_name: "Loop while loc16 is zero"
+    format: 32
+    opcode: 0x2C000000
+    mask: 0xFF000000
+    operands:
+      - { name: loc16, type: loc16, bits: [23, 16] }
+      - { name: const16, type: imm16, bits: [15, 0] }
+    semantics:
+      type: cond_branch
+      condition: "loc16 == 0"

@@ -1,0 +1,230 @@
+# TMS320C28x Logical Instructions
+# Opcodes from INL bn-tic28x-arch opcodes.h (MIT)
+
+instructions:
+  # AND
+  - name: AND_ACC_LOC16
+    full_name: "AND ACC with loc16"
+    format: 16
+    opcode: 0x8900
+    mask: 0xFF00
+    objmode: 1
+    operands:
+      - { name: loc16, type: loc16, bits: [7, 0] }
+    semantics: { type: and, dest: ACC, flags: [N, Z] }
+
+  - name: AND_AX_LOC16
+    full_name: "AND AX with loc16"
+    format: 16
+    opcode: 0xCE00
+    mask: 0xFE00
+    objmode: 1
+    operands:
+      - { name: ax, type: ax, bits: [8, 8] }
+      - { name: loc16, type: loc16, bits: [7, 0] }
+    semantics: { type: and, flags: [N, Z] }
+
+  - name: AND_LOC16_AX
+    full_name: "AND loc16 with AX"
+    format: 16
+    opcode: 0xC000
+    mask: 0xFE00
+    objmode: 1
+    operands:
+      - { name: loc16, type: loc16, bits: [7, 0] }
+      - { name: ax, type: ax, bits: [8, 8] }
+    semantics: { type: and, flags: [N, Z] }
+
+  - name: AND_ACC_CONST16_SHIFT0_15
+    full_name: "AND ACC with shifted 16-bit constant"
+    format: 32
+    opcode: 0x3E000000
+    mask: 0xFFF00000
+    objmode: 1
+    operands:
+      - { name: const16, type: imm16, bits: [15, 0] }
+      - { name: shift, type: shift4, bits: [19, 16] }
+    semantics: { type: and, dest: ACC, flags: [N, Z] }
+
+  - name: AND_LOC16_CONST16
+    full_name: "AND loc16 with 16-bit constant"
+    format: 32
+    opcode: 0x18000000
+    mask: 0xFF000000
+    objmode: 1
+    operands:
+      - { name: loc16, type: loc16, bits: [23, 16] }
+      - { name: const16, type: imm16, bits: [15, 0] }
+    semantics: { type: and, flags: [N, Z] }
+
+  - name: ANDB_AX_CONST8
+    full_name: "AND AX with 8-bit constant"
+    format: 16
+    opcode: 0x9000
+    mask: 0xFE00
+    objmode: 1
+    operands:
+      - { name: ax, type: ax, bits: [8, 8] }
+      - { name: const8, type: imm8, bits: [7, 0] }
+    semantics: { type: and, flags: [N, Z] }
+
+  # OR
+  - name: OR_ACC_LOC16
+    full_name: "OR ACC with loc16"
+    format: 16
+    opcode: 0xAF00
+    mask: 0xFF00
+    objmode: 1
+    operands:
+      - { name: loc16, type: loc16, bits: [7, 0] }
+    semantics: { type: or, dest: ACC, flags: [N, Z] }
+
+  - name: OR_AX_LOC16
+    full_name: "OR AX with loc16"
+    format: 16
+    opcode: 0xCA00
+    mask: 0xFE00
+    objmode: 1
+    operands:
+      - { name: ax, type: ax, bits: [8, 8] }
+      - { name: loc16, type: loc16, bits: [7, 0] }
+    semantics: { type: or, flags: [N, Z] }
+
+  - name: OR_LOC16_AX
+    full_name: "OR loc16 with AX"
+    format: 16
+    opcode: 0x9800
+    mask: 0xFE00
+    objmode: 1
+    operands:
+      - { name: loc16, type: loc16, bits: [7, 0] }
+      - { name: ax, type: ax, bits: [8, 8] }
+    semantics: { type: or, flags: [N, Z] }
+
+  - name: OR_ACC_CONST16_SHIFT0_15
+    full_name: "OR ACC with shifted 16-bit constant"
+    format: 32
+    opcode: 0x3E100000
+    mask: 0xFFF00000
+    objmode: 1
+    operands:
+      - { name: const16, type: imm16, bits: [15, 0] }
+      - { name: shift, type: shift4, bits: [19, 16] }
+    semantics: { type: or, dest: ACC, flags: [N, Z] }
+
+  - name: OR_LOC16_CONST16
+    full_name: "OR loc16 with 16-bit constant"
+    format: 32
+    opcode: 0x1A000000
+    mask: 0xFF000000
+    objmode: 1
+    operands:
+      - { name: loc16, type: loc16, bits: [23, 16] }
+      - { name: const16, type: imm16, bits: [15, 0] }
+    semantics: { type: or, flags: [N, Z] }
+
+  - name: ORB_AX_CONST8
+    full_name: "OR AX with 8-bit constant"
+    format: 16
+    opcode: 0x5000
+    mask: 0xFE00
+    objmode: 1
+    operands:
+      - { name: ax, type: ax, bits: [8, 8] }
+      - { name: const8, type: imm8, bits: [7, 0] }
+    semantics: { type: or, flags: [N, Z] }
+
+  # XOR
+  - name: XOR_ACC_LOC16
+    full_name: "XOR ACC with loc16"
+    format: 16
+    opcode: 0xB700
+    mask: 0xFF00
+    objmode: 1
+    operands:
+      - { name: loc16, type: loc16, bits: [7, 0] }
+    semantics: { type: xor, dest: ACC, flags: [N, Z] }
+
+  - name: XOR_AX_LOC16
+    full_name: "XOR AX with loc16"
+    format: 16
+    opcode: 0x7000
+    mask: 0xFE00
+    objmode: 1
+    operands:
+      - { name: ax, type: ax, bits: [8, 8] }
+      - { name: loc16, type: loc16, bits: [7, 0] }
+    semantics: { type: xor, flags: [N, Z] }
+
+  - name: XOR_LOC16_AX
+    full_name: "XOR loc16 with AX"
+    format: 16
+    opcode: 0xF200
+    mask: 0xFE00
+    objmode: 1
+    operands:
+      - { name: loc16, type: loc16, bits: [7, 0] }
+      - { name: ax, type: ax, bits: [8, 8] }
+    semantics: { type: xor, flags: [N, Z] }
+
+  - name: XOR_ACC_CONST16_SHIFT0_15
+    full_name: "XOR ACC with shifted 16-bit constant"
+    format: 32
+    opcode: 0x3E200000
+    mask: 0xFFF00000
+    objmode: 1
+    operands:
+      - { name: const16, type: imm16, bits: [15, 0] }
+      - { name: shift, type: shift4, bits: [19, 16] }
+    semantics: { type: xor, dest: ACC, flags: [N, Z] }
+
+  - name: XOR_LOC16_CONST16
+    full_name: "XOR loc16 with 16-bit constant"
+    format: 32
+    opcode: 0x1C000000
+    mask: 0xFF000000
+    objmode: 1
+    operands:
+      - { name: loc16, type: loc16, bits: [23, 16] }
+      - { name: const16, type: imm16, bits: [15, 0] }
+    semantics: { type: xor, flags: [N, Z] }
+
+  - name: XORB_AX_CONST8
+    full_name: "XOR AX with 8-bit constant"
+    format: 16
+    opcode: 0xF000
+    mask: 0xFE00
+    objmode: 1
+    operands:
+      - { name: ax, type: ax, bits: [8, 8] }
+      - { name: const8, type: imm8, bits: [7, 0] }
+    semantics: { type: xor, flags: [N, Z] }
+
+  # NOT
+  - name: NOT_ACC
+    full_name: "Bitwise NOT of ACC"
+    format: 16
+    opcode: 0xFF55
+    mask: 0xFFFF
+    semantics: { type: not, dest: ACC, flags: [N, Z] }
+
+  - name: NOT_AX
+    full_name: "Bitwise NOT of AX"
+    format: 16
+    opcode: 0xFF5E
+    mask: 0xFFFE
+    operands:
+      - { name: ax, type: ax, bits: [0, 0] }
+    semantics: { type: not, flags: [N, Z] }
+
+  - name: AND_AX_LOC16_CONST16
+    full_name: "AND AX with loc16 masked by const16"
+    format: 32
+    opcode: 0xCC000000
+    mask: 0xFE000000
+    objmode: 1
+    operands:
+      - { name: ax, type: ax, bits: [24, 24] }
+      - { name: loc16, type: loc16, bits: [23, 16] }
+      - { name: const16, type: imm16, bits: [15, 0] }
+    semantics: { type: and, flags: [N, Z] }

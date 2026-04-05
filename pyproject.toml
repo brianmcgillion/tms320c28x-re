@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tms320c28x-re"
+version = "0.1.0"
+description = "TMS320C28x reverse engineering tools - shared ISA library with Binary Ninja and Ghidra support"
+license = "MIT"
+requires-python = ">=3.10"
+dependencies = ["pyyaml>=6.0"]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0", "pytest-cov"]
+
+[tool.setuptools.packages.find]
+include = ["c28x*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

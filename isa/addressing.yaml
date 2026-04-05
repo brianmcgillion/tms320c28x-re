@@ -1,0 +1,71 @@
+# TMS320C28x Addressing Modes (loc16/loc32)
+# Reference: TI SPRU430F, Chapter 5; INL bn-tic28x-arch text.cpp
+#
+# The loc16/loc32 operand is encoded as an 8-bit field.
+# Bits [7:6] determine the mode category.
+
+modes:
+  dp_direct:
+    pattern: "00xxxxxx"  # bits [7:6] = 00
+    description: "DP direct addressing"
+    effective_address: "(DP << 6) + offset[5:0]"
+    text: "@{offset}"
+
+  sp_relative:
+    pattern: "01xxxxxx"  # bits [7:6] = 01
+    description: "SP relative addressing"
+    effective_address: "SP - offset[5:0]"
+    text: "*-SP[{offset}]"
+
+  indirect:
+    pattern: "10xxxxxx"  # bits [7:6] = 10
+    description: "Indirect and register-direct addressing"
+    sub_modes:
+      # bits [7:3] determine the specific mode
+      - pattern: "10000xxx"  # *XARn
+        text: "*XAR{n}"
+        post: none
+      - pattern: "10001xxx"  # *XARn++
+        text: "*XAR{n}++"
+        post: increment
+      - pattern: "10010xxx"  # *--XARn
+        text: "*--XAR{n}"
+        pre: decrement
+      - pattern: "10011xxx"  # *+XAR{n}[AR0]
+        text: "*+XAR{n}[AR0]"
+      - pattern: "10100xxx"  # *+XAR{n}[AR1]
+        text: "*+XAR{n}[AR1]"
+      # Direct register access (special codes)
+      - code: 0xA8
+        text: "@AH"
+        loc16_reg: AH
+      - code: 0xA9
+        text: "@AL"
+        loc16_reg: AL
+      - code: 0xAA
+        text: "@PH"
+        loc16_reg: PH
+      - code: 0xAB
+        text: "@PL"
+        loc16_reg: PL
+      - code: 0xAC
+        text: "@TH"
+        loc16_reg: TH
+      - code: 0xAD
+        text: "@SP"
+        loc16_reg: SP
+      # loc32 register access
+      - code: 0xA8
+        text: "@ACC"
+        loc32_reg: ACC
+      - code: 0xAA
+        text: "@P"
+        loc32_reg: P
+      - code: 0xAC
+        text: "@XT"
+        loc32_reg: XT
+
+  arp_indirect:
+    pattern: "11xxxxxx"  # bits [7:6] = 11
+    description: "ARP-based indirect addressing (C2xLP compatibility)"
+    note: "Used when AMODE=1 (C2xLP source-compatible mode)"
