@@ -181,6 +181,6 @@ pub fn lift(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
         return true;
     }
 
-    il.nop().append();
+    il.nop().append(); // guard: multiply with no operands
     true
 }

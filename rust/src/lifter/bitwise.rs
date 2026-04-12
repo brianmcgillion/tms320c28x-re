@@ -46,7 +46,7 @@ pub fn lift_not(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
             .build();
         write_loc(op, il, size, result);
     } else {
-        il.nop().append();
+        il.nop().append(); // guard: NOT with no operands
     }
     true
 }
@@ -97,7 +97,7 @@ fn bitwise_common(insn: &DecodedInstruction, il: &ILFunc, op_name: &str) -> bool
                 "and" => il.and(size, lhs, rhs),
                 "or" => il.or(size, lhs, rhs),
                 "xor" => il.xor(size, lhs, rhs),
-                _ => { il.nop().append(); return true; }
+                _ => unreachable!("bitwise_common called with invalid op_name"),
             };
             il.set_reg(size, reg, expr)
                 .with_flag_write(FlagWrite::NZ)
@@ -113,13 +113,28 @@ fn bitwise_common(insn: &DecodedInstruction, il: &ILFunc, op_name: &str) -> bool
                 "and" => il.and(size, lhs, rhs).with_flag_write(FlagWrite::NZ).build(),
                 "or" => il.or(size, lhs, rhs).with_flag_write(FlagWrite::NZ).build(),
                 "xor" => il.xor(size, lhs, rhs).with_flag_write(FlagWrite::NZ).build(),
-                _ => { il.nop().append(); return true; }
+                _ => unreachable!("bitwise_common called with invalid op_name"),
             };
             write_loc(op0, il, size, result);
             return true;
         }
     }
 
-    il.nop().append();
+    // Single-operand bitwise: ACC op operand (implicit ACC destination)
+    if insn.operands.len() == 1 {
+        let op = &insn.operands[0];
+        let acc = il.reg(4, Register::ACC);
+        let src = il.sx(4, read_op(op, il, 2));
+        let expr = match op_name {
+            "and" => il.and(4, acc, src),
+            "or" => il.or(4, acc, src),
+            _ => il.xor(4, acc, src),
+        };
+        il.set_reg(4, Register::ACC, expr)
+            .with_flag_write(FlagWrite::NZ).append();
+        return true;
+    }
+
+    il.nop().append(); // guard: bitwise with no operands
     true
 }

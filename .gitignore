@@ -22,6 +22,7 @@ build/
 
 # Test fixtures (compiled binaries — rebuilt from source)
 tests/fixtures/build/
+tests/fixtures/blinky.bin
 tests/fixtures/c2000ware/build/
 tests/fixtures/c2000ware/sdk/
 

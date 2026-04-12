@@ -42,28 +42,35 @@ fn shift_common(insn: &DecodedInstruction, il: &ILFunc, op_name: &str) -> bool {
 
     // ── 64-bit shifts: ACC:P as a 64-bit value ──
     // LSL64/LSR64/ASR64 ACC:P, #shift or T
+    // Model as: combine ACC:P into 64-bit, shift, split back into ACC and P.
     if matches!(n, InsnId::LSL64_ACC_P_SHIFT | InsnId::LSL64_ACC_P_T |
                     InsnId::LSR64_ACC_P_SHIFT | InsnId::LSR64_ACC_P_T |
                     InsnId::ASR64_ACC_P_SHIFT | InsnId::ASR64_ACC_P_T) {
-        // Model as: combine ACC:P into 64-bit, shift, split back
-        // Simplified: just shift ACC by the amount (approximation for decompilation)
         let shift_amt = if insn.operands.len() >= 1 {
-            read_op(&insn.operands[0], il, 4)
+            read_op(&insn.operands[0], il, 8)
         } else {
-            il.const_int(4, 1)
+            il.const_int(8, 1)
         };
-        let acc = il.reg(4, Register::ACC);
+        // Combine ACC:P into 64-bit: (ACC << 32) | zx(P)
+        let acc = il.zx(8, il.reg(4, Register::ACC));
+        let p = il.zx(8, il.reg(4, Register::P));
+        let combined = il.or(8, il.lsl(8, acc, il.const_int(8, 32)), p);
+        // Shift the 64-bit value
         let is_lsl = matches!(n, InsnId::LSL64_ACC_P_SHIFT | InsnId::LSL64_ACC_P_T);
         let is_asr = matches!(n, InsnId::ASR64_ACC_P_SHIFT | InsnId::ASR64_ACC_P_T);
-        let expr = if is_lsl {
-            il.lsl(4, acc, shift_amt)
+        let shifted = if is_lsl {
+            il.lsl(8, combined, shift_amt)
         } else if is_asr {
-            il.asr(4, acc, shift_amt)
+            il.asr(8, combined, shift_amt)
         } else {
-            il.lsr(4, acc, shift_amt)
+            il.lsr(8, combined, shift_amt)
         };
-        il.set_reg(4, Register::ACC, expr)
+        // Split back: ACC = high 32 bits, P = low 32 bits
+        let shifted_built = shifted.build();
+        il.set_reg(4, Register::ACC, il.lsr(8, shifted_built, il.const_int(8, 32)))
             .with_flag_write(FlagWrite::All).append();
+        il.set_reg(4, Register::P, il.low_part(4, shifted_built))
+            .append();
         return true;
     }
 
@@ -97,7 +104,7 @@ fn shift_common(insn: &DecodedInstruction, il: &ILFunc, op_name: &str) -> bool {
                 "lsl" => il.lsl(size, lhs, rhs),
                 "lsr" => il.lsr(size, lhs, rhs),
                 "asr" => il.asr(size, lhs, rhs),
-                _ => { il.nop().append(); return true; }
+                _ => unreachable!("shift_common called with invalid op_name"),
             };
             il.set_reg(size, reg, expr)
                 .with_flag_write(FlagWrite::All)
@@ -123,6 +130,6 @@ fn shift_common(insn: &DecodedInstruction, il: &ILFunc, op_name: &str) -> bool {
         return true;
     }
 
-    il.nop().append();
+    il.nop().append(); // guard: shift with no operands
     true
 }

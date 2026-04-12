@@ -1,0 +1,21 @@
+{
+  "pluginmetadataversion": 2,
+  "name": "TMS320C28x Architecture",
+  "type": ["architecture", "binaryview"],
+  "api": ["python3"],
+  "description": "TMS320C28x (C2000 DSP) architecture plugin with disassembly, IL lifting, and decompilation support",
+  "longdescription": "# TMS320C28x Architecture Plugin\n\nComplete reverse engineering support for the TI TMS320C28x / C2000 DSP family.\n\n## Features\n\n- **401 instructions** decoded with full operand resolution\n- **LLIL lifting** for arithmetic, moves, branches, FPU, multiply-accumulate, bit manipulation\n- **HLIL decompilation** with proper flag-based condition synthesis\n- **BinaryView plugins** for TI ELF, COFF, and raw flash images\n- **F28335 memory map** with peripheral register labels\n- **Analysis tools**: false function cleanup, PIE vector table scanning, inline data detection\n\n## Supported Devices\n\n- TMS320F28335 / F28334 / F28333 / F28332\n- TMS320F28004x (f28004x family)\n- Any C28x-core device (decoder is ISA-generic)\n\n## Architecture\n\n- Instruction decoding + IL lifting: **Rust** native library (high performance)\n- BinaryView plugins (ELF/COFF/Flash): **Python**\n- Based on TI SPRU430F instruction set reference",
+  "license": {
+    "name": "MIT",
+    "text": "MIT License\n\nCopyright (c) 2026 Brian McGillion\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files, to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED."
+  },
+  "platforms": ["Linux", "Darwin", "Windows"],
+  "installinstructions": {
+    "Linux": "Download the release for your platform from GitHub Releases. Extract the tms320c28x/ folder to ~/.binaryninja/plugins/ and restart Binary Ninja.",
+    "Darwin": "Download the release for your platform from GitHub Releases. Extract the tms320c28x/ folder to ~/Library/Application Support/Binary Ninja/plugins/ and restart Binary Ninja.",
+    "Windows": "Download the release for your platform from GitHub Releases. Extract the tms320c28x\\ folder to %APPDATA%\\Binary Ninja\\plugins\\ and restart Binary Ninja."
+  },
+  "version": "0.1.0",
+  "author": "Brian McGillion",
+  "minimumBinaryNinjaVersion": 5220
+}

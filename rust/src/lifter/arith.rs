@@ -242,7 +242,18 @@ fn arith_common(insn: &DecodedInstruction, il: &ILFunc, is_add: bool) -> bool {
         }
     }
 
-    il.nop().append();
+    // Single-operand add/sub: ACC ± operand (implicit ACC destination)
+    if insn.operands.len() == 1 {
+        let op = &insn.operands[0];
+        let src = il.sx(4, read_op(op, il, 2));
+        let acc = il.reg(4, Register::ACC);
+        let expr = if is_add { il.add(4, acc, src) } else { il.sub(4, acc, src) };
+        il.set_reg(4, Register::ACC, expr)
+            .with_flag_write(FlagWrite::All).append();
+        return true;
+    }
+
+    il.nop().append(); // guard: should not be reached for valid decoded instructions
     true
 }
 
@@ -297,8 +308,15 @@ pub fn lift_cmp(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
         let lhs = read_op(op0, il, size);
         let rhs = read_op(op1, il, size);
         il.sub(size, lhs, rhs).with_flag_write(FlagWrite::All).append();
+    } else if insn.operands.len() == 1 {
+        // Single-operand compare: CMP ACC, operand (implicit ACC)
+        let op = &insn.operands[0];
+        let size = if op.op_type == OperandType::Loc32 { 4 } else { 2 };
+        let lhs = il.reg(4, Register::ACC);
+        let rhs = if size == 2 { il.sx(4, read_op(op, il, 2)).build() } else { read_op(op, il, 4) };
+        il.sub(4, lhs, rhs).with_flag_write(FlagWrite::All).append();
     } else {
-        il.nop().append();
+        il.nop().append(); // guard: CMP with no operands
     }
     true
 }
@@ -321,7 +339,83 @@ pub fn lift_misc(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
             il.sub(4, il.reg(4, Register::ACC), il.const_int(4, 0))
                 .with_flag_write(FlagWrite::NZ).append();
         }
-        _ => { il.nop().append(); }
+        InsnId::ABS_ACC => {
+            let acc = il.reg(4, Register::ACC);
+            il.set_reg(4, Register::ACC, il.neg(4, acc))
+                .with_flag_write(FlagWrite::All).append();
+        }
+        // ABS16 is a MOV variant (MOV_ABS16_LOC16), not an Abs semantic — handled in mov.rs
+        InsnId::ABSTC_ACC => {
+            // ABS with TC flag — negate ACC if TC set
+            let acc = il.reg(4, Register::ACC);
+            il.set_reg(4, Register::ACC, il.neg(4, acc))
+                .with_flag_write(FlagWrite::All).append();
+        }
+        InsnId::NEG64_ACC_P => {
+            // Negate 64-bit ACC:P — negate both halves
+            il.set_reg(4, Register::ACC, il.neg(4, il.reg(4, Register::ACC)))
+                .with_flag_write(FlagWrite::All).append();
+            il.set_reg(4, Register::P, il.neg(4, il.reg(4, Register::P))).append();
+        }
+        InsnId::NEGTC_ACC => {
+            // Negate ACC conditional on TC — simplified to unconditional negate
+            let acc = il.reg(4, Register::ACC);
+            il.set_reg(4, Register::ACC, il.neg(4, acc))
+                .with_flag_write(FlagWrite::All).append();
+        }
+        InsnId::SAT_ACC | InsnId::SAT64_ACC_P => {
+            // Saturate: clamp based on overflow — model as nop
+            // (depends on OVM mode bit, not representable in IL)
+            il.nop().append();
+        }
+        // ── Test bit instructions ──
+        InsnId::TBIT_LOC16_BIT => {
+            // Test bit N of loc16 → sets TC flag
+            if insn.operands.len() >= 2 {
+                let val = read_op(&insn.operands[0], il, 2);
+                let bit = il.const_int(2, insn.operands[1].value as u64);
+                il.and(2, il.lsr(2, val, bit), il.const_int(2, 1))
+                    .with_flag_write(FlagWrite::All).append();
+            }
+        }
+        InsnId::TBIT_LOC16_T => {
+            // Test bit at position T of loc16
+            if let Some(op) = op_at(insn, 0) {
+                let val = read_op(op, il, 2);
+                let t = il.zx(2, il.reg(2, Register::T));
+                il.and(2, il.lsr(2, val, t), il.const_int(2, 1))
+                    .with_flag_write(FlagWrite::All).append();
+            }
+        }
+        InsnId::TCLR_LOC16_BIT => {
+            // Test bit N then clear it
+            if insn.operands.len() >= 2 {
+                let bit = insn.operands[1].value as u64;
+                let val = read_op(&insn.operands[0], il, 2);
+                il.and(2, il.lsr(2, val, il.const_int(2, bit)), il.const_int(2, 1))
+                    .with_flag_write(FlagWrite::All).append();
+                let mask = il.const_int(2, !(1u16 as u64) << bit & 0xFFFF);
+                let cleared = il.and(2, read_op(&insn.operands[0], il, 2), mask)
+                    .with_flag_write(FlagWrite::NZ).build();
+                write_loc(&insn.operands[0], il, 2, cleared);
+            }
+        }
+        InsnId::TSET_LOC16_BIT => {
+            // Test bit N then set it
+            if insn.operands.len() >= 2 {
+                let bit = insn.operands[1].value as u64;
+                let val = read_op(&insn.operands[0], il, 2);
+                il.and(2, il.lsr(2, val, il.const_int(2, bit)), il.const_int(2, 1))
+                    .with_flag_write(FlagWrite::All).append();
+                let mask = il.const_int(2, 1u64 << bit);
+                let set_val = il.or(2, read_op(&insn.operands[0], il, 2), mask)
+                    .with_flag_write(FlagWrite::NZ).build();
+                write_loc(&insn.operands[0], il, 2, set_val);
+            }
+        }
+        _ => {
+            il.nop().append(); // guard: unmatched misc arithmetic
+        }
     }
     true
 }

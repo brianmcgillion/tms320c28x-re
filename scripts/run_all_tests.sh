@@ -9,6 +9,14 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." 2>/dev/null && pwd)" \
   || { echo "ERROR: cannot find repo root"; exit 1; }
 cd "$ROOT"
 
+# ── NixOS workaround: ensure Cargo build scripts can link against glibc ──
+if [ -z "${CARGO_BUILD_RUSTFLAGS:-}" ] && command -v cc &>/dev/null; then
+    _glibc_dir="$(dirname "$(cc -print-file-name=libc.so.6)" 2>/dev/null)"
+    if [ -n "$_glibc_dir" ] && [ -d "$_glibc_dir" ]; then
+        export CARGO_BUILD_RUSTFLAGS="-C link-arg=-L${_glibc_dir}"
+    fi
+fi
+
 # ── Find Binary Ninja from PATH ──
 find_bn_dir() {
     if ! command -v binaryninja &>/dev/null; then

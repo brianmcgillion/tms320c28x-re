@@ -5,6 +5,8 @@ use crate::types::*;
 
 use binaryninja::low_level_il::LowLevelILMutableFunction;
 
+use binaryninja::low_level_il::lifting::LowLevelILLabel;
+
 use super::{op_at, read_op, write_loc, reg_by_name};
 
 type ILFunc = LowLevelILMutableFunction;
@@ -92,11 +94,27 @@ pub fn lift(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
             il.fsub(4, src1, src2).build()
         } else if matches!(n, InsnId::MPYF32_RAH_RBH_RCH) {
             il.fmul(4, src1, src2).build()
+        } else if matches!(n, InsnId::MACF32_RAH_RBH_RCH) {
+            // MAC: dst += src1 * src2 (multiply-accumulate)
+            il.fadd(4, il.reg(4, dst), il.fmul(4, src1, src2)).build()
         } else {
+            // All known 3-reg FPU variants handled above
             il.nop().append();
             return true;
         };
         il.set_reg(4, dst, result).append();
+
+        // Handle parallel MOV (ops[3..4]) if present — FPU parallel instructions
+        // e.g., MPYF32 R0H,R1H,R2H || MOV32 R3H,mem
+        if ops.len() >= 5 {
+            let mov_dst = &ops[3];
+            let mov_src = &ops[4];
+            if mov_dst.op_type == OperandType::Register {
+                il.set_reg(4, reg_by_name(mov_dst.display_name()), read_op(mov_src, il, 4)).append();
+            } else if matches!(mov_dst.op_type, OperandType::Loc16 | OperandType::Loc32) {
+                write_loc(mov_dst, il, 4, read_op(mov_src, il, 4));
+            }
+        }
         return true;
     }
 
@@ -108,15 +126,29 @@ pub fn lift(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
         let dst = reg_by_name(ops[0].display_name());
         let src = il.reg(4, reg_by_name(ops[1].display_name()));
 
+        if matches!(n, InsnId::MAXF32_RAH_RBH | InsnId::MINF32_RAH_RBH) {
+            // MAXF32: dst = (dst >= src) ? dst : src
+            // MINF32: dst = (dst <= src) ? dst : src
+            let dst_val = il.reg(4, dst);
+            let cond = if matches!(n, InsnId::MAXF32_RAH_RBH) {
+                il.fcmp_ge(4, dst_val, src)
+            } else {
+                il.fcmp_le(4, dst_val, src)
+            };
+            let mut keep_label = LowLevelILLabel::new();
+            let mut replace_label = LowLevelILLabel::new();
+            il.if_expr(cond, &mut keep_label, &mut replace_label).append();
+            il.mark_label(&mut replace_label);
+            let src_reload = il.reg(4, reg_by_name(ops[1].display_name()));
+            il.set_reg(4, dst, src_reload).append();
+            il.mark_label(&mut keep_label);
+            return true;
+        }
+
         let result = if matches!(n, InsnId::ABSF32_RAH_RBH) {
             il.fabs(4, src).build()
         } else if matches!(n, InsnId::NEGF32_RAH_RBH) {
             il.fneg(4, src).build()
-        } else if matches!(n, InsnId::MAXF32_RAH_RBH) {
-            // No direct BN IL for max — approximate with comparison
-            src // just move
-        } else if matches!(n, InsnId::MINF32_RAH_RBH) {
-            src // just move
         } else {
             // Generic reg-to-reg move (MOV32 RaH, RbH etc.)
             src
@@ -140,6 +172,6 @@ pub fn lift(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
         }
     }
 
-    il.nop().append();
+    il.nop().append(); // guard: FPU with unrecognized operand types
     true
 }

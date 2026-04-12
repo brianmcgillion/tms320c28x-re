@@ -51,6 +51,7 @@
               ])}:$PATH"
               export LIBCLANG_PATH="${pkgs.llvmPackages.libclang.lib}/lib"
               export BINDGEN_EXTRA_CLANG_ARGS="-isystem ${pkgs.llvmPackages.libcxx.dev}/include/c++/v1 -isystem ${pkgs.glibc.dev}/include"
+              export CARGO_BUILD_RUSTFLAGS="-C link-arg=-L${pkgs.glibc}/lib"
 
               # Auto-detect BN from system PATH (not from nix — BN is impure)
               for p in $(echo "$ORIGINAL_PATH" | tr ':' ' ') /usr/bin /usr/local/bin; do
@@ -85,6 +86,10 @@
             pkg-config
             llvmPackages.libclang
 
+            # Build tools (needed by binaryninjacore-sys stubs)
+            cmake
+            ninja
+
             # LSP servers
             basedpyright # type checking + completions
             ruff # linting + formatting (includes ruff server)
@@ -96,6 +101,13 @@
 
           LIBCLANG_PATH = "${pkgs.llvmPackages.libclang.lib}/lib";
           BINDGEN_EXTRA_CLANG_ARGS = "-isystem ${pkgs.llvmPackages.libcxx.dev}/include/c++/v1 -isystem ${pkgs.glibc.dev}/include";
+
+          # Ensure Cargo build scripts can link against glibc on NixOS.
+          # Without this, `cargo clean && cargo build` fails with
+          # "DSO missing from command line" because rustc's linker
+          # invocation for build-script binaries doesn't go through
+          # the NixOS cc-wrapper.
+          CARGO_BUILD_RUSTFLAGS = "-C link-arg=-L${pkgs.glibc}/lib";
 
           shellHook = ''
             # Auto-detect BINARYNINJADIR from PATH (needed by binaryninjacore-sys)

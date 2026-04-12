@@ -57,7 +57,7 @@ pub fn lift_branch(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
         match insn.id {
             InsnId::LB_XAR7 => il.jump(il.reg(4, Register::XAR7)).append(),
             InsnId::XB_AL => il.jump(il.zx(4, il.reg(2, Register::AL))).append(),
-            _ => il.nop().append(),
+            _ => il.nop().append(), // BN builds CFG from instruction_info
         }
     }
     true
@@ -86,7 +86,7 @@ pub fn lift_cond_branch(insn: &DecodedInstruction, addr: u64, il: &ILFunc) -> bo
     let target = match insn.branch_target {
         Some(t) => t,
         None => {
-            il.nop().append();
+            il.nop().append(); // BN builds CFG from instruction_info
             return true;
         }
     };
@@ -95,7 +95,7 @@ pub fn lift_cond_branch(insn: &DecodedInstruction, addr: u64, il: &ILFunc) -> bo
     let cond_op = match cond_op {
         Some(c) => c,
         None => {
-            il.nop().append();
+            il.nop().append(); // BN builds CFG from instruction_info
             return true;
         }
     };
@@ -127,7 +127,7 @@ pub fn lift_call(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
                 }
             }
             InsnId::XCALL_AL => il.call(il.zx(4, il.reg(2, Register::AL))).append(),
-            _ => il.nop().append(),
+            _ => il.nop().append(), // BN builds CFG from instruction_info
         }
     }
     true

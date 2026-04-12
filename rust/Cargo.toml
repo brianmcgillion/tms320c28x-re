@@ -8,9 +8,16 @@ license = "MIT"
 [lib]
 crate-type = ["cdylib"]
 
+[features]
+default = ["bn-link"]
+# Enable to link against a real Binary Ninja installation.
+# Disable (--no-default-features) for CI builds that use stubs.
+bn-link = ["binaryninja/core"]
+
 [dependencies]
 # Pinned to ABI 160 to match BN 5.2.8722
-binaryninja = { git = "https://github.com/Vector35/binaryninja-api", rev = "f01a269d" }
+# default-features = false so our bn-link feature controls the "core" flag
+binaryninja = { git = "https://github.com/Vector35/binaryninja-api", rev = "f01a269d", default-features = false }
 log = "0.4"
 
 [build-dependencies]

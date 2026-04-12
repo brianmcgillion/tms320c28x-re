@@ -364,6 +364,6 @@ pub fn lift(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
         }
     }
 
-    il.nop().append();
+    il.nop().append(); // guard: MOV with unrecognized operand types
     true
 }
