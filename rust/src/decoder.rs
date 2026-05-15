@@ -278,6 +278,15 @@ fn resolve_branch_type(sem_type: SemType, cond_code: Option<u8>) -> BranchType {
 }
 
 /// Resolve the branch target address from instruction operands.
+///
+/// Only called for instructions with `branch_type != None`. Three target shapes:
+///   - `Imm22` (LB/LC/LCR/FFC): absolute 22-bit word address.
+///   - signed `Imm16`/`Imm8` (B/SB/SBF/BAR/BANZ): PC-relative word offset.
+///   - unsigned `Imm16`/`Imm8` (XB_PMA_COND / XCALL_PMA_COND): absolute word address.
+///
+/// The unsigned branch-target arm is safe because no non-branch instruction
+/// has `branch_type != None`, so other unsigned imm16/imm8 operands (constants
+/// for ADD/MOV/IN/OUT/etc.) never enter this function.
 fn resolve_target(def: &InstructionDef, opcode: u32, addr: u64, size: u8) -> Option<u64> {
     for op_def in def.operands {
         let raw = extract_bits(opcode, op_def.high_bit, op_def.low_bit);
@@ -294,6 +303,10 @@ fn resolve_target(def: &InstructionDef, opcode: u32, addr: u64, size: u8) -> Opt
                 let next_pc_words = (addr / 2) + (size as u64 / 2);
                 let target_words = (next_pc_words as i64 + offset) as u64;
                 return Some(target_words * 2);
+            }
+            OpType::Imm16 | OpType::Imm8 => {
+                // Unsigned in a branch context: absolute word address.
+                return Some((raw as u64) * 2);
             }
             _ => {}
         }
@@ -389,6 +402,80 @@ mod tests {
         let insn = d.decode(&bytes, 0x3000).unwrap();
         assert_eq!(insn.id, InsnId::SB);
         assert_eq!(insn.branch_target, Some(0x3000), "self-loop (target == addr) must be preserved");
+    }
+
+    // ── Phase A: LSL64/LSR64/ASR64 mask tightening ──────────────────────
+    // Previously these used mask 0xFFE0 (5-bit shift), shadowing the entire
+    // 0x56B0-0x56BF range used by MOVB_LOC16_CONST8_COND. INL reference
+    // (bn-tic28x-arch) and TI SPRU430F use mask 0xFFF0 with 4-bit shift.
+
+    #[test]
+    fn test_lsl64_no_longer_shadows_movb() {
+        // Bytes 0xB0 0x56 — previously matched LSL64_ACC_P_SHIFT shift=0x10.
+        // After mask fix, 16-bit decode misses (bit 4 set), 32-bit decode
+        // matches MOVB_LOC16_CONST8_COND at opcode 0x56B0_xxxx.
+        let d = Decoder::new(1);
+        let bytes = [0xB0, 0x56, 0x42, 0x07];
+        let insn = d.decode(&bytes, 0).unwrap();
+        assert_eq!(insn.id, InsnId::MOVB_LOC16_CONST8_COND);
+        assert_eq!(insn.size, 4);
+    }
+
+    #[test]
+    fn test_lsl64_legit_shift_still_works() {
+        let d = Decoder::new(1);
+        // Shift = 0
+        let insn = d.decode(&[0xA0, 0x56, 0x00, 0x00], 0).unwrap();
+        assert_eq!(insn.id, InsnId::LSL64_ACC_P_SHIFT);
+        assert_eq!(insn.size, 2);
+        assert_eq!(insn.operands[0].value, 0);
+        // Shift = 15 (max for 4-bit field)
+        let insn = d.decode(&[0xAF, 0x56, 0x00, 0x00], 0).unwrap();
+        assert_eq!(insn.id, InsnId::LSL64_ACC_P_SHIFT);
+        assert_eq!(insn.operands[0].value, 15);
+    }
+
+    #[test]
+    fn test_lsr64_asr64_tightened() {
+        let d = Decoder::new(1);
+        // ASR64 at 0x5680 (shift 0)
+        let insn = d.decode(&[0x80, 0x56, 0x00, 0x00], 0).unwrap();
+        assert_eq!(insn.id, InsnId::ASR64_ACC_P_SHIFT);
+        assert_eq!(insn.size, 2);
+        // LSR64 at 0x5690 (shift 0)
+        let insn = d.decode(&[0x90, 0x56, 0x00, 0x00], 0).unwrap();
+        assert_eq!(insn.id, InsnId::LSR64_ACC_P_SHIFT);
+        // Bytes that previously matched ASR64 with shift=0x10 must NOT match it now.
+        // 0x5690 with shift=0x10 was opcode bytes [0x90 | 0x10, 0x56] = [0xA0, 0x56],
+        // which now matches LSL64 instead (its legitimate base). That's correct.
+    }
+
+    // ── Phase A: unsigned-imm16 branch target resolution ────────────────
+    // XB_PMA_COND / XCALL_PMA_COND use absolute word addresses encoded as
+    // unsigned imm16. Previously resolve_target only handled signed imm16
+    // (PC-relative), so these instructions returned branch_target = None.
+
+    #[test]
+    fn test_xb_pma_cond_target_resolved() {
+        // XB UNC, pma=0x1234 → opcode32 0x56DF1234.
+        // Encoder bytes: data[0]=0xDF, data[1]=0x56, data[2]=0x34, data[3]=0x12.
+        let d = Decoder::new(1);
+        let bytes = [0xDF, 0x56, 0x34, 0x12];
+        let insn = d.decode(&bytes, 0x10000).unwrap();
+        assert_eq!(insn.id, InsnId::XB_PMA_COND);
+        assert_eq!(insn.branch_type, BranchType::Unconditional);
+        assert_eq!(insn.branch_target, Some(0x2468), "target = 0x1234 word × 2");
+    }
+
+    #[test]
+    fn test_xcall_pma_cond_target_resolved() {
+        // XCALL UNC, pma=0x1234 → opcode32 0x56EF1234.
+        let d = Decoder::new(1);
+        let bytes = [0xEF, 0x56, 0x34, 0x12];
+        let insn = d.decode(&bytes, 0x10000).unwrap();
+        assert_eq!(insn.id, InsnId::XCALL_PMA_COND);
+        assert_eq!(insn.branch_type, BranchType::Call);
+        assert_eq!(insn.branch_target, Some(0x2468));
     }
 
     #[test]

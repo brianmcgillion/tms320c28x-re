@@ -91,11 +91,15 @@ instructions:
 
   - name: LSL64_ACC_P_SHIFT
     full_name: "Logical shift left 64-bit ACC:P by immediate"
+    # Shift field is 4 bits (0-15) per TI SPRU430F and INL bn-tic28x-arch
+    # reference (MASK_FFF0). The previous mask 0xFFE0 / imm5 allowed bit 4
+    # as part of the shift, which shadowed the entire 0x56B0-0x56BF range
+    # used by 32-bit MOVB_LOC16_CONST8_COND in the two-stage decoder.
     format: 16
     opcode: 0x56A0
-    mask: 0xFFE0
+    mask: 0xFFF0
     operands:
-      - { name: shift, type: imm5, bits: [4, 0] }
+      - { name: shift, type: imm4, bits: [3, 0] }
     semantics: { type: lsl, dest: "ACC:P", flags: [N, Z, C] }
 
   - name: LSL64_ACC_P_T
@@ -107,11 +111,12 @@ instructions:
 
   - name: LSR64_ACC_P_SHIFT
     full_name: "Logical shift right 64-bit ACC:P by immediate"
+    # See LSL64_ACC_P_SHIFT — same 4-bit shift field per TI/INL.
     format: 16
     opcode: 0x5690
-    mask: 0xFFE0
+    mask: 0xFFF0
     operands:
-      - { name: shift, type: imm5, bits: [4, 0] }
+      - { name: shift, type: imm4, bits: [3, 0] }
     semantics: { type: lsr, dest: "ACC:P", flags: [N, Z, C] }
 
   - name: LSR64_ACC_P_T
@@ -123,11 +128,12 @@ instructions:
 
   - name: ASR64_ACC_P_SHIFT
     full_name: "Arithmetic shift right 64-bit ACC:P by immediate"
+    # See LSL64_ACC_P_SHIFT — same 4-bit shift field per TI/INL.
     format: 16
     opcode: 0x5680
-    mask: 0xFFE0
+    mask: 0xFFF0
     operands:
-      - { name: shift, type: imm5, bits: [4, 0] }
+      - { name: shift, type: imm4, bits: [3, 0] }
     semantics: { type: asr, dest: "ACC:P", flags: [N, Z, C] }
 
   - name: ASR64_ACC_P_T
