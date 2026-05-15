@@ -166,6 +166,15 @@ else
     skip_test "flash parsing" "BN or flash fixture not available"
 fi
 
+# ── Stage 5a: binja/tools.py — missing-import smoke ──
+echo
+echo "Stage 5a: tools.py smoke (missing-import detector)"
+if [ -n "$BN_DIR" ]; then
+    run_test "tools.py smoke" python3 scripts/smoke_tools.py
+else
+    skip_test "tools.py smoke" "BN not found"
+fi
+
 # ── Stage 5c: Real firmware smoke validation ──
 echo
 echo "Stage 5c: Real firmware smoke"

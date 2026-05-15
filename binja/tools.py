@@ -9,6 +9,9 @@ import binaryninja
 from binaryninja import (
     BackgroundTaskThread,
     PluginCommand,
+    SectionSemantics,
+    SegmentFlag,
+    Symbol,
     SymbolType,
     log_info,
     log_warn,
@@ -226,7 +229,6 @@ class ApplyMemoryMapTask(BackgroundTaskThread):
 
     def run(self):
         bv = self.bv
-        from binaryninja import SegmentFlag, SectionSemantics
 
         mmio_flags = SegmentFlag.SegmentReadable | SegmentFlag.SegmentWritable
         ram_flags = mmio_flags | SegmentFlag.SegmentContainsData
