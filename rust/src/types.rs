@@ -13,6 +13,10 @@ pub enum BranchType {
     Call,
     Return,
     Trap,
+    /// CPU halt instructions (ESTOP0/ESTOP1) — execution never returns.
+    /// Maps to BN's BranchKind::Exception so BN terminates the basic block
+    /// and does not fall through to the next instruction.
+    Halt,
 }
 
 /// Types of instruction operands.

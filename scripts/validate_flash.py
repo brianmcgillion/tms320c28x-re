@@ -37,15 +37,34 @@ from build_flash_fixture import DATA_CONSTANTS, DATA_FLASH_F_FILE_OFFSET
 
 
 def get_symbols():
-    result = subprocess.run(["nm", COMBINED_OUT], capture_output=True, text=True)
-    syms = {}
+    """Parse `nm -S` output. Returns (addrs, sizes) — both in byte units.
+
+    nm -S output for C28x ELF:
+      <addr_words> <size_words> T <name>   (global, with size)
+      <addr_words> T <name>                (global, no size)
+      <addr_words> t <name>                (local label, no size)
+
+    Falls back to next-symbol-minus-this-symbol when size is missing.
+    """
+    result = subprocess.run(["nm", "-S", COMBINED_OUT], capture_output=True, text=True)
+    raw = []  # (addr_words, size_words_or_None, name)
     for line in result.stdout.split("\n"):
         parts = line.split()
-        if len(parts) >= 3 and parts[1] == "T":
-            syms[parts[2]] = int(parts[0], 16) * 2
-    return syms
+        if len(parts) == 4 and parts[2] == "T":
+            raw.append((int(parts[0], 16), int(parts[1], 16), parts[3]))
+        elif len(parts) == 3 and parts[1] == "T":
+            raw.append((int(parts[0], 16), None, parts[2]))
+    raw.sort(key=lambda r: r[0])
+    addrs, sizes = {}, {}
+    for i, (a, s, name) in enumerate(raw):
+        addrs[name] = a * 2  # word → byte
+        if s is not None:
+            sizes[name] = s * 2
+        elif i + 1 < len(raw):
+            sizes[name] = (raw[i + 1][0] - a) * 2  # gap to next symbol
+    return addrs, sizes
 
-ALL_SYMBOLS = get_symbols()
+ALL_SYMBOLS, ELF_SIZES = get_symbols()
 
 total_pass = 0
 total_fail = 0
@@ -84,7 +103,34 @@ def get_hlil(func):
 
 
 def callee_addrs(func):
-    return {c.start for c in func.callees}
+    """Return the set of call-target addresses observable from `func`.
+
+    BN's `func.callees` is derived from MLIL and is flaky under some seeding
+    orders (the analyzer can miss call edges if seeded after the caller is
+    already analyzed). Instead we walk each basic block instruction and use
+    `get_instruction_info` to pick up `CallDestination` branches directly —
+    this matches what `instruction_info()` exposes in the architecture plugin
+    and is stable across seeding orders.
+    """
+    targets = set()
+    for bb in func.basic_blocks:
+        addr = bb.start
+        while addr < bb.end:
+            raw = func.view.read(addr, 4)
+            if not raw or len(raw) < 2:
+                break
+            info = func.view.arch.get_instruction_info(raw, addr)
+            if info is None or info.length == 0:
+                addr += 2
+                continue
+            for branch in info.branches:
+                if (
+                    branch.type == binaryninja.BranchType.CallDestination
+                    and branch.target
+                ):
+                    targets.add(branch.target)
+            addr += info.length
+    return targets
 
 
 # ── Load and init ──
@@ -153,6 +199,55 @@ for name in ["_c_int00", "memcpy", "exit"]:
     if addr:
         found = addr in func_addrs or any(abs(a - addr) <= 4 for a in func_addrs)
         check(found, f"{name} (library)", f"{name} (library) missing")
+
+# ── Boundary accuracy ──
+# Compare BN-discovered function extent against ELF symbol size.
+#
+# BN's basic-block model has two quirks we account for:
+#  (1) Functions can share basic blocks. e.g. __c28xabi_divf's BBs may be
+#      reachable from main via the call graph, and BN includes them in
+#      main.basic_blocks. Such shared BBs are not real boundary bugs.
+#  (2) BN sometimes creates tiny phantom BBs in unrelated padding due to
+#      unresolved indirect targets in the function.
+#
+# Strict metric: the in-bounds basic-block span (max bb.end within ELF range
+# minus f.start) must equal ELF size within tolerance, AND any OOB BBs that
+# are not shared with another seeded function must be small.
+#
+# The `>= N basic_blocks` checks below are kept as semantic structure asserts
+# (testing function *shape*), distinct from this quantitative boundary check.
+print()
+print("--- Boundary accuracy ---")
+BOUNDARY_TOLERANCE = 4         # bytes; allows ±2 words for alignment
+EXCLUSIVE_OOB_TOLERANCE = 4    # bytes of phantom BBs not shared with another function
+for name in USER_FUNCTIONS:
+    addr = ALL_SYMBOLS.get(name)
+    elf_size = ELF_SIZES.get(name)
+    if not addr or not elf_size:
+        continue
+    f = find_func(view, addr)
+    if not f:
+        check(False, "", f"{name}: function missing, cannot check boundary")
+        continue
+    elf_end = f.start + elf_size
+    in_bbs = [b for b in f.basic_blocks if b.start < elf_end]
+    oob_bbs = [b for b in f.basic_blocks if b.start >= elf_end]
+    if not in_bbs:
+        check(False, "", f"{name}: no in-bounds basic blocks")
+        continue
+    in_span = max(b.end for b in in_bbs) - f.start
+    delta = abs(in_span - elf_size)
+    # OOB bytes that are NOT shared with another function are real phantoms
+    oob_exclusive = sum(
+        b.length for b in oob_bbs
+        if len(view.get_functions_containing(b.start)) <= 1
+    )
+    ok = delta <= BOUNDARY_TOLERANCE and oob_exclusive <= EXCLUSIVE_OOB_TOLERANCE
+    check(
+        ok,
+        f"{name} boundary OK (Δ={delta}B, OOB-exclusive={oob_exclusive}B)",
+        f"{name} boundary FAIL Δ={delta}B, in-span={in_span}, ELF={elf_size}, OOB-exclusive={oob_exclusive}B"
+    )
 
 # ── Decode quality ──
 print()

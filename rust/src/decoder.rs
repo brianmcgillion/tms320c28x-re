@@ -124,12 +124,27 @@ impl Decoder {
         }
 
         let branch_type = resolve_branch_type(def.sem_type, cond_code);
-        let branch_target = if branch_type != BranchType::None && branch_type != BranchType::Return
+        let mut branch_target = if branch_type != BranchType::None
+            && branch_type != BranchType::Return
+            && branch_type != BranchType::Halt
         {
             resolve_target(def, opcode, addr, size)
         } else {
             None
         };
+
+        // Reject branch targets that land strictly inside the current
+        // instruction's own bytes. Such targets are produced when bytes that
+        // *happen* to match a branch pattern (e.g. `0x56C3FFFF` decoding as
+        // `BF GEQ, -1`) are not actually code. Following them puts BN into
+        // mid-instruction decode and chains 64 KB of garbage onto the
+        // surrounding function. Targets exactly at `addr` (self-loop) or at
+        // `addr + size` (fall-through-as-branch) remain valid.
+        if let Some(t) = branch_target {
+            if t > addr && t < addr + size as u64 {
+                branch_target = None;
+            }
+        }
 
         DecodedInstruction {
             id: def.id,
@@ -248,6 +263,7 @@ fn resolve_branch_type(sem_type: SemType, cond_code: Option<u8>) -> BranchType {
         SemType::Return => BranchType::Return,
         SemType::Call => BranchType::Call,
         SemType::Trap => BranchType::Trap,
+        SemType::Halt => BranchType::Halt,
         SemType::Branch => BranchType::Unconditional,
         SemType::CondBranch => {
             if cond_code == Some(0xF) {
@@ -314,6 +330,74 @@ mod tests {
         let insn = d.decode(&data, 0).unwrap();
         assert_eq!(insn.id, InsnId::LRETR);
         assert_eq!(insn.branch_type, BranchType::Return);
+    }
+
+    #[test]
+    fn test_decode_estop0_halt() {
+        let d = Decoder::new(1);
+        let data = [0x25, 0x76, 0x00, 0x00]; // ESTOP0 = 0x7625
+        let insn = d.decode(&data, 0).unwrap();
+        assert_eq!(insn.id, InsnId::ESTOP0);
+        assert_eq!(insn.branch_type, BranchType::Halt);
+        assert_eq!(insn.branch_target, None);
+    }
+
+    #[test]
+    fn test_decode_estop1_halt() {
+        let d = Decoder::new(1);
+        let data = [0x24, 0x76, 0x00, 0x00]; // ESTOP1 = 0x7624
+        let insn = d.decode(&data, 0).unwrap();
+        assert_eq!(insn.id, InsnId::ESTOP1);
+        assert_eq!(insn.branch_type, BranchType::Halt);
+    }
+
+    #[test]
+    fn test_bf_into_self_rejected() {
+        // BF GEQ, -1 = 0x56C3FFFF decoded at byte address X.
+        // target = (X/2 + 4/2 + (-1)) * 2 = X + 2, which is inside the 4-byte BF.
+        // After Phase 3a, branch_target must be None so BN treats it as
+        // unresolved (terminates BB without following into mid-instruction).
+        let d = Decoder::new(1);
+        let bytes = [0xC3, 0x56, 0xFF, 0xFF]; // BF GEQ, -1
+        let insn = d.decode(&bytes, 0x1000).unwrap();
+        assert_eq!(insn.id, InsnId::BF);
+        assert_eq!(insn.branch_type, BranchType::ConditionalTrue);
+        assert_eq!(insn.branch_target, None, "BF target must be rejected when it lands inside the instruction");
+    }
+
+    #[test]
+    fn test_b_into_self_rejected() {
+        // B UNC, -1 = bytes producing opcode32 0xFFFFFFFF would match B
+        // but the new branch.yaml mask 0xFFF00000 already prevents that.
+        // Try B UNC, -1 with valid encoding: 0xFFEF + 0xFFFF.
+        // opcode32 = 0xFFEFFFFF, matches B (mask 0xFFF00000 -> opcode 0xFFE00000).
+        // target = (X/2 + 2 + (-1)) * 2 = X + 2, mid-instruction.
+        let d = Decoder::new(1);
+        let bytes = [0xEF, 0xFF, 0xFF, 0xFF]; // B UNC, -1
+        let insn = d.decode(&bytes, 0x2000).unwrap();
+        assert_eq!(insn.id, InsnId::B);
+        assert_eq!(insn.branch_target, None, "B target landing inside instruction must be rejected");
+    }
+
+    #[test]
+    fn test_branch_to_self_allowed() {
+        // SB UNC, -1 at byte X: target = X/2 + 1 + (-1) = X/2 (word) = X byte.
+        // target == addr (start of same instruction), NOT strictly inside.
+        // This is a legit `while(1){}` self-loop and must be kept.
+        let d = Decoder::new(1);
+        let bytes = [0xFF, 0x6F, 0x00, 0x00]; // SB UNC, -1
+        let insn = d.decode(&bytes, 0x3000).unwrap();
+        assert_eq!(insn.id, InsnId::SB);
+        assert_eq!(insn.branch_target, Some(0x3000), "self-loop (target == addr) must be preserved");
+    }
+
+    #[test]
+    fn test_decode_trap_still_soft() {
+        let d = Decoder::new(1);
+        // TRAP imm5 = 0x0020 | vector; bare TRAP #0 = 0x0020
+        let data = [0x20, 0x00, 0x00, 0x00];
+        let insn = d.decode(&data, 0).unwrap();
+        assert_eq!(insn.branch_type, BranchType::Trap);
     }
 
     #[test]

@@ -13,9 +13,11 @@ type ILFunc = LowLevelILMutableFunction;
 
 pub fn lift(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
     match insn.id {
-        // Breakpoints
+        // CPU halt: emit bp() for debugger semantic, then no_ret() so the
+        // CFG terminates here and BN does not fall through to padding.
         InsnId::ESTOP0 | InsnId::ESTOP1 => {
             il.bp().append();
+            il.no_ret().append();
         }
 
         // EALLOW/EDIS: privilege state — nop is correct

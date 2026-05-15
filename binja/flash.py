@@ -19,9 +19,21 @@ from binaryninja import (
     SectionSemantics,
     SymbolType,
     Symbol,
+    Type,
     log_info,
     log_warn,
 )
+
+# Padding-pattern thresholds (words).
+# 0xFFFF (and 0xFFFFFFFF) decodes as `B PC, UNC` (branch-to-next-instruction) per
+# isa/instructions/branch.yaml. Even a 2-word run inside a function's tail will
+# pull adjacent code in via that "branch." Threshold is low (>=2 words = 4 bytes).
+PAD_FFFF_MIN_WORDS = 2
+# 0x7625 (ESTOP0) is the cl2000 synthetic fixture's sector filler. Phase 1
+# already terminates each ESTOP0 individually via no_ret; we only mark long
+# runs as data to avoid clutter and protect against any remaining edge cases.
+# Threshold higher because lone ESTOP0 in real code (debug guards) is plausible.
+PAD_ESTOP_MIN_WORDS = 8
 
 # ── F28335 Memory Map (word address, word size) ──
 # Converted to byte addresses at runtime: byte_addr = word_addr * 2
@@ -263,6 +275,11 @@ class TMS320C28xFlashView(BinaryView):
                 Symbol(SymbolType.DataSymbol, byte_start, name)
             )
 
+        # ── Pre-mark padding runs as data ──
+        # Must run BEFORE function discovery / auto-analysis so BN never tries
+        # to decode 0xFFFF or 0x7625 padding bytes as instructions.
+        self._mark_padding_runs(flash_h_byte, file_len)
+
         # ── Entry point from reset vector ──
         self._find_entry_point(flash_h_byte, file_len)
 
@@ -273,6 +290,80 @@ class TMS320C28xFlashView(BinaryView):
         self._find_functions_from_pointer_tables(flash_h_byte, file_len)
 
         return True
+
+    def _mark_padding_runs(self, flash_base, file_len):
+        """Scan executable segments for padding patterns and mark as data.
+
+        Two patterns are pre-marked so BN's auto-analysis never decodes them:
+          - 0xFFFFFFFF (32-bit) — erased flash. Decodes as `B PC, UNC` per
+            isa/instructions/branch.yaml, which pulls adjacent code into the
+            preceding function via "branch to next instruction" semantics.
+            Threshold: >= PAD_FFFF_MIN_WORDS consecutive 0xFFFF words.
+          - 0x7625 (ESTOP0) — cl2000 synthetic fixture filler. Phase 1's
+            no_ret() terminates each ESTOP0 individually, but long runs in
+            data segments are still better marked as data for clarity.
+
+        Runs are recorded as int(2) data variables; existing function entries
+        that overlap a detected run are removed to prevent BN from re-discovering.
+        """
+        ffff_count = 0
+        estop_count = 0
+
+        for seg in self.segments:
+            if not seg.executable:
+                continue
+            seg_off_in_file = seg.start - flash_base
+            if seg_off_in_file < 0 or seg_off_in_file >= file_len:
+                continue
+            read_len = min(seg.end, flash_base + file_len) - seg.start
+            if read_len <= 0:
+                continue
+            data = self.raw.read(seg_off_in_file, read_len)
+            if not data or len(data) < 2:
+                continue
+
+            ffff_count += self._mark_pattern_runs(
+                data, seg.start, 0xFFFF, PAD_FFFF_MIN_WORDS
+            )
+            estop_count += self._mark_pattern_runs(
+                data, seg.start, 0x7625, PAD_ESTOP_MIN_WORDS
+            )
+
+        if ffff_count or estop_count:
+            log_info(
+                f"C28x Flash: marked {ffff_count} 0xFFFF + "
+                f"{estop_count} ESTOP0 padding runs as data"
+            )
+
+    def _mark_pattern_runs(self, data, base_addr, target_word, min_words):
+        """Find runs of `target_word` in `data` and mark them as int(2) vars.
+
+        Returns the number of runs marked.
+        """
+        runs_marked = 0
+        i = 0
+        n = len(data)
+        target_lo = target_word & 0xFF
+        target_hi = (target_word >> 8) & 0xFF
+        while i + 1 < n:
+            if data[i] == target_lo and data[i + 1] == target_hi:
+                # Walk forward collecting the run
+                run_start = i
+                j = i
+                while j + 1 < n and data[j] == target_lo and data[j + 1] == target_hi:
+                    j += 2
+                run_words = (j - run_start) // 2
+                if run_words >= min_words:
+                    for off in range(run_start, j, 2):
+                        try:
+                            self.define_user_data_var(base_addr + off, Type.int(2))
+                        except Exception:
+                            pass
+                    runs_marked += 1
+                i = j
+            else:
+                i += 2
+        return runs_marked
 
     def _find_entry_point(self, flash_base, file_len):
         """Parse reset vector to find the boot entry point."""

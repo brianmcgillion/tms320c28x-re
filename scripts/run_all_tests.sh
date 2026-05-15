@@ -166,6 +166,16 @@ else
     skip_test "flash parsing" "BN or flash fixture not available"
 fi
 
+# ── Stage 5c: Real firmware smoke validation ──
+echo
+echo "Stage 5c: Real firmware smoke"
+_real_fw="${TMS320_REAL_FIRMWARE:-tests/fixtures/real/firmware.bin}"
+if [ -n "$BN_DIR" ] && [ -f "$_real_fw" ]; then
+    TMS320_REAL_FIRMWARE="$_real_fw" run_test "real firmware smoke" python3 scripts/validate_real_firmware.py
+else
+    skip_test "real firmware smoke" "BN or real firmware .bin not available (set TMS320_REAL_FIRMWARE)"
+fi
+
 # ── Stage 6: Structural decompilation comparison ──
 echo
 echo "Stage 6: Decompilation quality"

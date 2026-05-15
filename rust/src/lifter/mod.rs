@@ -58,6 +58,7 @@ pub fn lift(insn: &DecodedInstruction, addr: u64, il: &ILFunc) -> bool {
         SemType::Nop => { il.nop().append(); true }
         SemType::System | SemType::Csb | SemType::Max | SemType::Min => system::lift(insn, addr, il),
         SemType::Trap => { il.nop().append(); true }
+        SemType::Halt => system::lift(insn, addr, il),
         _ => false,
     };
 
@@ -77,6 +78,10 @@ pub fn lift(insn: &DecodedInstruction, addr: u64, il: &ILFunc) -> bool {
         }
         BranchType::Call if insn.branch_target.is_some() => {
             il.call(il.const_ptr(insn.branch_target.unwrap())).append();
+            true
+        }
+        BranchType::Halt => {
+            il.no_ret().append();
             true
         }
         _ => false,

@@ -62,14 +62,14 @@ instructions:
     format: 16
     opcode: 0x7625
     mask: 0xFFFF
-    semantics: { type: trap }
+    semantics: { type: halt }
 
   - name: ESTOP1
     full_name: "Emulation stop 1"
     format: 16
     opcode: 0x7624
     mask: 0xFFFF
-    semantics: { type: trap }
+    semantics: { type: halt }
 
   - name: ABORTI
     full_name: "Abort interrupt"

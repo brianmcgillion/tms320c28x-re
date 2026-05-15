@@ -5,8 +5,12 @@ instructions:
   - name: B
     full_name: "Branch conditionally"
     format: 32
+    # TI SPRU430F encoding: bits [31:20] = 0xFFE (12 bits, not 11).
+    # Mask was previously 0xFFE00000, which accidentally matched
+    # 0xFFFFFFFF (erased flash) and other 0xFFFx_xxxx patterns as B.
+    # Tightened mask prevents bogus decodes of padding/erased bytes.
     opcode: 0xFFE00000
-    mask: 0xFFE00000
+    mask: 0xFFF00000
     objmode: 1
     operands:
       - { name: offset, type: imm16, bits: [15, 0], signed: true }

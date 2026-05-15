@@ -486,6 +486,11 @@ impl architecture::Architecture for TMS320C28x {
             BranchType::Trap => {
                 info.add_branch(BranchKind::SystemCall);
             }
+            BranchType::Halt => {
+                // ESTOP0/ESTOP1: CPU halt, never returns. Exception kind tells
+                // BN to terminate the basic block with no fall-through.
+                info.add_branch(BranchKind::Exception);
+            }
             BranchType::None => {}
         }
 
