@@ -35,8 +35,14 @@ instructions:
   - name: BF
     full_name: "Branch fast conditionally"
     format: 32
+    # TI SPRU430F + INL bn-tic28x-arch reference: bits [31:20] = 0x56C
+    # (12-bit opcode). Mask was 0xFFC00000 (10 bits) leaving bits [21:20]
+    # unconstrained — same shape as the B mask bug. With build.rs sorting
+    # by mask-popcount descending, XB_PMA_COND (mask 0xFFF00000) still wins
+    # the 0x56Dxxxxx range today, but the loose mask is a latent hazard if
+    # ordering ever changes. Tighten to match the reference.
     opcode: 0x56C00000
-    mask: 0xFFC00000
+    mask: 0xFFF00000
     objmode: 1
     operands:
       - { name: offset, type: imm16, bits: [15, 0], signed: true }

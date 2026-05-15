@@ -274,8 +274,10 @@ pub fn lift_banz(insn: &DecodedInstruction, addr: u64, il: &ILFunc) -> bool {
     true
 }
 
-/// Map 4-bit condition code to BN flag condition IL expression.
-fn flag_condition_il<'a>(
+/// Map 4-bit C28x condition code to a BN flag-condition IL expression.
+/// Made `pub(crate)` so other lifter modules (e.g. `mov::lift_movb_cond`)
+/// can wrap their bodies in `if_expr(flag_condition_il(cond), ...)`.
+pub(crate) fn flag_condition_il<'a>(
     code: u8,
     il: &'a ILFunc,
 ) -> Option<

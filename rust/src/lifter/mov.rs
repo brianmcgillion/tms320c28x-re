@@ -7,6 +7,7 @@ use crate::types::*;
 use binaryninja::low_level_il::LowLevelILMutableFunction;
 
 use super::{op_at, read_op, write_loc, reg_by_name, xar_reg, ar_reg};
+use binaryninja::low_level_il::lifting::LowLevelILLabel;
 
 type ILFunc = LowLevelILMutableFunction;
 
@@ -365,5 +366,54 @@ pub fn lift(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
     }
 
     il.nop().append(); // guard: MOV with unrecognized operand types
+    true
+}
+
+/// Lift `MOVB loc16, #const8, cond` — conditional byte move.
+///
+/// Encoded as a 32-bit instruction (`0x56Bx_xxxx`) with `loc16` destination,
+/// 8-bit immediate `const8`, and 4-bit `cond`. Decode lives in mov.yaml; this
+/// function is wired through the Tier-1 InsnId match in `lifter/mod.rs` because
+/// the generic `mov::lift` would otherwise ignore the condition and emit an
+/// unconditional move.
+///
+/// Pattern mirrors `branch::lift_xretc` for conditional return.
+pub fn lift_movb_cond(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
+    let dest = match op_at(insn, 0) {
+        Some(op) => op,
+        None => { il.nop().append(); return true; }
+    };
+    let const_op = match op_at(insn, 1) {
+        Some(op) => op,
+        None => { il.nop().append(); return true; }
+    };
+    let cond_op = insn.operands.iter().find(|op| op.op_type == OperandType::Condition);
+
+    // Unconditional path (cond == 0xF UNC, or operand absent): emit a plain move.
+    let emit_move = |il: &ILFunc| {
+        let val = il.const_int(2, const_op.value as u64);
+        write_loc(dest, il, 2, val);
+    };
+
+    match cond_op {
+        Some(cop) if cop.value == 0xF => {
+            emit_move(il);
+        }
+        Some(cop) => {
+            if let Some(cond) = super::branch::flag_condition_il(cop.value as u8, il) {
+                let mut t_label = LowLevelILLabel::new();
+                let mut f_label = LowLevelILLabel::new();
+                il.if_expr(cond, &mut t_label, &mut f_label).append();
+                il.mark_label(&mut t_label);
+                emit_move(il);
+                il.mark_label(&mut f_label);
+            } else {
+                // Unknown condition code — fall back to unconditional rather
+                // than emitting a nop (preserves data flow on edge cases).
+                emit_move(il);
+            }
+        }
+        None => emit_move(il),
+    }
     true
 }

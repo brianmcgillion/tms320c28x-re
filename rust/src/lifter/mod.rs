@@ -29,6 +29,9 @@ pub fn lift(insn: &DecodedInstruction, addr: u64, il: &ILFunc) -> bool {
         InsnId::BAR_OFF16_ARN_ARM_NEQ => return branch::lift_bar(insn, addr, il, false),
         InsnId::BANZ => return branch::lift_banz(insn, addr, il),
         InsnId::XRETC_COND => return branch::lift_xretc(insn, addr, il),
+        // MOVB loc16, #const8, cond — must wrap the move in if_expr; the
+        // generic SemType::Mov dispatch in mov::lift would discard the cond.
+        InsnId::MOVB_LOC16_CONST8_COND => return mov::lift_movb_cond(insn, addr, il),
         _ => {}
     }
 

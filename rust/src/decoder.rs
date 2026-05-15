@@ -450,6 +450,32 @@ mod tests {
         // which now matches LSL64 instead (its legitimate base). That's correct.
     }
 
+    // ── Phase B-4: BF mask tightened (0xFFC00000 → 0xFFF00000) ──────────
+    // Matches INL bn-tic28x-arch and TI SPRU430F. BF's reserved bits [21:20]
+    // are now constrained to 0; previously, 0x56Dxxxxx and 0x56Exxxxx could
+    // match BF as well as XB/XCALL_PMA_COND. The build.rs popcount sort kept
+    // XB winning in practice, but the loose mask was a latent hazard.
+
+    #[test]
+    fn test_bf_tighter_mask_rejects_xb_range() {
+        // 0x56DF1234 used to match BF (loose mask) before tightening.
+        // Now it should only match XB_PMA_COND (mask 0xFFF00000), opcode 0x56D00000.
+        let d = Decoder::new(1);
+        let bytes = [0xDF, 0x56, 0x34, 0x12];
+        let insn = d.decode(&bytes, 0).unwrap();
+        assert_eq!(insn.id, InsnId::XB_PMA_COND, "0x56Dxxxxx must NOT match BF");
+    }
+
+    #[test]
+    fn test_bf_legit_still_works() {
+        // BF UNC at 0x56CF1234 (bits [21:20] = 00) — legit BF encoding.
+        let d = Decoder::new(1);
+        let bytes = [0xCF, 0x56, 0x34, 0x12];
+        let insn = d.decode(&bytes, 0).unwrap();
+        assert_eq!(insn.id, InsnId::BF);
+        assert_eq!(insn.branch_type, BranchType::Unconditional);
+    }
+
     // ── Phase A: unsigned-imm16 branch target resolution ────────────────
     // XB_PMA_COND / XCALL_PMA_COND use absolute word addresses encoded as
     // unsigned imm16. Previously resolve_target only handled signed imm16
