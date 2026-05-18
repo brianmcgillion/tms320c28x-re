@@ -6,7 +6,7 @@ use crate::types::*;
 
 use binaryninja::low_level_il::LowLevelILMutableFunction;
 
-use super::{op_at, read_op, write_loc, reg_by_name, xar_reg, ar_reg};
+use super::{op_at, read_op, write_loc, reg_by_name, ar_reg};
 use binaryninja::low_level_il::lifting::LowLevelILLabel;
 
 type ILFunc = LowLevelILMutableFunction;

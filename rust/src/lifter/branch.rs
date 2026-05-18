@@ -29,13 +29,13 @@ fn emit_cond_branch(
         (Some(mut t), Some(mut f)) => {
             il.if_expr(cond, &mut t, &mut f).append();
         }
-        (Some(mut t), None) => {
+        (Some(_), None) => {
             // True target resolved, fallthrough outside function.
             // Emit jump to the true target (BN follows it).
             let _ = cond;
             il.jump(il.const_ptr(target)).append();
         }
-        (None, Some(mut f)) => {
+        (None, Some(_)) => {
             // True target outside function, fallthrough resolved.
             // Fall through naturally (nop) — BN handles from instruction_info.
             let _ = cond;
@@ -151,7 +151,7 @@ pub fn lift_return(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
 }
 
 /// Lift XRETC (conditional return).
-pub fn lift_xretc(insn: &DecodedInstruction, addr: u64, il: &ILFunc) -> bool {
+pub fn lift_xretc(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
     let cond_op = insn.operands.iter().find(|op| op.op_type == OperandType::Condition);
 
     match cond_op {

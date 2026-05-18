@@ -9,14 +9,15 @@ pub mod operands;
 pub mod types;
 
 use binaryninja::architecture::{register_architecture, ArchitectureExt, RegisterId};
-use binaryninja::calling_convention::{self, CallingConvention, register_calling_convention};
-use binaryninja::custom_binary_view::{BinaryViewType, BinaryViewTypeExt};
-use binaryninja::Endianness;
+use binaryninja::calling_convention::{CallingConvention, register_calling_convention};
 
 use arch::Register;
 
 /// ELF e_machine values used by TI C2000 toolchains.
+/// Referenced by the Python ELF BinaryView; documented here for cross-reference.
+#[allow(dead_code)]
 const EM_TI_C6000: u32 = 141;
+#[allow(dead_code)]
 const EM_TI_C2000: u32 = 157;
 
 /// TI C28x C/C++ compiler calling convention.

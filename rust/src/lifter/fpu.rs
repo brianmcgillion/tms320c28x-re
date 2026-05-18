@@ -7,7 +7,7 @@ use binaryninja::low_level_il::LowLevelILMutableFunction;
 
 use binaryninja::low_level_il::lifting::LowLevelILLabel;
 
-use super::{op_at, read_op, write_loc, reg_by_name};
+use super::{read_op, write_loc, reg_by_name};
 
 type ILFunc = LowLevelILMutableFunction;
 

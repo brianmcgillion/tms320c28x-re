@@ -176,7 +176,7 @@ impl TryFrom<u32> for Flag {
 impl architecture::Flag for Flag {
     type FlagClass = FlagClass;
 
-    fn name(&self) -> Cow<str> {
+    fn name(&self) -> Cow<'_, str> {
         match self {
             Flag::N => "N".into(), Flag::Z => "Z".into(), Flag::C => "C".into(),
             Flag::V => "V".into(), Flag::TC => "TC".into(), Flag::OVM => "OVM".into(),
@@ -220,7 +220,7 @@ impl architecture::FlagWrite for FlagWrite {
     type FlagType = Flag;
     type FlagClass = FlagClass;
 
-    fn name(&self) -> Cow<str> {
+    fn name(&self) -> Cow<'_, str> {
         match self {
             FlagWrite::All => "*".into(), FlagWrite::NZ => "nz".into(), FlagWrite::NZCV => "nzcv".into(),
         }
@@ -246,7 +246,7 @@ impl architecture::FlagWrite for FlagWrite {
 pub struct FlagClass;
 
 impl architecture::FlagClass for FlagClass {
-    fn name(&self) -> Cow<str> { unimplemented!() }
+    fn name(&self) -> Cow<'_, str> { unimplemented!() }
     fn id(&self) -> FlagClassId { unimplemented!() }
 }
 
@@ -277,7 +277,7 @@ impl architecture::FlagGroup for FlagGroup {
     type FlagType = Flag;
     type FlagClass = FlagClass;
 
-    fn name(&self) -> Cow<str> {
+    fn name(&self) -> Cow<'_, str> {
         match self {
             FlagGroup::E => "e".into(),     FlagGroup::NE => "ne".into(),
             FlagGroup::SLT => "slt".into(), FlagGroup::SGE => "sge".into(),
@@ -430,7 +430,6 @@ impl architecture::Architecture for TMS320C28x {
         group: Self::FlagGroup,
         il: &'a LowLevelILMutableFunction,
     ) -> Option<binaryninja::low_level_il::LowLevelILMutableExpression<'a, binaryninja::low_level_il::expression::ValueExpr>> {
-        use binaryninja::low_level_il::LowLevelILRegisterKind;
         let z = || il.flag(Flag::Z);
         let n = || il.flag(Flag::N);
         let c = || il.flag(Flag::C);

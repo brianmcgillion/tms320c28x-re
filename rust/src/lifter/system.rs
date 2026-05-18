@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 //! System instruction lifter: NOP, EALLOW, EDIS, ESTOP, SETC, CLRC, etc.
 
-use crate::arch::{FlagWrite, Register};
+use crate::arch::Register;
 use crate::types::*;
 
 use binaryninja::low_level_il::LowLevelILMutableFunction;

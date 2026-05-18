@@ -42,7 +42,9 @@ fn default_format() -> u32 {
 
 #[derive(Debug, Deserialize)]
 struct YamlOperand {
+    /// Operand name from YAML schema; kept for cross-reference but not used by the generator.
     #[serde(default)]
+    #[allow(dead_code)]
     name: String,
     #[serde(default, rename = "type")]
     op_type: String,
@@ -223,7 +225,7 @@ fn main() {
         let key = format!("OPDEF_{}", idx);
         let mut ops = String::new();
         ops.push_str(&format!(
-            "static {}: [OperandDef; {}] = [\n",
+            "#[allow(dead_code)]\nstatic {}: [OperandDef; {}] = [\n",
             key,
             insn.operands.len()
         ));
@@ -262,7 +264,7 @@ fn main() {
     // --- Display name helper ---
     // Generate a function that strips internal YAML suffixes for display
     writeln!(out, "/// Strip internal YAML suffixes from instruction name for display.").unwrap();
-    writeln!(out, "pub fn display_mnemonic(id: InsnId, cond_code: Option<u8>) -> &'static str {{").unwrap();
+    writeln!(out, "pub fn display_mnemonic(id: InsnId, _cond_code: Option<u8>) -> &'static str {{").unwrap();
     writeln!(out, "    match id {{").unwrap();
     for name in &all_names {
         let display = strip_yaml_suffixes(name);

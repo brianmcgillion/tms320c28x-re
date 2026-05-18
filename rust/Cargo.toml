@@ -15,9 +15,9 @@ default = ["bn-link"]
 bn-link = ["binaryninja/core"]
 
 [dependencies]
-# Pinned to ABI 160 to match BN 5.2.8722
+# Pinned to ABI 164 to match BN 5.3.9434
 # default-features = false so our bn-link feature controls the "core" flag
-binaryninja = { git = "https://github.com/Vector35/binaryninja-api", rev = "f01a269d", default-features = false }
+binaryninja = { git = "https://github.com/Vector35/binaryninja-api", rev = "745c0b3b806b7e44aba36cf3a8564dfa0631dc8f", default-features = false }
 log = "0.4"
 
 [build-dependencies]
