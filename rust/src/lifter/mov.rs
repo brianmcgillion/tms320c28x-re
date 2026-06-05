@@ -75,6 +75,29 @@ pub fn lift(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
         InsnId::POP_AR5_AR4 => { emit_pop_reg(il, Register::AR5, 2); emit_pop_reg(il, Register::AR4, 2); return true; }
         InsnId::POP_DP_ST1 => { emit_pop_reg(il, Register::DP, 2); emit_pop_reg(il, Register::ST1, 2); return true; }
         InsnId::POP_T_ST0 => { emit_pop_reg(il, Register::T, 2); emit_pop_reg(il, Register::ST0, 2); return true; }
+        InsnId::PUSH_RB => { emit_push_reg(il, Register::RB, 2); return true; }
+        InsnId::POP_RB => { emit_pop_reg(il, Register::RB, 2); return true; }
+        // PUSH/POP AR1H:AR0H — the high 16 bits of XAR0/XAR1 (no standalone
+        // ARnH register in the model). Push AR0H (low addr) then AR1H, 16-bit
+        // each; pop reverses and reconstructs the high half, preserving the low.
+        InsnId::PUSH_AR1H_AR0H => {
+            for reg in [Register::XAR0, Register::XAR1] {
+                let sp_byte = il.lsl(4, il.zx(4, il.reg(2, Register::SP)), il.const_int(4, 1));
+                il.store(2, sp_byte, il.lsr(4, il.reg(4, reg), il.const_int(4, 16))).append();
+                il.set_reg(2, Register::SP, il.add(2, il.reg(2, Register::SP), il.const_int(2, 1))).append();
+            }
+            return true;
+        }
+        InsnId::POP_AR1H_AR0H => {
+            for reg in [Register::XAR1, Register::XAR0] {
+                il.set_reg(2, Register::SP, il.sub(2, il.reg(2, Register::SP), il.const_int(2, 1))).append();
+                let sp_byte = il.lsl(4, il.zx(4, il.reg(2, Register::SP)), il.const_int(4, 1));
+                let hi = il.lsl(4, il.zx(4, il.load(2, sp_byte)), il.const_int(4, 16));
+                let lo = il.and(4, il.reg(4, reg), il.const_int(4, 0xFFFF));
+                il.set_reg(4, reg, il.or(4, lo, hi)).append();
+            }
+            return true;
+        }
         _ => {}
     }
 
@@ -116,8 +139,10 @@ pub fn lift(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
         return true;
     }
 
-    // ── MOV_DP_CONST10: load 10-bit const to DP ──
-    if matches!(n, InsnId::MOV_DP_CONST10) {
+    // ── MOV/MOVZ DP, #10bit: load 10-bit const to DP. MOVZ additionally zeros
+    //    DP[15:10]; since both write the full 10-bit value and the model treats
+    //    DP as a flat 16-bit reg, `DP = const10` covers both. ──
+    if matches!(n, InsnId::MOV_DP_CONST10 | InsnId::MOVZ_DP_CONST10) {
         if let Some(op) = op_at(insn, 0) {
             il.set_reg(2, Register::DP, il.const_int(2, op.value as u64)).append();
         }
@@ -280,6 +305,11 @@ pub fn lift(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
     }
     if matches!(n, InsnId::MOVL_ACC_LOC32) {
         if let Some(src) = op_at(insn, 0) { il.set_reg(4, Register::ACC, read_op(src, il, 4)).append(); }
+        return true;
+    }
+    // ── MOVL P, ACC : 32-bit register-to-register (both operands implicit) ──
+    if matches!(n, InsnId::MOVL_P_ACC) {
+        il.set_reg(4, Register::P, il.reg(4, Register::ACC)).append();
         return true;
     }
 

@@ -260,6 +260,14 @@ fn arith_common(insn: &DecodedInstruction, il: &ILFunc, is_add: bool) -> bool {
 pub fn lift_cmp(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
     let n = insn.id;
 
+    // CMP64 ACC:P — compare the signed 64-bit register pair (ACC high, P low)
+    // to zero, setting N/Z/C. Both operands are implicit (decoded as ops=[]).
+    if matches!(n, InsnId::CMP64_ACC_P) {
+        let lhs = il.reg_split(8, Register::ACC, Register::P);
+        il.sub(8, lhs, il.const_int(8, 0)).with_flag_write(FlagWrite::All).append();
+        return true;
+    }
+
     // CMPL ACC, loc32 (32-bit compare)
     if matches!(n, InsnId::CMPL_ACC_LOC32) {
         if let Some(op) = op_at(insn, 0) {

@@ -8,12 +8,53 @@ use binaryninja::low_level_il::LowLevelILMutableFunction;
 use binaryninja::low_level_il::lifting::LowLevelILLabel;
 
 use super::{read_op, write_loc, reg_by_name};
+use crate::arch::Register;
 
 type ILFunc = LowLevelILMutableFunction;
 
 pub fn lift(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
     let ops = &insn.operands;
     let n = insn.id;
+
+    // ── MOV32 RaH <-> CPU register (ACC / P / XARn). Only RaH is a decoded
+    //    operand; the CPU register is opcode word0 bits[3:0] (0x0-0x7=XAR0-7,
+    //    0x9=ACC, 0xB=P) — read it from the opcode and emit the 32-bit move. ──
+    if matches!(n, InsnId::MOV32_RAH_CPUREG | InsnId::MOV32_CPUREG_RAH) {
+        if let Some(op0) = ops.first() {
+            let rah = reg_by_name(op0.display_name());
+            let cpu = match ((insn.opcode >> 16) & 0xF) as u8 {
+                0 => Register::XAR0, 1 => Register::XAR1, 2 => Register::XAR2, 3 => Register::XAR3,
+                4 => Register::XAR4, 5 => Register::XAR5, 6 => Register::XAR6, 7 => Register::XAR7,
+                9 => Register::ACC, 0xB => Register::P,
+                _ => Register::ACC,
+            };
+            if matches!(n, InsnId::MOV32_RAH_CPUREG) {
+                il.set_reg(4, rah, il.reg(4, cpu)).append();   // RaH = CPUreg
+            } else {
+                il.set_reg(4, cpu, il.reg(4, rah)).append();   // CPUreg = RaH
+            }
+            return true;
+        }
+    }
+
+    // ── MOV32 *SP++, STF / MOV32 STF, *--SP : FPU status-register save and
+    //    restore. STF is implicit (only the memory operand is decoded), and the
+    //    SP post-inc/pre-dec specials don't carry an xar_index for the generic
+    //    loc path — so model them directly as a 32-bit STF push/pop. ──
+    if matches!(n, InsnId::MOV32_MEM32_STF) {
+        let sp_byte = il.lsl(4, il.zx(4, il.reg(2, Register::SP)), il.const_int(4, 1));
+        il.store(4, sp_byte, il.reg(4, Register::STF)).append();   // [SP] = STF
+        il.set_reg(2, Register::SP,
+            il.add(2, il.reg(2, Register::SP), il.const_int(2, 2))).append(); // SP += 2 words
+        return true;
+    }
+    if matches!(n, InsnId::MOV32_STF_MEM32) {
+        il.set_reg(2, Register::SP,
+            il.sub(2, il.reg(2, Register::SP), il.const_int(2, 2))).append(); // SP -= 2 words
+        let sp_byte = il.lsl(4, il.zx(4, il.reg(2, Register::SP)), il.const_int(4, 1));
+        il.set_reg(4, Register::STF, il.load(4, sp_byte)).append(); // STF = [SP]
+        return true;
+    }
 
     // ── CMPF32: compare only, no destination write ──
     if matches!(n, InsnId::CMPF32_RAH_RBH) {

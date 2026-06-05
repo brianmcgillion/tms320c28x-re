@@ -420,23 +420,12 @@ instructions:
       - { name: mode, type: imm8, bits: [7, 0] }
     semantics: { type: fpu_parallel }
 
-  - name: SUBF32_MEM32_RAH
-    full_name: "Subtract float32 with memory operand"
-    format: 16
-    opcode: 0xB800
-    mask: 0xFF00
-    operands:
-      - { name: mode, type: imm8, bits: [7, 0] }
-    semantics: { type: fpu }
-
-  - name: SUBF32_MEM32_RAH_V2
-    full_name: "Subtract float32 with memory operand variant"
-    format: 16
-    opcode: 0xB900
-    mask: 0xFF00
-    operands:
-      - { name: mode, type: imm8, bits: [7, 0] }
-    semantics: { type: fpu }
+  # NOTE: 0xB800-0xBBFF is NOT SUBF32 — dis2000 decodes this entire range as
+  # MOVZ DP, #10bit (verified: 604/604 occurrences across the firmware). FPU32
+  # SUBF32 memory forms live in the 0xE0-0xEF leading-word space. The two old
+  # 0xB800/0xB900 0xFF00 catch-alls only ever mis-decoded MOVZ DP (1 in code,
+  # the rest constant-table data) — removed. The real instruction is
+  # MOVZ_DP_CONST10 (opcode 0xB800, mask 0xFC00) in mov.yaml.
 
   # NEGF32 RaH, RbH, CNDF is leading word 0xE6Ax (cndf in word1[3:0]); it is a
   # 32-bit op.  dis2000 shows e6a0-e6af is ALWAYS NEGF32 (240 insns); the old

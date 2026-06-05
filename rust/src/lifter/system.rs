@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 //! System instruction lifter: NOP, EALLOW, EDIS, ESTOP, SETC, CLRC, etc.
 
-use crate::arch::Register;
+use crate::arch::{Register, Flag};
 use crate::types::*;
 
 use binaryninja::low_level_il::LowLevelILMutableFunction;
@@ -25,8 +25,26 @@ pub fn lift(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
             il.nop().append();
         }
 
-        // Flag manipulation — SETC/CLRC — privilege/mode state
-        InsnId::SETC_MODE | InsnId::CLRC_MODE |
+        // SETC/CLRC #mode8: set/clear the status flags named by the imm8 mask.
+        // ST0 bit map (TI SPRU430 / dis2000 rendering): bit0=SXM 1=OVM 2=TC 3=C
+        // 4=INTM 5=DBGM 6=PAGE0 7=VMAP. Only OVM/TC/C are BN-modeled flags; emit
+        // a single-flag write for each of those present. The mode-only bits
+        // (SXM/INTM/DBGM/PAGE0/VMAP) have no IL representation and are skipped.
+        InsnId::SETC_MODE | InsnId::CLRC_MODE => {
+            let set = matches!(insn.id, InsnId::SETC_MODE);
+            let mask = insn.operands.first().map(|o| o.value as u32).unwrap_or(0);
+            let mut any = false;
+            for (bit, flag) in [(1u32, Flag::OVM), (2, Flag::TC), (3, Flag::C)] {
+                if mask & (1 << bit) != 0 {
+                    il.set_flag(flag, il.const_int(0, if set { 1 } else { 0 })).append();
+                    any = true;
+                }
+            }
+            if !any {
+                il.nop().append(); // pure mode-bit form — no IL effect
+            }
+        }
+        // Single named mode/privilege bits — no IL representation.
         InsnId::SETC_OBJMODE | InsnId::CLRC_OBJMODE |
         InsnId::SETC_M0M1MAP | InsnId::CLRC_M0M1MAP |
         InsnId::SETC_XF | InsnId::CLRC_XF |

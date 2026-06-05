@@ -33,6 +33,7 @@ pub enum Register {
     ST0, ST1, IER, IFR, DBGIER,
     R0H, R1H, R2H, R3H, R4H, R5H, R6H, R7H,
     STF,
+    RB,
 }
 
 impl Register {
@@ -49,6 +50,7 @@ impl Register {
         Register::R0H, Register::R1H, Register::R2H, Register::R3H,
         Register::R4H, Register::R5H, Register::R6H, Register::R7H,
         Register::STF,
+        Register::RB,
     ];
 
     const FULL_WIDTH: &'static [Register] = &[
@@ -97,6 +99,7 @@ impl architecture::Register for Register {
             Register::R4H => "R4H".into(), Register::R5H => "R5H".into(),
             Register::R6H => "R6H".into(), Register::R7H => "R7H".into(),
             Register::STF => "STF".into(),
+            Register::RB => "RB".into(),
         }
     }
 

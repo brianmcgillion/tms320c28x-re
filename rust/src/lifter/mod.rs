@@ -249,7 +249,7 @@ pub fn reg_by_name(name: &str) -> Register {
         "R2H" => Register::R2H, "R3H" => Register::R3H,
         "R4H" => Register::R4H, "R5H" => Register::R5H,
         "R6H" => Register::R6H, "R7H" => Register::R7H,
-        "STF" => Register::STF,
+        "STF" => Register::STF, "RB" => Register::RB,
         _ => Register::AL, // fallback
     }
 }

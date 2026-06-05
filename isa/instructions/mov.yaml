@@ -118,6 +118,16 @@ instructions:
       - { name: const10, type: imm10, bits: [9, 0] }
     semantics: { type: mov, dest: DP }
 
+  - name: MOVZ_DP_CONST10
+    full_name: "Move 10-bit constant to DP, zero-extended (clears DP[15:10])"
+    format: 16
+    opcode: 0xB800
+    mask: 0xFC00
+    objmode: 1
+    operands:
+      - { name: const10, type: imm10, bits: [9, 0] }
+    semantics: { type: mov, dest: DP }
+
   - name: MOVW_DP_CONST16
     full_name: "Move 16-bit constant to DP"
     format: 32
