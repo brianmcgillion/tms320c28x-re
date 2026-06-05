@@ -146,7 +146,7 @@ instructions:
   - name: LSLL_ACC_T
     full_name: "Logical shift left ACC by T (long)"
     format: 16
-    opcode: 0x5610
+    opcode: 0x563B
     mask: 0xFFFF
     semantics: { type: lsl, dest: ACC, src: T, flags: [N, Z, C] }
 
@@ -160,7 +160,7 @@ instructions:
   - name: ASRL_ACC_T
     full_name: "Arithmetic shift right ACC by T (long)"
     format: 16
-    opcode: 0x563B
+    opcode: 0x5610
     mask: 0xFFFF
     semantics: { type: asr, dest: ACC, src: T, flags: [N, Z, C] }
 

@@ -100,55 +100,66 @@ def _decode_loc_common(field: int) -> ResolvedOperand:
         )
 
     if category == 0b10:
-        # Indirect / register-direct (complex sub-decode)
+        # Indirect (complex sub-decode). bits[5:3] = sub-mode, bits[2:0] = n.
+        # Empirically derived from dis2000 (TI ground truth); the previous table
+        # was shifted by one and rendered category 0b11 as a *arp() fallback.
         sub_mode = (field >> 3) & 0x1F  # bits [7:3]
         n = field & 0x7                 # bits [2:0] = XARn index
 
-        if sub_mode == 0b10000:  # *XARn
-            return ResolvedOperand(
-                mode=AddressingMode.INDIRECT,
-                text=f"*XAR{n}",
-                xar_index=n,
-            )
-        if sub_mode == 0b10001:  # *XARn++
+        if sub_mode == 0b10000:  # *XARn++
             return ResolvedOperand(
                 mode=AddressingMode.INDIRECT_POST_INC,
                 text=f"*XAR{n}++",
                 xar_index=n,
             )
-        if sub_mode == 0b10010:  # *--XARn
+        if sub_mode == 0b10001:  # *--XARn
             return ResolvedOperand(
                 mode=AddressingMode.INDIRECT_PRE_DEC,
                 text=f"*--XAR{n}",
                 xar_index=n,
             )
-        if sub_mode == 0b10011:  # *+XARn[AR0]
+        if sub_mode == 0b10010:  # *+XARn[AR0]
             return ResolvedOperand(
                 mode=AddressingMode.INDIRECT_AR0,
                 text=f"*+XAR{n}[AR0]",
                 xar_index=n,
             )
-        if sub_mode == 0b10100:  # *+XARn[AR1]
+        if sub_mode == 0b10011:  # *+XARn[AR1]
             return ResolvedOperand(
                 mode=AddressingMode.INDIRECT_AR1,
                 text=f"*+XAR{n}[AR1]",
                 xar_index=n,
             )
-        if sub_mode == 0b10101:  # *(0:16bit) absolute addressing
-            return ResolvedOperand(
-                mode=AddressingMode.INDIRECT,
-                text="*(0:16bit)",
-            )
+        if sub_mode == 0b10111:  # SP / circular / post-inc-dec specials (by n)
+            specials = {
+                0b001: "*++",
+                0b010: "*--",
+                0b011: "*0++",
+                0b100: "*0--",
+                0b101: "*SP++",
+                0b110: "*--SP",
+            }
+            if n in specials:
+                return ResolvedOperand(
+                    mode=AddressingMode.INDIRECT,
+                    text=specials[n],
+                )
 
-        # Other sub-modes in the 10xxxxx range not yet decoded
+        # Other sub-modes in the 10xxxxx range (absolute *(0:16bit), *BR0++,
+        # *ARPn, *ARn%++ ...) consume a 2nd word or are rare; leave a labelled
+        # fallback so decode identity/length stay correct.
         return ResolvedOperand(
             mode=AddressingMode.INDIRECT,
             text=f"*ind(0x{field:02X})",
             xar_index=n,
         )
 
-    # category == 0b11: ARP-based (C2xLP compatibility)
+    # category == 0b11: *+XARn[offset], offset = bits[5:3], n = bits[2:0].
+    n = field & 0x7
+    offset = (field >> 3) & 0x7
     return ResolvedOperand(
-        mode=AddressingMode.ARP_INDIRECT,
-        text=f"*arp(0x{field:02X})",
+        mode=AddressingMode.INDIRECT,
+        text=f"*+XAR{n}[{offset}]",
+        xar_index=n,
+        offset=offset,
     )

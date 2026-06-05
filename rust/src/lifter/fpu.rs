@@ -78,7 +78,19 @@ pub fn lift(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
         return true;
     }
 
-    // ── 3-operand FPU: RaH = RbH op RcH ──
+    // ── ZERO RaH: RaH = 0.0 (single FPU-register operand) ──
+    if display_mnemonic(n, None) == "ZERO"
+        && !ops.is_empty()
+        && ops[0].op_type == OperandType::Register
+    {
+        let dst = reg_by_name(ops[0].display_name());
+        il.set_reg(4, dst, il.const_int(4, 0)).append();
+        return true;
+    }
+
+    // ── 3-operand FPU: RaH = RbH op RcH (incl. the `op || MOV32` parallel
+    //    forms, whose extra MOV operands, if decoded, are handled below). Match
+    //    by mnemonic FAMILY, not exact InsnId, so every encoding variant lifts. ──
     if ops.len() >= 3
         && ops[0].op_type == OperandType::Register
         && ops[1].op_type == OperandType::Register
@@ -88,17 +100,18 @@ pub fn lift(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
         let src1 = il.reg(4, reg_by_name(ops[1].display_name()));
         let src2 = il.reg(4, reg_by_name(ops[2].display_name()));
 
-        let result = if matches!(n, InsnId::ADDF32_RAH_RBH_RCH) {
+        let mnem = display_mnemonic(n, None);
+        let result = if mnem.starts_with("ADDF32") {
             il.fadd(4, src1, src2).build()
-        } else if matches!(n, InsnId::SUBF32_RAH_RBH_RCH) {
+        } else if mnem.starts_with("SUBF32") {
             il.fsub(4, src1, src2).build()
-        } else if matches!(n, InsnId::MPYF32_RAH_RBH_RCH) {
+        } else if mnem.starts_with("MPYF32") {
             il.fmul(4, src1, src2).build()
-        } else if matches!(n, InsnId::MACF32_RAH_RBH_RCH) {
+        } else if mnem.starts_with("MACF32") {
             // MAC: dst += src1 * src2 (multiply-accumulate)
             il.fadd(4, il.reg(4, dst), il.fmul(4, src1, src2)).build()
         } else {
-            // All known 3-reg FPU variants handled above
+            // Unknown 3-reg FPU op family — keep identity/length, no semantics.
             il.nop().append();
             return true;
         };

@@ -37,7 +37,7 @@ instructions:
     full_name: "Add 16-bit constant shifted to ACC"
     format: 32
     opcode: 0xFF100000
-    mask: 0xFF000000
+    mask: 0xFFF00000
     objmode: 1
     operands:
       - { name: const16, type: imm16, bits: [15, 0] }
@@ -458,17 +458,17 @@ instructions:
       dest: ACC
       flags: [N, Z, C, V]
 
-  - name: MINL_ACC_LOC32
-    full_name: "Minimum long: ACC = min(ACC, loc32)"
-    format: 16
-    opcode: 0xB500
-    mask: 0xFF00
+  - name: RPTB
+    full_name: "Repeat block (RPTB end_addr, loc16/#count)"
+    format: 32
+    opcode: 0xB5000000
+    mask: 0xFF000000
     operands:
-      - { name: loc32, type: loc32, bits: [7, 0] }
+      - { name: offset, type: imm7, bits: [22, 16] }
+      - { name: loc16, type: loc16, bits: [7, 0] }
     semantics:
-      type: cmp
-      dest: ACC
-      flags: [N, Z, C, V]
+      type: system
+      side_effects: ["repeat block until end of loop"]
 
   - name: SUBL_ACC_LOC32
     full_name: "Subtract loc32 from ACC"
@@ -860,7 +860,7 @@ instructions:
     full_name: "Subtract loc16 shifted 1-15 from ACC"
     format: 32
     opcode: 0x56000000
-    mask: 0xFFFC0000
+    mask: 0xFFFF0000
     objmode: 1
     operands:
       - { name: loc16, type: loc16, bits: [7, 0] }
@@ -891,7 +891,7 @@ instructions:
     full_name: "Subtract 16-bit constant shifted from ACC"
     format: 32
     opcode: 0xFF000000
-    mask: 0xFF000000
+    mask: 0xFFF00000
     objmode: 1
     operands:
       - { name: const16, type: imm16, bits: [15, 0] }

@@ -53,6 +53,7 @@ cp binja/coff_plugin.py "$PKG/"
 cp binja/elf_plugin.py "$PKG/"
 cp binja/flash.py "$PKG/"
 cp binja/tools.py "$PKG/"
+cp binja/dis_sidecar.py "$PKG/"
 cp binja/plugin.json "$PKG/"
 
 # Copy native library

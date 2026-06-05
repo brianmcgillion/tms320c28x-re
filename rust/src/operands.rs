@@ -90,53 +90,71 @@ fn decode_loc_common(field: u8) -> ResolvedOperand {
             }
         }
         0b10 => {
-            // Indirect / register-direct (complex sub-decode)
+            // Indirect (complex sub-decode). bits[5:3] = sub-mode, bits[2:0] = n.
+            // Mapping derived from dis2000 (TI ground truth); the previous table
+            // was shifted by one and category 0b11 rendered a *arp() fallback.
+            // (Mirror of c28x/operands.py::_decode_loc_common.)
             let sub_mode = (field >> 3) & 0x1F;
             let n = field & 0x7;
 
             match sub_mode {
                 0b10000 => ResolvedOperand {
-                    mode: AddressingMode::Indirect,
-                    text: format!("*XAR{}", n),
-                    register: None,
-                    xar_index: Some(n),
-                    offset: 0,
-                },
-                0b10001 => ResolvedOperand {
                     mode: AddressingMode::IndirectPostInc,
                     text: format!("*XAR{}++", n),
                     register: None,
                     xar_index: Some(n),
                     offset: 0,
                 },
-                0b10010 => ResolvedOperand {
+                0b10001 => ResolvedOperand {
                     mode: AddressingMode::IndirectPreDec,
                     text: format!("*--XAR{}", n),
                     register: None,
                     xar_index: Some(n),
                     offset: 0,
                 },
-                0b10011 => ResolvedOperand {
+                0b10010 => ResolvedOperand {
                     mode: AddressingMode::IndirectAr0,
                     text: format!("*+XAR{}[AR0]", n),
                     register: None,
                     xar_index: Some(n),
                     offset: 0,
                 },
-                0b10100 => ResolvedOperand {
+                0b10011 => ResolvedOperand {
                     mode: AddressingMode::IndirectAr1,
                     text: format!("*+XAR{}[AR1]", n),
                     register: None,
                     xar_index: Some(n),
                     offset: 0,
                 },
-                0b10101 => ResolvedOperand {
-                    mode: AddressingMode::Indirect,
-                    text: "*(0:16bit)".to_string(),
-                    register: None,
-                    xar_index: None,
-                    offset: 0,
-                },
+                0b10111 => {
+                    // SP / circular / post-inc-dec specials selected by n.
+                    let text = match n {
+                        0b001 => "*++",
+                        0b010 => "*--",
+                        0b011 => "*0++",
+                        0b100 => "*0--",
+                        0b101 => "*SP++",
+                        0b110 => "*--SP",
+                        _ => "",
+                    };
+                    if text.is_empty() {
+                        ResolvedOperand {
+                            mode: AddressingMode::Indirect,
+                            text: format!("*ind(0x{:02X})", field),
+                            register: None,
+                            xar_index: Some(n),
+                            offset: 0,
+                        }
+                    } else {
+                        ResolvedOperand {
+                            mode: AddressingMode::Indirect,
+                            text: text.to_string(),
+                            register: None,
+                            xar_index: None,
+                            offset: 0,
+                        }
+                    }
+                }
                 _ => ResolvedOperand {
                     mode: AddressingMode::Indirect,
                     text: format!("*ind(0x{:02X})", field),
@@ -147,13 +165,15 @@ fn decode_loc_common(field: u8) -> ResolvedOperand {
             }
         }
         _ => {
-            // category == 0b11: ARP-based (C2xLP compatibility)
+            // category == 0b11: *+XARn[offset], offset = bits[5:3], n = bits[2:0].
+            let n = field & 0x7;
+            let offset = ((field >> 3) & 0x7) as u16;
             ResolvedOperand {
-                mode: AddressingMode::ArpIndirect,
-                text: format!("*arp(0x{:02X})", field),
+                mode: AddressingMode::Indirect,
+                text: format!("*+XAR{}[{}]", n, offset),
                 register: None,
-                xar_index: None,
-                offset: 0,
+                xar_index: Some(n),
+                offset,
             }
         }
     }

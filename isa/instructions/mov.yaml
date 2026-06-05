@@ -39,7 +39,7 @@ instructions:
     full_name: "Move 16-bit constant shifted to ACC"
     format: 32
     opcode: 0xFF200000
-    mask: 0xFF000000
+    mask: 0xFFF00000
     objmode: 1
     operands:
       - { name: const16, type: imm16, bits: [15, 0] }
@@ -1002,7 +1002,7 @@ instructions:
     full_name: "Move loc16 shifted 1-15 to ACC"
     format: 32
     opcode: 0x56030000
-    mask: 0xFFFC0000
+    mask: 0xFFFF0000
     objmode: 1
     operands:
       - { name: loc16, type: loc16, bits: [7, 0] }
@@ -1122,3 +1122,17 @@ instructions:
       - { name: addr16, type: imm16, bits: [15, 0] }
       - { name: loc16, type: loc16, bits: [23, 16] }
     semantics: { type: mov, dest: "*(0:addr16)" }
+
+  - name: PUSH_RB
+    full_name: "Push RB (repeat block register)"
+    format: 16
+    opcode: 0xFFF0
+    mask: 0xFFFF
+    semantics: { type: push, src: RB }
+
+  - name: POP_RB
+    full_name: "Pop RB (repeat block register)"
+    format: 16
+    opcode: 0xFFF1
+    mask: 0xFFFF
+    semantics: { type: pop, dest: RB }

@@ -194,7 +194,14 @@ fn loc_address<'a>(r: &ResolvedOperand, il: &'a ILFunc) -> Expr<'a> {
         }
         AddressingMode::Indirect | AddressingMode::IndirectPostInc | AddressingMode::IndirectPreDec => {
             if let Some(n) = r.xar_index {
-                il.reg(4, xar_reg(n))
+                if r.offset == 0 {
+                    il.reg(4, xar_reg(n))
+                } else {
+                    // *+XARn[offset]: byte addr = XARn + (word offset << 1),
+                    // same word->byte convention as the AR0/AR1-indexed modes.
+                    il.add(4, il.reg(4, xar_reg(n)),
+                        il.const_int(4, (r.offset as u64) << 1)).build()
+                }
             } else {
                 il.const_int(4, 0)
             }
