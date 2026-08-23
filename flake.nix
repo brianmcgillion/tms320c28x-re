@@ -38,6 +38,50 @@
       };
     in
     {
+      # Consumers get `python3Packages.c28x` built against *their* interpreter.
+      #
+      # A pythonPackagesExtensions entry rather than a plain `packages` output
+      # on purpose: this flake pins its own nixpkgs, so a package built here
+      # would land in some other python3.X/site-packages and simply not be on
+      # the consumer's PYTHONPATH — an import that vanishes rather than fails.
+      overlays.default = _final: prev: {
+        pythonPackagesExtensions = (prev.pythonPackagesExtensions or [ ]) ++ [
+          (pyfinal: _pyprev: {
+            c28x = pyfinal.buildPythonPackage {
+              # pname must match the distribution in pyproject.toml or the
+              # metadata check fails; the attribute and importable module are
+              # both `c28x`.
+              pname = "tms320c28x-re";
+              version = "0.1.0";
+              pyproject = true;
+
+              src = self;
+
+              build-system = [ pyfinal.setuptools ];
+              dependencies = [ pyfinal.pyyaml ];
+
+              # pyproject.toml packages only `c28x*`, and isa/ has to stay at
+              # the repo root for rust/build.rs. Install a copy beside the
+              # module so the fallback in c28x/isa.py finds it.
+              postInstall = ''
+                cp -r isa "$out/${pyfinal.python.sitePackages}/c28x/isa"
+              '';
+
+              pythonImportsCheck = [
+                "c28x"
+                "c28x.decoder"
+              ];
+
+              meta = {
+                description = "TMS320C28x ISA decoder and COFF reader";
+                homepage = "https://github.com/brianmcgillion/tms320c28x-re";
+                license = nixpkgs.lib.licenses.mit;
+              };
+            };
+          })
+        ];
+      };
+
       # nix run .#tests — full test suite (run from repo root)
       apps = forAllSystems (pkgs: {
         tests = {

@@ -39,7 +39,14 @@ class ISA:
 
     def __init__(self, isa_dir: Path | None = None):
         if isa_dir is None:
+            # In a repo checkout the YAML lives at <repo>/isa, alongside c28x/.
+            # It has to stay there: rust/build.rs reads ../isa/instructions at
+            # build time. When installed as a package that path does not exist
+            # (it would resolve to site-packages/isa), so the Nix derivation
+            # drops a copy inside the package and we fall back to it.
             isa_dir = Path(__file__).parent.parent / "isa"
+            if not isa_dir.is_dir():
+                isa_dir = Path(__file__).parent / "isa"
         self.isa_dir = isa_dir
 
         self.instructions_16: list[InstructionDef] = []
