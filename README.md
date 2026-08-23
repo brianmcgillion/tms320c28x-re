@@ -84,6 +84,49 @@ cargo build --release --manifest-path rust/Cargo.toml
 pytest tests/ -x -q --ignore=tests/test_firmware_bn.py --ignore=tests/test_pmsm_bn.py
 ```
 
+### Updating Dependencies
+
+Bump every lock file in the repo with one command:
+
+```bash
+./scripts/update-deps.sh          # or: nix run .#update-deps
+```
+
+Inside `nix develop` the same thing is available as `update-deps` from any
+directory in the tree.
+
+Update a single ecosystem:
+
+```bash
+./scripts/update-deps.sh --nix      # flake.lock
+./scripts/update-deps.sh --cargo    # rust/Cargo.lock
+./scripts/update-deps.sh --python   # refresh the uv-managed .venv
+./scripts/update-deps.sh --upgrade  # also raise bounds in rust/Cargo.toml
+```
+
+Two pins are tied to externally installed tooling, so they are opt-in and never
+part of a default run:
+
+```bash
+./scripts/update-deps.sh --binja [REF]   # re-pin the binaryninja-api git rev
+./scripts/update-deps.sh --ti VERSION    # re-pin the TI C2000 compiler
+```
+
+`--binja` defaults to the `stable_<major.minor>` branch matching the BN version
+recorded in `rust/Cargo.toml` (pass `dev` to track the development branch). The
+new rev must match the ABI of your *installed* Binary Ninja — the script prints
+what it detected and what to re-check by hand. `--ti` requires an explicit
+version (TI publishes no version index) and recomputes the installer hash via
+`nix store prefetch-file`.
+
+After updating, the script verifies that the flake still evaluates, that every
+entry in `rust/Cargo.lock` still resolves (`cargo fetch`), and that the Python
+tests pass. A full `cargo check` additionally runs when Binary Ninja is
+installed — without it the `--no-default-features` stub build needs a C stub
+that does not link on NixOS, so CI covers that path instead. `nix run .#tests`
+remains the full gate. Note that `uv.lock` is gitignored, so `--python`
+refreshes `.venv` without producing a tracked diff.
+
 ## References
 
 - [TMS320C28x CPU and Instruction Set Reference (SPRU430F)](https://www.ti.com/lit/ug/spru430f/spru430f.pdf)

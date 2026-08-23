@@ -68,6 +68,21 @@
             '';
           in "${testScript}";
         };
+
+        # nix run .#update-deps -- [OPTIONS] — bump dependency pins
+        update-deps = {
+          type = "app";
+          program = let
+            updateScript = pkgs.writeShellScript "update-deps" ''
+              # Appended (not prepended) so the caller's `nix` stays reachable —
+              # `nix flake update` cannot run without it.
+              export PATH="$PATH:${pkgs.lib.makeBinPath (with pkgs; [
+                cargo cargo-edit uv git jq gnused coreutils
+              ])}"
+              exec ${./scripts/update-deps.sh} "$@"
+            '';
+          in "${updateScript}";
+        };
       });
 
       devShells = forAllSystems (pkgs: {
@@ -80,6 +95,7 @@
             # Rust
             rustc
             cargo
+            cargo-edit # provides `cargo upgrade` for scripts/update-deps.sh
             rust-analyzer
             clippy
             rustfmt
@@ -89,6 +105,9 @@
             # Build tools (needed by binaryninjacore-sys stubs)
             cmake
             ninja
+
+            # Dependency tooling (scripts/update-deps.sh)
+            jq
 
             # LSP servers
             basedpyright # type checking + completions
@@ -122,6 +141,15 @@
               uv venv
             fi
             source .venv/bin/activate
+
+            # Bump dependency pins from anywhere in the tree
+            update-deps() {
+              "$(git rev-parse --show-toplevel)/scripts/update-deps.sh" "$@"
+            }
+            # export so it survives into `nix develop -c bash ...` subshells
+            export -f update-deps
+
+            echo "Commands: update-deps [--help]  |  nix run .#tests"
           '';
         };
       });
