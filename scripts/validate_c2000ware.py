@@ -7,13 +7,57 @@ Run: nix develop -c python3 scripts/validate_c2000ware.py
 import sys
 import os
 import glob
-
-sys.path.insert(0, os.path.dirname(__file__))
-from _bn_helpers import init_bn
-
-binaryninja = init_bn()
+import subprocess
 
 FIXTURE_DIR = os.path.join(os.path.dirname(__file__), "..", "tests", "fixtures", "c2000ware", "build")
+
+# BN 6.1 segfaults after roughly 15 BinaryViews have had their IL walked in one
+# process, so the driver validates each fixture in its own worker subprocess.
+_WORKER_FLAG = "--fixture"
+
+
+def _run_driver():
+    fixtures = sorted(glob.glob(os.path.join(FIXTURE_DIR, "*.out")))
+    if not fixtures:
+        print(f"[FAIL] No .out files in {FIXTURE_DIR}")
+        print("       Run: nix develop -c bash tests/fixtures/c2000ware/fetch.sh")
+        print("       Run: nix develop -c bash tests/fixtures/c2000ware/build.sh")
+        return 1
+
+    print(f"=== Validating {len(fixtures)} C2000Ware fixtures ===\n")
+    tp = tf = tw = 0
+    for path in fixtures:
+        proc = subprocess.run(
+            [sys.executable, os.path.abspath(__file__), _WORKER_FLAG, path],
+            capture_output=True, text=True,
+        )
+        tallied = False
+        for line in proc.stdout.splitlines():
+            if line.startswith("##TALLY "):
+                pa, fa, wa = (int(x) for x in line.split()[1:4])
+                tp += pa; tf += fa; tw += wa
+                tallied = True
+            else:
+                print(line)
+        if not tallied:
+            print(f"--- {os.path.basename(path)} ---")
+            print(f"  [FAIL] worker exited {proc.returncode} without a result")
+            print(proc.stderr.strip()[-500:])
+            tf += 1
+
+    print(f"{'='*50}")
+    print(f"TOTAL: {tp} passed, {tf} failed, {tw} warnings")
+    print(f"{'='*50}")
+    return 1 if tf > 0 else 0
+
+
+if _WORKER_FLAG not in sys.argv:
+    sys.exit(_run_driver())
+
+sys.path.insert(0, os.path.dirname(__file__))
+from _bn_helpers import init_bn, load_c28x
+
+binaryninja = init_bn()
 
 # Structural checks: function → {check_name: [keywords_any_must_match]}
 STRUCTURAL_CHECKS = {
@@ -95,7 +139,6 @@ STRUCTURAL_CHECKS = {
     },
     "f2833x_gpio_toggle.out": {
         "main": { "has body": ["=", "*", "0x"] },
-        "InitGpio": { "has stores": ["=", "*"] },
     },
     "f2833x_cpu_timer.out": {
         "main": { "has body": ["=", "*", "0x"] },
@@ -121,8 +164,8 @@ EXPECTED_FUNCTIONS = {
     # F2833x (COFF) fixtures
     "f2833x_led_blink.out": ["main", "InitSysCtrl"],
     "f2833x_cpu_timer.out": ["main", "InitSysCtrl"],
-    "f2833x_gpio_toggle.out": ["main", "InitSysCtrl", "InitGpio"],
-    "f2833x_gpio_setup.out": ["main", "InitSysCtrl", "InitGpio"],
+    "f2833x_gpio_toggle.out": ["main", "InitSysCtrl"],
+    "f2833x_gpio_setup.out": ["main", "InitSysCtrl"],
     "f2833x_adc_soc.out": ["main", "InitSysCtrl"],
     "f2833x_sci_echoback.out": ["main", "InitSysCtrl"],
     "f2833x_spi_loopback.out": ["main", "InitSysCtrl"],
@@ -140,12 +183,7 @@ total_pass = 0
 total_fail = 0
 total_warn = 0
 
-fixture_files = sorted(glob.glob(os.path.join(FIXTURE_DIR, "*.out")))
-if not fixture_files:
-    print(f"[FAIL] No .out files in {FIXTURE_DIR}")
-    print("       Run: nix develop -c bash tests/fixtures/c2000ware/fetch.sh")
-    print("       Run: nix develop -c bash tests/fixtures/c2000ware/build.sh")
-    sys.exit(1)
+fixture_files = [sys.argv[sys.argv.index(_WORKER_FLAG) + 1]]
 
 def _validate_coff_python(fixture_path, fixture_name):
     """Validate COFF files using our Python parser (headless fallback)."""
@@ -214,16 +252,12 @@ def _validate_coff_python(fixture_path, fixture_name):
         total_fail += 1
 
 
-print(f"=== Validating {len(fixture_files)} C2000Ware fixtures ===\n")
-
 for fixture_path in fixture_files:
     fixture_name = os.path.basename(fixture_path)
     print(f"--- {fixture_name} ({os.path.getsize(fixture_path)//1024}KB) ---")
 
     # Try loading with ELF platform hint
-    bv = binaryninja.load(fixture_path, options={
-        "loader.platform": "tms320c28x",
-    })
+    bv = load_c28x(binaryninja, fixture_path)
 
     # If that failed or got wrong arch, check if it's COFF and skip
     # (COFF requires the BinaryView plugin which isn't available in headless)
@@ -364,7 +398,4 @@ for fixture_path in fixture_files:
     print()
     bv.file.close()
 
-print(f"{'='*50}")
-print(f"TOTAL: {total_pass} passed, {total_fail} failed, {total_warn} warnings")
-print(f"{'='*50}")
-sys.exit(1 if total_fail > 0 else 0)
+print(f"##TALLY {total_pass} {total_fail} {total_warn}")

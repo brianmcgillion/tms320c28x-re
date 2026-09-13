@@ -545,17 +545,17 @@ impl architecture::Architecture for TMS320C28x {
                         let target = insn.branch_target.unwrap_or(op.value as u64);
                         (
                             format!("0x{:X}", target),
-                            InstructionTextTokenKind::PossibleAddress { value: target, size: Some(4) },
+                            InstructionTextTokenKind::PossibleAddress { value: target, size: Some(4), operand: None },
                         )
                     } else if op.signed && op.value < 0 {
                         (
                             format!("-0x{:X}", -op.value),
-                            InstructionTextTokenKind::Integer { value: op.value as u64, size: Some(2) },
+                            InstructionTextTokenKind::Integer { value: op.value as u64, size: Some(2), operand: None },
                         )
                     } else {
                         (
                             format!("#0x{:X}", op.value),
-                            InstructionTextTokenKind::Integer { value: op.value as u64, size: Some(2) },
+                            InstructionTextTokenKind::Integer { value: op.value as u64, size: Some(2), operand: None },
                         )
                     }
                 }

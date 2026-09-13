@@ -9,7 +9,9 @@ pub mod operands;
 pub mod types;
 
 use binaryninja::architecture::{register_architecture, ArchitectureExt, RegisterId};
-use binaryninja::calling_convention::{CallingConvention, register_calling_convention};
+use binaryninja::calling_convention::{
+    CallingConvention, CoreCallingConvention, register_calling_convention,
+};
 
 use arch::Register;
 
@@ -26,9 +28,17 @@ const EM_TI_C2000: u32 = 157;
 /// - Arguments passed in AL, AH, XAR4, XAR5 (then stack)
 /// - Return value in AL (16-bit) or ACC = AH:AL (32-bit)
 /// - XAR1, XAR2, XAR3 are callee-saved
-struct C28xCallingConvention;
+struct C28xCallingConvention {
+    core: CoreCallingConvention,
+}
 
 unsafe impl Sync for C28xCallingConvention {}
+
+impl AsRef<CoreCallingConvention> for C28xCallingConvention {
+    fn as_ref(&self) -> &CoreCallingConvention {
+        &self.core
+    }
+}
 
 impl CallingConvention for C28xCallingConvention {
     fn caller_saved_registers(&self) -> Vec<RegisterId> {
@@ -104,7 +114,9 @@ pub extern "C" fn CorePluginInit() -> bool {
     // BN's built-in ELF loader doesn't support word→byte conversion.
 
     // Register calling convention
-    let cc = register_calling_convention(arch, "c28x-default", C28xCallingConvention);
+    let cc = register_calling_convention(arch, "c28x-default", |core| C28xCallingConvention {
+        core,
+    });
     if let Some(platform) = arch.standalone_platform() {
         platform.set_default_calling_convention(&cc);
     }

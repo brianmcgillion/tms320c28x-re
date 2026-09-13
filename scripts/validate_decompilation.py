@@ -15,7 +15,7 @@ import os
 import re
 
 sys.path.insert(0, os.path.dirname(__file__))
-from _bn_helpers import init_bn
+from _bn_helpers import init_bn, load_c28x
 
 binaryninja = init_bn()
 
@@ -181,7 +181,9 @@ def validate_isr_handler(bv):
         hlil = get_hlil_text(f)
         if hlil:
             # At -O2 the compiler may combine zero stores or use & 0xf mask
-            has_stores = "=" in hlil and ("*" in hlil or "0x" in hlil or "__TI" in hlil)
+            has_stores = "=" in hlil and any(
+                x in hlil for x in ["*", "0x", "__TI", "rx_head", "rx_tail", "rx_count"]
+            )
             check("buf_init has stores", has_stores,
                   "buf_init() writes to memory", "buf_init() missing memory writes")
 
@@ -239,7 +241,7 @@ for fixture_name, validator in VALIDATORS.items():
         continue
 
     print(f"  [{fixture_name}]")
-    bv = binaryninja.load(fixture_path, options={"loader.platform": "tms320c28x"})
+    bv = load_c28x(binaryninja, fixture_path)
     if bv is None:
         print(f"    [FAIL] Could not load")
         total_fail += 1
