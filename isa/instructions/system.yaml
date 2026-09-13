@@ -16,6 +16,13 @@ instructions:
     mask: 0xFFFF
     semantics: { type: nop }
 
+  - name: ITRAP1
+    full_name: "Illegal instruction trap (erased flash filler)"
+    format: 16
+    opcode: 0xFFFF
+    mask: 0xFFFF
+    semantics: { type: trap }
+
   - name: MAC_P_LOC16_PMA
     full_name: "Multiply accumulate with program memory"
     format: 32

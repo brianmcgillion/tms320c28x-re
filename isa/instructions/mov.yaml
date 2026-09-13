@@ -1110,28 +1110,8 @@ instructions:
       - { name: cond, type: cond4, bits: [19, 16] }
     semantics: { type: mov }
 
-  # --- MOV with absolute 16-bit addressing ---
-  - name: MOV_LOC16_ABS16
-    full_name: "Move from absolute 16-bit address to loc16"
-    format: 32
-    opcode: 0xBF000000
-    mask: 0xFF000000
-    objmode: 1
-    operands:
-      - { name: loc16, type: loc16, bits: [23, 16] }
-      - { name: addr16, type: imm16, bits: [15, 0] }
-    semantics: { type: mov, src: "*(0:addr16)" }
-
-  - name: MOV_ABS16_LOC16
-    full_name: "Move loc16 to absolute 16-bit address"
-    format: 32
-    opcode: 0xBD000000
-    mask: 0xFF000000
-    objmode: 1
-    operands:
-      - { name: addr16, type: imm16, bits: [15, 0] }
-      - { name: loc16, type: loc16, bits: [23, 16] }
-    semantics: { type: mov, dest: "*(0:addr16)" }
+  # MOV with absolute 16-bit addressing is MOV_LOC16_MEM16 / MOV_MEM16_LOC16
+  # (0xF5 / 0xF4, system.yaml).  0xBF / 0xBD are MOV32 and VMOV32.
 
   - name: PUSH_RB
     full_name: "Push RB (repeat block register)"

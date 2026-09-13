@@ -110,15 +110,6 @@ pub fn lift(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
         }
         return true;
     }
-    if matches!(n, InsnId::F32TOI32_RAH_MEM32 | InsnId::F32TOUI32_RAH_MEM32) {
-        if ops.len() >= 2 {
-            let dst = reg_by_name(ops[0].display_name());
-            let src = read_op(&ops[1], il, 4);
-            il.set_reg(4, dst, il.float_to_int(4, src)).append();
-        }
-        return true;
-    }
-
     // ── ZERO RaH: RaH = 0.0 (single FPU-register operand) ──
     if display_mnemonic(n, None) == "ZERO"
         && !ops.is_empty()

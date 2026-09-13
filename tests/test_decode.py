@@ -284,7 +284,7 @@ class TestResolvedOperand:
         assert loc_op.resolved.register == "AL"
 
     def test_loc16_indirect_postinc(self, decoder):
-        insn = decoder.decode(_encode16(0x928B))  # MOV AL, *XAR3++
+        insn = decoder.decode(_encode16(0x9283))  # MOV AL, *XAR3++
         loc_op = insn.operands[1]
         assert loc_op.resolved is not None
         from c28x.operands import AddressingMode
@@ -313,17 +313,17 @@ class TestOperands:
 
     def test_indirect_xar0(self):
         from c28x.operands import decode_loc16
-        result = decode_loc16(0x80)  # *XAR0
-        assert result.text == "*XAR0"
+        result = decode_loc16(0xC0)  # *XAR0, which TI renders as *+XAR0[0]
+        assert result.text == "*+XAR0[0]"
 
     def test_indirect_xar3_postinc(self):
         from c28x.operands import decode_loc16
-        result = decode_loc16(0x8B)  # *XAR3++
+        result = decode_loc16(0x83)  # *XAR3++
         assert result.text == "*XAR3++"
 
     def test_indirect_predec_xar2(self):
         from c28x.operands import decode_loc16
-        result = decode_loc16(0x92)  # *--XAR2
+        result = decode_loc16(0x8A)  # *--XAR2
         assert result.text == "*--XAR2"
 
     def test_register_direct_ah(self):
@@ -348,16 +348,16 @@ class TestOperands:
         result = decode_loc32(0xAA)
         assert result.text == "@P"
 
-    def test_loc16_abs16(self):
-        """*(0:16bit) addressing mode — sub-mode 10101."""
+    def test_loc16_br0_dec(self):
+        """0xAF is *BR0-- per TI; unimplemented, so it takes the labelled fallback."""
         from c28x.operands import decode_loc16
-        result = decode_loc16(0xAF)  # 10_10111_1 → sub_mode=10101, n=7
-        assert result.text == "*(0:16bit)"
+        result = decode_loc16(0xAF)
+        assert result.text == "*ind(0xAF)"
 
-    def test_loc32_abs16(self):
+    def test_loc32_br0_dec(self):
         from c28x.operands import decode_loc32
         result = decode_loc32(0xAF)
-        assert result.text == "*(0:16bit)"
+        assert result.text == "*ind(0xAF)"
 
 
 class TestFpuMov32:
@@ -412,19 +412,11 @@ class TestFpuMov32:
         assert insn is not None
         assert insn.operands[1].name == "R2H"
 
-    def test_mov32_mem32_rah_cond(self, decoder):
-        """MOV32 *-SP[36], R0H, UNCF — conditional store at E6Ax."""
-        insn = decoder.decode(_encode32(0xE6AF0064), addr=0)
+    def test_mov32_mem32_stf(self, decoder):
+        """MOV32 *-SP[16], STF — TI encodes this 32-bit as E200 0050."""
+        insn = decoder.decode(_encode32(0xE2000050), addr=0)
         assert insn is not None
         assert insn.size == 4
-        assert insn.yaml_name == "MOV32_MEM32_RAH_COND"
-        assert insn.operands[2].name == "UNC"  # cndf=0xF
-
-    def test_mov32_mem32_stf(self, decoder):
-        """MOV32 *-SP[16], STF — from firmware: 50 e8 (16-bit)."""
-        insn = decoder.decode(_encode16(0xE850))
-        assert insn is not None
-        assert insn.size == 2
         assert insn.yaml_name == "MOV32_MEM32_STF"
         assert insn.name == "MOV32"
         from c28x.operands import AddressingMode
@@ -432,14 +424,14 @@ class TestFpuMov32:
         assert insn.operands[0].resolved.offset == 16
 
     def test_mov32_stf_mem32(self, decoder):
-        """MOV32 STF, *--XAR0 — load STF from memory (16-bit)."""
-        insn = decoder.decode(_encode16(0xE590))
+        """MOV32 STF, *-SP[16] — TI encodes this 32-bit as E280 0050."""
+        insn = decoder.decode(_encode32(0xE2800050), addr=0)
         assert insn is not None
-        assert insn.size == 2
+        assert insn.size == 4
         assert insn.yaml_name == "MOV32_STF_MEM32"
         from c28x.operands import AddressingMode
-        assert insn.operands[0].resolved.mode == AddressingMode.INDIRECT_PRE_DEC
-        assert insn.operands[0].resolved.xar_index == 0
+        assert insn.operands[0].resolved.mode == AddressingMode.SP_RELATIVE
+        assert insn.operands[0].resolved.offset == 16
 
     def test_mov32_no_conflict_with_absf32(self, decoder):
         """ABSF32 R0H, R0H at 0xE695 should still decode correctly."""
@@ -462,52 +454,51 @@ class TestFpuMov32:
 
 
 class TestAddrModeCoverage:
-    """Verify 0xADxx is handled by existing 16-bit ADD instruction."""
+    """Verify 0xADxx decodes as a 16-bit instruction, not an undecoded 32-bit one."""
 
-    def test_ad14_is_add_acc(self, decoder):
-        """0xAD14 is ADD ACC, @20 << 13, not an undecoded 32-bit instruction."""
+    def test_ad14_is_movst0(self, decoder):
+        """0xAD14 is MOVST0 NF,ZF per TI (ADD ACC, @20 << 13 is 5604 0D14)."""
         insn = decoder.decode(_encode16(0xAD14))
         assert insn is not None
         assert insn.size == 2
-        assert "ADD_ACC" in insn.yaml_name
+        assert insn.yaml_name == "MOVST0"
 
 
 class TestMovAbsoluteAddr:
     """Test MOV with *(0:16bit) absolute addressing."""
 
     def test_mov_loc16_abs16_al(self, decoder):
-        """MOV @AL, *(0x0F12) — from firmware: a9 bf 12 0f."""
-        insn = decoder.decode(_encode32(0xBFA90F12), addr=0)
+        """MOV AL, *(0:0x0F12) — TI encodes this as F5A9 0F12."""
+        insn = decoder.decode(_encode32(0xF5A90F12), addr=0)
         assert insn is not None
         assert insn.size == 4
-        assert insn.yaml_name == "MOV_LOC16_ABS16"
-        assert insn.name == "MOV"
+        assert insn.yaml_name == "MOV_LOC16_MEM16"
         # loc16 = 0xA9 = @AL
         assert insn.operands[0].name == "@AL"
         # addr16 = 0x0F12
         assert insn.operands[1].value == 0x0F12
 
     def test_mov_abs16_loc16_al(self, decoder):
-        """MOV *(0x0F12), @AL — from firmware: a9 bd 12 0f."""
-        insn = decoder.decode(_encode32(0xBDA90F12), addr=0)
+        """MOV *(0:0x0F12), AL — TI encodes this as F4A9 0F12."""
+        insn = decoder.decode(_encode32(0xF4A90F12), addr=0)
         assert insn is not None
         assert insn.size == 4
-        assert insn.yaml_name == "MOV_ABS16_LOC16"
-        assert insn.operands[1].name == "@AL"
-        assert insn.operands[0].value == 0x0F12
+        assert insn.yaml_name == "MOV_MEM16_LOC16"
+        assert insn.operands[0].name == "@AL"
+        assert insn.operands[1].value == 0x0F12
 
     def test_mov_loc16_abs16_indirect(self, decoder):
-        """MOV *+XAR2[AR1], *(0x0F12) — loc16=0xA2."""
-        insn = decoder.decode(_encode32(0xBFA20F12), addr=0)
+        """MOV *+XAR2[AR1], *(0:0x0F12) — loc16=0x9A."""
+        insn = decoder.decode(_encode32(0xF59A0F12), addr=0)
         assert insn is not None
         from c28x.operands import AddressingMode
         assert insn.operands[0].resolved.mode == AddressingMode.INDIRECT_AR1
 
     def test_mov_abs16_loc16_pl(self, decoder):
-        """MOV *(0x0F12), @PL — loc16=0xAB."""
-        insn = decoder.decode(_encode32(0xBDAB0F12), addr=0)
+        """MOV *(0:0x0F12), @PL — loc16=0xAB."""
+        insn = decoder.decode(_encode32(0xF4AB0F12), addr=0)
         assert insn is not None
-        assert insn.operands[1].name == "@PL"
+        assert insn.operands[0].name == "@PL"
 
 
 class TestFpuConversions:
@@ -527,27 +518,27 @@ class TestFpuConversions:
         assert insn is not None
         assert insn.yaml_name == "I16TOF32_RAH_MEM16"
 
-    def test_f32toi32_rah_mem32(self, decoder):
-        """F32TOI32 from memory — opcode E200."""
-        insn = decoder.decode(_encode32(0xE20000BD), addr=0)
+    def test_f32toi32_rah_rbh(self, decoder):
+        """F32TOI32 R0H, R1H — opcode E688."""
+        insn = decoder.decode(_encode32(0xE6880008), addr=0)
         assert insn is not None
-        assert insn.yaml_name == "F32TOI32_RAH_MEM32"
+        assert insn.yaml_name == "F32TOI32_RAH_RBH"
 
-    def test_f32toui32_rah_mem32(self, decoder):
-        """F32TOUI32 from memory — opcode E280."""
-        insn = decoder.decode(_encode32(0xE28000BE), addr=0)
+    def test_f32toui32_rah_rbh(self, decoder):
+        """F32TOUI32 R0H, R1H — opcode E68A."""
+        insn = decoder.decode(_encode32(0xE68A0008), addr=0)
         assert insn is not None
-        assert insn.yaml_name == "F32TOUI32_RAH_MEM32"
+        assert insn.yaml_name == "F32TOUI32_RAH_RBH"
 
     def test_ui32tof32_rah_rbh(self, decoder):
-        """UI32TOF32 register-to-register — opcode E630."""
-        insn = decoder.decode(_encode32(0xE6300600), addr=0)
+        """UI32TOF32 R0H, R1H — opcode E68B."""
+        insn = decoder.decode(_encode32(0xE68B0008), addr=0)
         assert insn is not None
         assert insn.yaml_name == "UI32TOF32_RAH_RBH"
 
     def test_ui16tof32_rah_rbh(self, decoder):
-        """UI16TOF32 register-to-register — opcode E68B."""
-        insn = decoder.decode(_encode32(0xE68B0000), addr=0)
+        """UI16TOF32 R0H, R1H — opcode E68F."""
+        insn = decoder.decode(_encode32(0xE68F0008), addr=0)
         assert insn is not None
         assert insn.yaml_name == "UI16TOF32_RAH_RBH"
 

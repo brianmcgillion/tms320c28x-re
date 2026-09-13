@@ -162,25 +162,8 @@ instructions:
       - { name: mem16, type: loc16, bits: [7, 0] }
     semantics: { type: fpu }
 
-  - name: F32TOI32_RAH_MEM32
-    full_name: "Convert float32 from memory to signed int32"
-    format: 32
-    opcode: 0xE2000000
-    mask: 0xFFF80000
-    operands:
-      - { name: rah, type: fpu_reg, bits: [18, 16] }
-      - { name: mem32, type: loc32, bits: [7, 0] }
-    semantics: { type: fpu }
-
-  - name: F32TOUI32_RAH_MEM32
-    full_name: "Convert float32 from memory to unsigned int32"
-    format: 32
-    opcode: 0xE2800000
-    mask: 0xFFF80000
-    operands:
-      - { name: rah, type: fpu_reg, bits: [18, 16] }
-      - { name: mem32, type: loc32, bits: [7, 0] }
-    semantics: { type: fpu }
+  # F32TOI32/F32TOUI32 have no mem32 form -- asm2000 rejects `F32TOI32 RaH, @mem`.
+  # Only the RaH,RbH forms (0xE688 / 0xE68A) exist.
 
   - name: I32TOF32_RAH_RBH
     full_name: "Convert signed int32 to float32"
@@ -312,9 +295,7 @@ instructions:
 
   # MOV32 between FPU register and CPU register / ACC / P (leading word
   # 0xBDAx = load to FPU reg, 0xBFAx = store from FPU reg; dis2000).  selector
-  # x picks XAR0-7 (0-7), ACC (9) or P (b).  Previously stolen by
-  # MOV_ABS16_LOC16 (0xBD000000 / 0xFF000000, popcount 8); these 0xFFF00000
-  # patterns (popcount 12) win the tie and decode to MOV32.
+  # x picks XAR0-7 (0-7), ACC (9) or P (b).
   - name: MOV32_RAH_CPUREG
     full_name: "Move CPU register/ACC/P to FPU register"
     format: 32
@@ -573,21 +554,8 @@ instructions:
       - { name: rah, type: fpu_reg, bits: [10, 8] }
     semantics: { type: fpu }
 
-  # NOTE: 0xE6Ax is NEGF32 in this firmware (see NEGF32_RAH_RBH above), not a
-  # conditional MOV32 store -- no conditional MOV32-to-memory appears anywhere in
-  # dis2000.  The old 0xE6A00000 entry only shadowed NEGF32, so it is parked on
-  # an encoding that never occurs (and would be padding, skipped by the gate).
-  # The real conditional MOV32 *load* is handled by MOV32_RAH_MEM32 (0xE2A0).
-  - name: MOV32_MEM32_RAH_COND
-    full_name: "Move FPU register to 32-bit memory (conditional)"
-    format: 32
-    opcode: 0xFFFF0000
-    mask: 0xFFFF0000
-    operands:
-      - { name: mem32, type: loc32, bits: [7, 0] }
-      - { name: rah, type: fpu_reg, bits: [10, 8] }
-      - { name: cndf, type: cond4, bits: [19, 16] }
-    semantics: { type: fpu }
+  # No conditional MOV32-to-memory exists: asm2000 rejects `MOV32 mem32, RaH, CNDF`.
+  # 0xE6Ax is NEGF32 (above); the conditional MOV32 *load* is MOV32_RAH_MEM32 (0xE2A0).
 
   # Real STF memory moves are leading word 0xE200 / 0xE280 (dis2000), NOT
   # 0xE800 / 0xE500.  The old loose 0xFF00 masks here shadowed the 0xE8xx
