@@ -2,11 +2,11 @@
 # Full test suite for the TMS320C28x Binary Ninja plugin.
 # Usage: nix run .#tests   (or:  nix develop -c bash scripts/run_all_tests.sh)
 set -euo pipefail
-
-# cd to repo root (works whether called directly or via nix run)
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." 2>/dev/null && pwd)" \
-  || ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" \
-  || { echo "ERROR: cannot find repo root"; exit 1; }
+# BASH_SOURCE is a /nix/store path under `nix run`, where dirname/.. silently
+# yields /nix rather than failing, so ask git first and check what we got.
+ROOT="$(git rev-parse --show-toplevel 2>/dev/null)"
+[ -n "$ROOT" ] || ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." 2>/dev/null && pwd)"
+[ -f "$ROOT/pyproject.toml" ] || { echo "ERROR: cannot find repo root"; exit 1; }
 cd "$ROOT"
 
 # ── NixOS workaround: ensure Cargo build scripts can link against glibc ──

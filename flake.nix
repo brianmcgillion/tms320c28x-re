@@ -89,24 +89,13 @@
           program = let
             testScript = pkgs.writeShellScript "run-tests" ''
               export PATH="${pkgs.lib.makeBinPath (with pkgs; [
-                rustc cargo patchelf python313 uv git coreutils
+                rustc cargo patchelf python3 uv git coreutils
               ] ++ pkgs.lib.optionals (pkgs.stdenv.isLinux && pkgs.stdenv.isx86_64) [
                 (ti-cgt-c2000 { inherit pkgs; })
               ])}:$PATH"
               export LIBCLANG_PATH="${pkgs.llvmPackages.libclang.lib}/lib"
               export BINDGEN_EXTRA_CLANG_ARGS="-isystem ${pkgs.llvmPackages.libcxx.dev}/include/c++/v1 -isystem ${pkgs.glibc.dev}/include"
               export CARGO_BUILD_RUSTFLAGS="-C link-arg=-L${pkgs.glibc}/lib"
-
-              # Auto-detect BN from system PATH (not from nix — BN is impure)
-              for p in $(echo "$ORIGINAL_PATH" | tr ':' ' ') /usr/bin /usr/local/bin; do
-                if [ -x "$p/binaryninja" ]; then
-                  _bn_real="$(readlink -f "$p/binaryninja")"
-                  _bn_prefix="$(dirname "$(dirname "$_bn_real")")"
-                  export BINARYNINJADIR="$_bn_prefix/opt/binaryninja"
-                  export PATH="$p:$PATH"
-                  break
-                fi
-              done
 
               exec ${./scripts/run_all_tests.sh}
             '';
@@ -133,7 +122,7 @@
         default = pkgs.mkShell {
           packages = with pkgs; [
             # Python
-            python313
+            python3
             uv
 
             # Rust
