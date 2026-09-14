@@ -1,20 +1,34 @@
-[build-system]
-requires = ["setuptools>=68.0"]
-build-backend = "setuptools.build_meta"
-
 [project]
 name = "tms320c28x-re"
-version = "0.1.0"
-description = "TMS320C28x reverse engineering tools - shared ISA library with Binary Ninja and Ghidra support"
+version = "0.2.0"
+description = "TMS320C28x reverse engineering tools — a Binary Ninja plugin and the ISA tooling around it"
 license = "MIT"
 requires-python = ">=3.10"
 dependencies = ["pyyaml>=6.0"]
 
 [project.optional-dependencies]
-dev = ["pytest>=7.0", "pytest-cov"]
+dev = ["pytest>=7.0", "pytest-cov", "hypothesis>=6.0"]
 
-[tool.setuptools.packages.find]
-include = ["c28x*"]
+# Nothing here is importable as a distribution any more. The `c28x` package was
+# a second decoder generated from the same YAML as the Rust one, with nothing
+# comparing them; it is gone, and `c28x_rs.py` reaches the real decoder through
+# the `c28xdec` CLI. The remaining Python -- binja/ and scripts/ -- is a Binary
+# Ninja plugin and developer tooling, neither of which is pip-installable.
+[tool.uv]
+package = false
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+# Pinned rather than left to ruff's defaults. With no `select`, the rule set is
+# whatever the installed ruff version happens to enable -- 0.16.6 reports 243
+# violations here against 90 for the set below -- so the number would move on a
+# toolchain bump rather than on a code change.
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F"]
+
+# Formatting is gated too, at ruff's defaults. Both `ruff check` and
+# `ruff format --check` run in CI against a pinned ruff, so the tree stays
+# formatted and the standard cannot drift with the toolchain.
+[tool.ruff.format]
+docstring-code-format = true

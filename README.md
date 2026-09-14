@@ -56,14 +56,47 @@ After loading a raw flash binary, run from the **Plugins** menu:
 
 ```
 rust/           Rust native plugin (decoder, lifter, architecture registration)
+core/           c28x-core (decoder, COFF, disassembly text) + the c28xdec CLI
 binja/          Python BinaryView plugins (ELF, COFF, flash, analysis tools)
 isa/            YAML ISA definitions (instruction opcodes, operands, semantics)
-c28x/           Pure-Python decoder library (no BN dependency)
+c28x_rs.py      The decoder's Python API, over the c28xdec CLI
 tests/          Test suite with 28 test binaries + flash fixture
 scripts/        Validation scripts (434 functional equivalence checks)
 ```
 
+`core/` is deliberately a separate Cargo workspace with no Binary Ninja
+dependency, so `cargo test` there needs no licence, no `BINARYNINJADIR` and no
+cmake/ninja/libclang.
+
 The core architecture (instruction decoding, IL lifting, calling convention) is implemented in **Rust** for performance. Python provides BinaryView plugins for format-specific loading and analysis tools.
+
+## 0.2.0 — breaking change for Nix consumers
+
+**The `python3Packages.c28x` overlay is gone.** If you consumed this flake for
+that attribute, pin 0.1.0 or switch to `packages.<system>.c28xdec`:
+
+```nix
+# before
+inputs.tms320c28x.overlays.default   # provided python3Packages.c28x
+# after
+inputs.tms320c28x.packages.${system}.c28xdec
+```
+
+It packaged a second decoder generated from the same YAML as the Rust one, with
+nothing comparing the two, so they could drift apart silently. It was also
+broken as shipped: the ISA loader returned quietly when its data directory was
+missing and the wheel contained no YAML, so an installed copy decoded every
+input to `None` without raising.
+
+Before removing it the two decoders were compared directly: **all 65,536 16-bit
+words agree exactly**, and over 40,000 random 32-bit words there were **no
+disagreements on instruction identity or length**. The only differences were 59
+branch targets, in every case ones where the Rust decoder is the more correct —
+40 where the Python decoder produced a negative address, and 19 `XB`/`XCALL`
+PMA targets it failed to resolve.
+
+Python callers now use `c28x_rs.py`, which drives `c28xdec` and keeps the same
+API.
 
 ## Supported Devices
 
