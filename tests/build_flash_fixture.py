@@ -36,7 +36,9 @@ def compile_combined():
     """Compile flash_combined.c with cl2000 for F28335 flash addresses."""
     cl2000 = shutil.which("cl2000")
     if not cl2000:
-        print("[SKIP] cl2000 not in PATH — using pre-built flash_combined.out if available")
+        print(
+            "[SKIP] cl2000 not in PATH — using pre-built flash_combined.out if available"
+        )
         return os.path.exists(COMBINED_OUT)
 
     cgt_dir = os.path.dirname(os.path.dirname(cl2000))
@@ -47,7 +49,8 @@ def compile_combined():
         "-v28",
         "--abi=eabi",
         "--float_support=fpu32",
-        "-O0", "-g",
+        "-O0",
+        "-g",
         f"--obj_directory={BUILD_DIR}",
         f"-I{cgt_dir}/include",
         f"-I{SRC_DIR}",
@@ -63,7 +66,7 @@ def compile_combined():
 
     result = subprocess.run(cmd, capture_output=True, text=True)
     if result.returncode != 0:
-        print(f"[FAIL] cl2000 compilation failed:")
+        print("[FAIL] cl2000 compilation failed:")
         print(result.stderr)
         return False
 
@@ -74,9 +77,7 @@ def compile_combined():
 def extract_elf_sections(elf_path):
     """Extract loadable sections from ELF using readelf + objcopy."""
     # Use readelf to get section info
-    result = subprocess.run(
-        ["readelf", "-S", elf_path], capture_output=True, text=True
-    )
+    result = subprocess.run(["readelf", "-S", elf_path], capture_output=True, text=True)
     if result.returncode != 0:
         return []
 
@@ -108,9 +109,7 @@ def extract_flash_data(elf_path):
     then reads the raw bytes from the ELF file at the segment offset.
     Returns (raw_bytes, base_word_addr).
     """
-    result = subprocess.run(
-        ["readelf", "-l", elf_path], capture_output=True, text=True
-    )
+    result = subprocess.run(["readelf", "-l", elf_path], capture_output=True, text=True)
     if result.returncode != 0:
         return b"", 0x308000
 
@@ -196,13 +195,15 @@ def build_flash_image():
     print(f"  Symbols: {len(symbols)} functions")
 
     # Build the flash image
-    buf = bytearray(b'\xFF' * FLASH_SIZE)
+    buf = bytearray(b"\xff" * FLASH_SIZE)
 
     # Map code into flash: file_offset = (word_addr - FLASH_H_WORD) * 2
     code_file_offset = (base_word_addr - FLASH_H_WORD) * 2
     if code_file_offset < 0 or code_file_offset + len(raw_data) > FLASH_SIZE:
         print(f"[FAIL] Code at 0x{base_word_addr:06X} doesn't fit in flash image")
-        print(f"  file_offset={code_file_offset}, data_len={len(raw_data)}, flash_size={FLASH_SIZE}")
+        print(
+            f"  file_offset={code_file_offset}, data_len={len(raw_data)}, flash_size={FLASH_SIZE}"
+        )
         return False
 
     # Pre-fill entire Flash G sector with ESTOP0 (halt) instructions BEFORE
@@ -213,11 +214,11 @@ def build_flash_image():
     sector_start = code_file_offset
     sector_end = min(code_file_offset + 0x10000, FLASH_SIZE)
     for off in range(sector_start, sector_end, 2):
-        buf[off:off + 2] = ESTOP0
+        buf[off : off + 2] = ESTOP0
 
     # Now overlay the actual code
     end = min(code_file_offset + len(raw_data), FLASH_SIZE)
-    buf[code_file_offset:end] = raw_data[:end - code_file_offset]
+    buf[code_file_offset:end] = raw_data[: end - code_file_offset]
 
     # Add data constants in Flash F for integrity testing
     for i, val in enumerate(DATA_CONSTANTS):
@@ -231,12 +232,33 @@ def build_flash_image():
 
     # Report key functions
     user_funcs = [n for n in symbols if not n.startswith("_") or n in ("_c_int00",)]
-    user_funcs = sorted([n for n in symbols
-                         if n in ("main", "led_main", "pid_main", "switch_main", "isr_main",
-                                  "delay", "gpio_toggle", "pid_init", "pid_compute",
-                                  "run_pid_loop", "process_command", "run_commands",
-                                  "buf_init", "buf_put", "buf_get", "sci_rx_isr",
-                                  "process_received", "_c_int00")])
+    user_funcs = sorted(
+        [
+            n
+            for n in symbols
+            if n
+            in (
+                "main",
+                "led_main",
+                "pid_main",
+                "switch_main",
+                "isr_main",
+                "delay",
+                "gpio_toggle",
+                "pid_init",
+                "pid_compute",
+                "run_pid_loop",
+                "process_command",
+                "run_commands",
+                "buf_init",
+                "buf_put",
+                "buf_get",
+                "sci_rx_isr",
+                "process_received",
+                "_c_int00",
+            )
+        ]
+    )
     for name in user_funcs:
         word_addr = symbols[name]
         byte_addr = word_addr * 2

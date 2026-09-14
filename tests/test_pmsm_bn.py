@@ -13,7 +13,10 @@ import pytest
 
 try:
     import binaryninja
-    BN_AVAILABLE = True
+
+    # tests/conftest_bn_stub.py installs a MagicMock under this name; it is
+    # enough to import binja/, not to analyse a binary.
+    BN_AVAILABLE = not getattr(binaryninja, "_c28x_stub", False)
 except ImportError:
     BN_AVAILABLE = False
 
@@ -22,7 +25,10 @@ PMSM_PATH = Path(__file__).parent / "fixtures" / "pmsm" / "pmsm.out"
 
 pytestmark = [
     pytest.mark.skipif(not BN_AVAILABLE, reason="Binary Ninja not installed"),
-    pytest.mark.skipif(not PMSM_PATH.exists(), reason="PMSM firmware not downloaded"),
+    pytest.mark.skipif(
+        not PMSM_PATH.exists(),
+        reason="PMSM firmware absent; run tests/fixtures/pmsm/fetch.sh",
+    ),
 ]
 
 
@@ -49,8 +55,9 @@ class TestCOFFAutoLoad:
         """Key functions should be auto-created from COFF symbol table."""
         func_names = {f.name for f in bv.functions}
         for expected in ["main", "PWM_ISR", "pid_reg3_calc", "InitFlash"]:
-            assert any(expected in name for name in func_names), \
+            assert any(expected in name for name in func_names), (
                 f"Function {expected} not found in {len(bv.functions)} functions"
+            )
 
     def test_function_count(self, bv):
         assert len(bv.functions) >= 20

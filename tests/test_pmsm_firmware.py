@@ -21,16 +21,16 @@ from pathlib import Path
 
 import pytest
 
-from c28x.coff import parse_coff, CoffFile
-from c28x.decoder import Decoder
-from c28x.types import BranchType, OperandType
+from c28x_rs import parse_coff, CoffFile
+from c28x_rs import Decoder
+from c28x_rs import BranchType
 
 
 PMSM_PATH = Path(__file__).parent / "fixtures" / "pmsm" / "pmsm.out"
 
 pytestmark = pytest.mark.skipif(
     not PMSM_PATH.exists(),
-    reason="PMSM firmware not downloaded"
+    reason="PMSM firmware absent; run tests/fixtures/pmsm/fetch.sh",
 )
 
 
@@ -53,6 +53,7 @@ def flat_binary(coff):
 # Full firmware decode coverage                                          #
 # -------------------------------------------------------------------- #
 
+
 class TestFullDecode:
     """Every instruction in the PMSM firmware decodes without failure."""
 
@@ -63,7 +64,7 @@ class TestFullDecode:
         for sec in coff.text_sections:
             pos = 0
             while pos < len(sec.data) - 1:
-                chunk = sec.data[pos:pos + 4]
+                chunk = sec.data[pos : pos + 4]
                 if len(chunk) < 2:
                     break
                 insn = decoder.decode(chunk, addr=pos)
@@ -90,6 +91,7 @@ class TestFullDecode:
 # COFF parser validation                                                 #
 # -------------------------------------------------------------------- #
 
+
 class TestCoffParser:
     def test_magic(self, coff):
         assert len(coff.sections) > 0
@@ -105,8 +107,14 @@ class TestCoffParser:
         assert rf[0].is_text
 
     def test_known_functions_present(self, coff):
-        expected = ["_main", "_PWM_ISR", "_pid_reg3_calc",
-                    "_clarke_calc", "_park_calc", "_InitFlash"]
+        expected = [
+            "_main",
+            "_PWM_ISR",
+            "_pid_reg3_calc",
+            "_clarke_calc",
+            "_park_calc",
+            "_InitFlash",
+        ]
         for name in expected:
             sym = coff.get_symbol(name)
             assert sym is not None, f"Symbol {name} not found"
@@ -116,6 +124,7 @@ class TestCoffParser:
 # -------------------------------------------------------------------- #
 # Function-level decode validation                                       #
 # -------------------------------------------------------------------- #
+
 
 class TestFunctionDecode:
     """Decode specific functions and verify instruction patterns match source."""
@@ -133,7 +142,7 @@ class TestFunctionDecode:
         for _ in range(max_insns):
             if pos >= len(flat) - 1:
                 break
-            chunk = flat[pos:pos + 4]
+            chunk = flat[pos : pos + 4]
             if len(chunk) < 2:
                 break
             insn = decoder.decode(chunk, addr=pos)
@@ -156,7 +165,9 @@ class TestFunctionDecode:
 
         # Should have LCR calls (to init functions)
         lcr_count = sum(1 for n in names if n == "LCR")
-        assert lcr_count >= 3, f"main should call init functions via LCR, found {lcr_count}"
+        assert lcr_count >= 3, (
+            f"main should call init functions via LCR, found {lcr_count}"
+        )
 
         # Should have EALLOW/EDIS for protected register access
         assert "EALLOW" in names
@@ -169,8 +180,9 @@ class TestFunctionDecode:
 
         # ISR prologue
         assert "ASP" in names, "ISR should align stack"
-        assert "PUSH_AR1H_AR0H" in names or "PUSH_XT" in names, \
+        assert "PUSH_AR1H_AR0H" in names or "PUSH_XT" in names, (
             "ISR should save context registers"
+        )
         assert "ADDB_SP_CONST7" in names
 
         # Should have SPM (set product shift mode) for IQ math
@@ -193,18 +205,20 @@ class TestFunctionDecode:
         """PID controller should use IQ multiply instructions."""
         insns = self._decode_function(coff, decoder, "_pid_reg3_calc", max_insns=100)
 
-        has_mpy = any("MPY" in i.yaml_name or "IMPYL" in i.yaml_name
-                       or "QMPYL" in i.yaml_name
-                       for i in insns)
+        has_mpy = any(
+            "MPY" in i.yaml_name or "IMPYL" in i.yaml_name or "QMPYL" in i.yaml_name
+            for i in insns
+        )
         assert has_mpy, "PID controller should use multiply for gain application"
 
     def test_clarke_calc_has_multiply(self, coff, decoder):
         """Clarke transform uses multiply for sqrt(3)/3 scaling."""
         insns = self._decode_function(coff, decoder, "_clarke_calc", max_insns=60)
 
-        has_mpy = any("MPY" in i.yaml_name or "IMPYL" in i.yaml_name
-                       or "QMPYL" in i.yaml_name
-                       for i in insns)
+        has_mpy = any(
+            "MPY" in i.yaml_name or "IMPYL" in i.yaml_name or "QMPYL" in i.yaml_name
+            for i in insns
+        )
         assert has_mpy, "Clarke transform should use multiply"
 
     def test_initflash_eallow(self, coff, decoder):
@@ -218,19 +232,23 @@ class TestFunctionDecode:
 # Control flow validation                                                #
 # -------------------------------------------------------------------- #
 
+
 class TestControlFlow:
     """Branch targets and call graph validation."""
 
     def test_lcr_targets_are_valid_functions(self, coff, decoder):
-        """LCR call targets should land on known function symbols."""
-        func_addrs = {s.byte_addr for s in coff.get_functions()}
+        """LCR call targets should land on known function symbols.
 
-        flat, base = coff.extract_flat_binary()
+        ASSERTS NOTHING TODAY. The loop below decodes every LCR and then does
+        `pass`; the symbol set and flat binary it used to build were unused.
+        Left as-is rather than given an invented assertion, because the fixture
+        it needs is not fetchable here so nothing could verify one. See C2.
+        """
         # Scan .text for all LCR instructions
         for sec in coff.text_sections:
             pos = 0
             while pos < len(sec.data) - 1:
-                chunk = sec.data[pos:pos + 4]
+                chunk = sec.data[pos : pos + 4]
                 if len(chunk) < 4:
                     break
                 insn = decoder.decode(chunk, addr=pos)
@@ -249,7 +267,7 @@ class TestControlFlow:
         for sec in coff.text_sections:
             pos = 0
             while pos < len(sec.data) - 1:
-                chunk = sec.data[pos:pos + 4]
+                chunk = sec.data[pos : pos + 4]
                 if len(chunk) < 2:
                     break
                 insn = decoder.decode(chunk, addr=pos)
@@ -267,6 +285,7 @@ class TestControlFlow:
 # Instruction coverage statistics                                        #
 # -------------------------------------------------------------------- #
 
+
 class TestInstructionCoverage:
     """Verify the firmware exercises a wide range of instruction types."""
 
@@ -276,7 +295,7 @@ class TestInstructionCoverage:
         for sec in coff.text_sections:
             pos = 0
             while pos < len(sec.data) - 1:
-                chunk = sec.data[pos:pos + 4]
+                chunk = sec.data[pos : pos + 4]
                 if len(chunk) < 2:
                     break
                 insn = decoder.decode(chunk, addr=pos)
@@ -295,7 +314,7 @@ class TestInstructionCoverage:
         for sec in coff.text_sections:
             pos = 0
             while pos < len(sec.data) - 1:
-                chunk = sec.data[pos:pos + 4]
+                chunk = sec.data[pos : pos + 4]
                 if len(chunk) < 2:
                     break
                 insn = decoder.decode(chunk, addr=pos)
@@ -313,7 +332,7 @@ class TestInstructionCoverage:
         for sec in coff.text_sections:
             pos = 0
             while pos < len(sec.data) - 1:
-                chunk = sec.data[pos:pos + 4]
+                chunk = sec.data[pos : pos + 4]
                 if len(chunk) < 2:
                     break
                 insn = decoder.decode(chunk, addr=pos)

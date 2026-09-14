@@ -20,7 +20,7 @@ def _encode32(opcode: int) -> bytes:
     C28x byte order: first word (HIGH 16 bits of opcode) goes first in memory.
     """
     word0 = (opcode >> 16) & 0xFFFF  # HIGH half
-    word1 = opcode & 0xFFFF          # LOW half
+    word1 = opcode & 0xFFFF  # LOW half
     return struct.pack("<HH", word0, word1)
 
 
@@ -37,67 +37,62 @@ def _encode32(opcode: int) -> bytes:
 #   0x044 (byte 0x088): delay
 FIRMWARE_DEF = [
     # === _c_int00 (CRT entry) @ word 0x000 ===
-    (0x000, 0x76400010, 4, "LCR",    "LCR main"),          # call main
-    (0x002, 0x7625,     2, "ESTOP0", "halt if main returns"),
-
+    (0x000, 0x76400010, 4, "LCR", "LCR main"),  # call main
+    (0x002, 0x7625, 2, "ESTOP0", "halt if main returns"),
     # === main @ word 0x010 ===
-    (0x010, 0xFE02,     2, "ADDB_SP_CONST7",  "ADDB SP,#2 (frame)"),
-    (0x011, 0x76400020, 4, "LCR",             "LCR init_system"),
-    (0x013, 0x7640002C, 4, "LCR",             "LCR init_gpio"),
+    (0x010, 0xFE02, 2, "ADDB_SP_CONST7", "ADDB SP,#2 (frame)"),
+    (0x011, 0x76400020, 4, "LCR", "LCR init_system"),
+    (0x013, 0x7640002C, 4, "LCR", "LCR init_gpio"),
     # loop @ word 0x015:
-    (0x015, 0x76400038, 4, "LCR",             "LCR gpio_toggle"),
-    (0x017, 0x9AFF,     2, "MOVB_AX_CONST8",  "MOVB AL,#0xFF (delay arg)"),
-    (0x018, 0x76400044, 4, "LCR",             "LCR delay"),
-    (0x01A, 0x6FFA,     2, "SB",              "SB loop(-6), UNC"),  # back to 0x015
+    (0x015, 0x76400038, 4, "LCR", "LCR gpio_toggle"),
+    (0x017, 0x9AFF, 2, "MOVB_AX_CONST8", "MOVB AL,#0xFF (delay arg)"),
+    (0x018, 0x76400044, 4, "LCR", "LCR delay"),
+    (0x01A, 0x6FFA, 2, "SB", "SB loop(-6), UNC"),  # back to 0x015
     # (unreachable)
-    (0x01B, 0xFE82,     2, "SUBB_SP_CONST7",  "SUBB SP,#2"),
-    (0x01C, 0x0006,     2, "LRETR",           "return"),
-
+    (0x01B, 0xFE82, 2, "SUBB_SP_CONST7", "SUBB SP,#2"),
+    (0x01C, 0x0006, 2, "LRETR", "return"),
     # === init_system @ word 0x020 ===
-    (0x020, 0x7622,     2, "EALLOW",           "EALLOW"),
-    (0x021, 0x761F01C0, 4, "MOVW_DP_CONST16",  "MOVW DP,#0x01C0"),  # DP page for WD
-    (0x023, 0x9A68,     2, "MOVB_AX_CONST8",  "MOVB AL,#0x68"),     # WD disable value
-    (0x024, 0x9629,     2, "MOV_LOC16_AX",    "MOV @0x29,AL"),      # write WDCR (DP+0x29)
-    (0x025, 0x761A,     2, "EDIS",            "EDIS"),
-    (0x026, 0x0006,     2, "LRETR",           "return"),
-
+    (0x020, 0x7622, 2, "EALLOW", "EALLOW"),
+    (0x021, 0x761F01C0, 4, "MOVW_DP_CONST16", "MOVW DP,#0x01C0"),  # DP page for WD
+    (0x023, 0x9A68, 2, "MOVB_AX_CONST8", "MOVB AL,#0x68"),  # WD disable value
+    (0x024, 0x9629, 2, "MOV_LOC16_AX", "MOV @0x29,AL"),  # write WDCR (DP+0x29)
+    (0x025, 0x761A, 2, "EDIS", "EDIS"),
+    (0x026, 0x0006, 2, "LRETR", "return"),
     # === init_gpio @ word 0x02C ===
-    (0x02C, 0x7622,     2, "EALLOW",           "EALLOW"),
-    (0x02D, 0x761F01F2, 4, "MOVW_DP_CONST16",  "MOVW DP,#0x01F2"),  # DP for GPIO
-    (0x02F, 0x9A01,     2, "MOVB_AX_CONST8",  "MOVB AL,#0x01"),     # bit 0
-    (0x030, 0x9600,     2, "MOV_LOC16_AX",    "MOV @0,AL"),          # GPADIR
-    (0x031, 0x761A,     2, "EDIS",            "EDIS"),
-    (0x032, 0x0006,     2, "LRETR",           "return"),
-
+    (0x02C, 0x7622, 2, "EALLOW", "EALLOW"),
+    (0x02D, 0x761F01F2, 4, "MOVW_DP_CONST16", "MOVW DP,#0x01F2"),  # DP for GPIO
+    (0x02F, 0x9A01, 2, "MOVB_AX_CONST8", "MOVB AL,#0x01"),  # bit 0
+    (0x030, 0x9600, 2, "MOV_LOC16_AX", "MOV @0,AL"),  # GPADIR
+    (0x031, 0x761A, 2, "EDIS", "EDIS"),
+    (0x032, 0x0006, 2, "LRETR", "return"),
     # === gpio_toggle @ word 0x038 ===
-    (0x038, 0x761F01FC, 4, "MOVW_DP_CONST16",  "MOVW DP,#0x01FC"),  # DP for toggle reg
-    (0x03A, 0x9A01,     2, "MOVB_AX_CONST8",  "MOVB AL,#0x01"),
-    (0x03B, 0x9606,     2, "MOV_LOC16_AX",    "MOV @6,AL"),          # GPATOGGLE
-    (0x03C, 0x0006,     2, "LRETR",           "return"),
-
+    (0x038, 0x761F01FC, 4, "MOVW_DP_CONST16", "MOVW DP,#0x01FC"),  # DP for toggle reg
+    (0x03A, 0x9A01, 2, "MOVB_AX_CONST8", "MOVB AL,#0x01"),
+    (0x03B, 0x9606, 2, "MOV_LOC16_AX", "MOV @6,AL"),  # GPATOGGLE
+    (0x03C, 0x0006, 2, "LRETR", "return"),
     # === delay @ word 0x044 ===
     # delay(count in AL): while (count != 0) count--;
-    (0x044, 0xFE02,     2, "ADDB_SP_CONST7",  "ADDB SP,#2 (frame)"),
-    (0x045, 0x9641,     2, "MOV_LOC16_AX",    "MOV *-SP[1],AL"),     # save count
+    (0x044, 0xFE02, 2, "ADDB_SP_CONST7", "ADDB SP,#2 (frame)"),
+    (0x045, 0x9641, 2, "MOV_LOC16_AX", "MOV *-SP[1],AL"),  # save count
     # loop @ word 0x046:
-    (0x046, 0x9241,     2, "MOV_AX_LOC16",    "MOV AL,*-SP[1]"),     # load count
-    (0x047, 0x5200,     2, "CMPB_AX_CONST8",  "CMPB AL,#0"),         # count == 0?
-    (0x048, 0x6103,     2, "SB",              "SB done(+3), EQ"),    # if zero, exit
-    (0x049, 0x0B41,     2, "DEC_LOC16",       "DEC *-SP[1]"),        # count--
-    (0x04A, 0x6FFB,     2, "SB",              "SB loop(-5), UNC"),   # back to 0x046
+    (0x046, 0x9241, 2, "MOV_AX_LOC16", "MOV AL,*-SP[1]"),  # load count
+    (0x047, 0x5200, 2, "CMPB_AX_CONST8", "CMPB AL,#0"),  # count == 0?
+    (0x048, 0x6103, 2, "SB", "SB done(+3), EQ"),  # if zero, exit
+    (0x049, 0x0B41, 2, "DEC_LOC16", "DEC *-SP[1]"),  # count--
+    (0x04A, 0x6FFB, 2, "SB", "SB loop(-5), UNC"),  # back to 0x046
     # done @ word 0x04B (byte 0x096):
-    (0x04B, 0xFE82,     2, "SUBB_SP_CONST7",  "SUBB SP,#2"),
-    (0x04C, 0x0006,     2, "LRETR",           "return"),
+    (0x04B, 0xFE82, 2, "SUBB_SP_CONST7", "SUBB SP,#2"),
+    (0x04C, 0x0006, 2, "LRETR", "return"),
 ]
 
 # Function table: (name, word_addr, byte_addr)
 FUNCTIONS = [
-    ("_c_int00",     0x000, 0x000),
-    ("main",         0x010, 0x020),
-    ("init_system",  0x020, 0x040),
-    ("init_gpio",    0x02C, 0x058),
-    ("gpio_toggle",  0x038, 0x070),
-    ("delay",        0x044, 0x088),
+    ("_c_int00", 0x000, 0x000),
+    ("main", 0x010, 0x020),
+    ("init_system", 0x020, 0x040),
+    ("init_gpio", 0x02C, 0x058),
+    ("gpio_toggle", 0x038, 0x070),
+    ("delay", 0x044, 0x088),
 ]
 
 
@@ -122,7 +117,7 @@ def build_firmware() -> bytes:
             data = _encode16(opcode)
         else:
             data = _encode32(opcode)
-        buf[byte_addr:byte_addr + size] = data
+        buf[byte_addr : byte_addr + size] = data
 
     return bytes(buf)
 
@@ -151,3 +146,55 @@ def firmware_def():
 def function_table():
     """The expected function table."""
     return FUNCTIONS
+
+
+# ── Skip ratchet ───────────────────────────────────────────────────────────
+#
+# 33 tests skip on a machine with no Binary Ninja and no PMSM firmware, and
+# nothing noticed when that number moved. A skip is how a test goes dark
+# without failing, so the count is pinned: a new reason, or more skips under
+# an existing one, fails the run. Fewer is fine and says so.
+
+_SKIP_BASELINE = Path(__file__).parent / "baselines" / "skips.json"
+_observed_skips: dict[str, int] = {}
+
+
+def pytest_runtest_logreport(report):
+    if report.skipped and report.when == "setup":
+        # longrepr for a skip is (path, lineno, "Skipped: reason")
+        try:
+            path, _, reason = report.longrepr
+        except (TypeError, ValueError):
+            return
+        reason = str(reason).removeprefix("Skipped: ")
+        # Repo-relative: an absolute path in a committed baseline matches on
+        # exactly one machine.
+        try:
+            path = Path(path).resolve().relative_to(Path(__file__).parent.parent)
+        except ValueError:
+            path = Path(path).name
+        key = f"{path.as_posix()}: {reason}"
+        _observed_skips[key] = _observed_skips.get(key, 0) + 1
+
+
+def pytest_sessionfinish(session, exitstatus):
+    # Only meaningful for a full run; a subset legitimately skips less.
+    if session.config.option.keyword or session.config.option.markexpr:
+        return
+    if not _SKIP_BASELINE.exists():
+        return
+    import json
+
+    expected = json.loads(_SKIP_BASELINE.read_text())["expected"]
+    problems = []
+    for key, n in sorted(_observed_skips.items()):
+        want = expected.get(key)
+        if want is None:
+            problems.append(f"  NEW skip reason ({n}x): {key}")
+        elif n > want:
+            problems.append(f"  skips rose {want} -> {n}: {key}")
+    if problems:
+        print("\nSkip ratchet FAILED — a test went dark:")
+        print("\n".join(problems))
+        print(f"If deliberate, update {_SKIP_BASELINE.name}.")
+        session.exitstatus = 1

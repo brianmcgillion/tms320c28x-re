@@ -1,9 +1,18 @@
 # SPDX-License-Identifier: MIT
 """Integration tests: decode a reference LED-blink firmware end-to-end.
 
-The firmware is hand-assembled from known opcodes (see conftest.py) to model
-a TI C2000Ware blinky example. Tests verify that every instruction decodes
-correctly and that control flow (calls, returns, loops) is properly resolved.
+**This tests the author's reading of the ISA, not a toolchain.** The firmware
+is hand-assembled from opcode literals in `conftest.py`'s FIRMWARE_DEF, so
+every expectation here was written by the same person who wrote the table it
+checks. It is a cheap, readable smoke test and it does pin the encodings
+independently of the YAML -- but it cannot catch an encoding both got wrong.
+
+For that, `tests/golden/` is authoritative: real `cl2000` output, decoded and
+diffed. This file was renamed from `test_firmware.py` to make the distinction
+visible at the point someone goes looking for "the firmware test".
+
+Tests verify that every instruction decodes correctly and that control flow
+(calls, returns, loops) is properly resolved.
 
 Expected C equivalent:
     void _c_int00()    { main(); }
@@ -16,8 +25,8 @@ Expected C equivalent:
 
 import pytest
 
-from c28x.decoder import Decoder
-from c28x.types import BranchType
+from c28x_rs import Decoder
+from c28x_rs import BranchType
 
 
 @pytest.fixture
@@ -31,7 +40,7 @@ class TestFirmwareDecode:
     def test_all_instructions_decode(self, decoder, firmware_bytes, firmware_def):
         for word_addr, opcode, size, expected_name, comment in firmware_def:
             byte_addr = word_addr * 2
-            data = firmware_bytes[byte_addr:byte_addr + 4]
+            data = firmware_bytes[byte_addr : byte_addr + 4]
             insn = decoder.decode(data, addr=byte_addr)
             assert insn is not None, (
                 f"Failed to decode at word 0x{word_addr:03X} "
@@ -53,9 +62,7 @@ class TestFirmwareDecode:
         for func_name, func_word, func_byte in FUNCTIONS:
             # Find all instructions in this function
             func_insns = [
-                (w, o, s, n, c)
-                for w, o, s, n, c in firmware_def
-                if w >= func_word
+                (w, o, s, n, c) for w, o, s, n, c in firmware_def if w >= func_word
             ]
             if not func_insns:
                 continue
@@ -119,18 +126,20 @@ class TestControlFlow:
     def test_all_functions_end_with_return(self, decoder, firmware_bytes, firmware_def):
         """Every function (except _c_int00) ends with LRETR."""
         from tests.conftest import FUNCTIONS
+
         for func_name, func_word, func_byte in FUNCTIONS:
             if func_name == "_c_int00":
                 continue  # ends with ESTOP0
             # Find the last instruction of this function
             func_insns = [
-                (w, o, s, n, c) for w, o, s, n, c in firmware_def
-                if w >= func_word
+                (w, o, s, n, c) for w, o, s, n, c in firmware_def if w >= func_word
             ]
             for w, o, s, n, c in func_insns:
                 if n == "LRETR":
                     byte_addr = w * 2
-                    insn = decoder.decode(firmware_bytes[byte_addr:byte_addr+4], addr=byte_addr)
+                    insn = decoder.decode(
+                        firmware_bytes[byte_addr : byte_addr + 4], addr=byte_addr
+                    )
                     assert insn.branch_type == BranchType.RETURN
                     break
             else:
@@ -196,7 +205,7 @@ class TestFullWalk:
         decoded_addrs = set()
         for word_addr, _, size, _, _ in firmware_def:
             byte_addr = word_addr * 2
-            data = firmware_bytes[byte_addr:byte_addr + 4]
+            data = firmware_bytes[byte_addr : byte_addr + 4]
             if len(data) < 2:
                 continue
             insn = decoder.decode(data, addr=byte_addr)
