@@ -17,7 +17,7 @@
     "class": "lifted",
     "il": [
       "if (ACC s< 0) then 1 else 4",
-      "ACC = neg.d(ACC) {*}",
+      "ACC = neg.d{*}(ACC)",
       "flag:TC = flag:TC ^ 1",
       "goto 4"
     ],
@@ -27,7 +27,7 @@
     "class": "lifted",
     "il": [
       "if (ACC s< 0) then 1 else 3",
-      "ACC = neg.d(ACC) {*}",
+      "ACC = neg.d{*}(ACC)",
       "goto 3"
     ],
     "probe": "56ff0000"
@@ -35,14 +35,14 @@
   "ADDB_ACC_CONST8": {
     "class": "lifted",
     "il": [
-      "ACC = ACC + zx.d(1) {*}"
+      "ACC = add.d{*}(ACC, zx.d(1))"
     ],
     "probe": "01090000"
   },
   "ADDB_AX_CONST8": {
     "class": "lifted",
     "il": [
-      "AH = AH + sx.w(2) {*}"
+      "AH = add.w{*}(AH, sx.w(2))"
     ],
     "probe": "029d0000"
   },
@@ -63,14 +63,14 @@
   "ADDCL_ACC_LOC32": {
     "class": "lifted",
     "il": [
-      "ACC = adc.d(ACC, [((zx.d(DP) << 6) + 1) << 1].d, flag:C) {*}"
+      "ACC = adc.d{*}(ACC, [((zx.d(DP) << 6) + 1) << 1].d, flag:C)"
     ],
     "probe": "40560100"
   },
   "ADDCU_ACC_LOC16": {
     "class": "lifted",
     "il": [
-      "ACC = adc.d(ACC, zx.d([((zx.d(DP) << 6) + 1) << 1].w), flag:C) {*}"
+      "ACC = adc.d{*}(ACC, zx.d([((zx.d(DP) << 6) + 1) << 1].w), flag:C)"
     ],
     "probe": "010c0000"
   },
@@ -107,7 +107,7 @@
   "ADDL_ACC_LOC32": {
     "class": "lifted",
     "il": [
-      "ACC = ACC + [((zx.d(DP) << 6) + 1) << 1].d {*}"
+      "ACC = add.d{*}(ACC, [((zx.d(DP) << 6) + 1) << 1].d)"
     ],
     "probe": "01070000"
   },
@@ -121,63 +121,63 @@
   "ADDUL_ACC_LOC32": {
     "class": "lifted",
     "il": [
-      "ACC = ACC + [((zx.d(DP) << 6) + 1) << 1].d {*}"
+      "ACC = add.d{*}(ACC, [((zx.d(DP) << 6) + 1) << 1].d)"
     ],
     "probe": "53560100"
   },
   "ADDUL_P_LOC32": {
     "class": "lifted",
     "il": [
-      "P = P + [((zx.d(DP) << 6) + 1) << 1].d {*}"
+      "P = add.d{*}(P, [((zx.d(DP) << 6) + 1) << 1].d)"
     ],
     "probe": "57560100"
   },
   "ADDU_ACC_LOC16": {
     "class": "lifted",
     "il": [
-      "ACC = ACC + zx.d([((zx.d(DP) << 6) + 1) << 1].w) {*}"
+      "ACC = add.d{*}(ACC, zx.d([((zx.d(DP) << 6) + 1) << 1].w))"
     ],
     "probe": "010d0000"
   },
   "ADD_ACC_CONST16_SHIFT": {
     "class": "lifted",
     "il": [
-      "ACC = ACC + (sx.d(1) << 2) {*}"
+      "ACC = add.d{*}(ACC, sx.d(1) << 2)"
     ],
     "probe": "12ff0100"
   },
   "ADD_ACC_LOC16": {
     "class": "lifted",
     "il": [
-      "ACC = ACC + sx.d([((zx.d(DP) << 6) + 1) << 1].w) {*}"
+      "ACC = add.d{*}(ACC, sx.d([((zx.d(DP) << 6) + 1) << 1].w))"
     ],
     "probe": "01810000"
   },
   "ADD_ACC_LOC16_SHIFT16": {
     "class": "lifted",
     "il": [
-      "ACC = ACC + (sx.d([((zx.d(DP) << 6) + 1) << 1].w) << 0x10) {*}"
+      "ACC = add.d{*}(ACC, sx.d([((zx.d(DP) << 6) + 1) << 1].w) << 0x10)"
     ],
     "probe": "01050000"
   },
   "ADD_ACC_LOC16_SHIFT1_15": {
     "class": "lifted",
     "il": [
-      "ACC = ACC + (sx.d([((zx.d(DP) << 6) + 1) << 1].w) << 2) {*}"
+      "ACC = add.d{*}(ACC, sx.d([((zx.d(DP) << 6) + 1) << 1].w) << 2)"
     ],
     "probe": "04560102"
   },
   "ADD_ACC_LOC16_SHIFT_T": {
     "class": "lifted",
     "il": [
-      "ACC = ACC + (sx.d([((zx.d(DP) << 6) + 1) << 1].w) << zx.d(T)) {*}"
+      "ACC = add.d{*}(ACC, sx.d([((zx.d(DP) << 6) + 1) << 1].w) << zx.d(T))"
     ],
     "probe": "23560100"
   },
   "ADD_AX_LOC16": {
     "class": "lifted",
     "il": [
-      "AH = AH + [((zx.d(DP) << 6) + 2) << 1].w {*}"
+      "AH = add.w{*}(AH, [((zx.d(DP) << 6) + 2) << 1].w)"
     ],
     "probe": "02950000"
   },
@@ -282,37 +282,37 @@
   "ASR64_ACC_P_SHIFT": {
     "class": "lifted",
     "il": [
-      "ACC = (zx.q(ACC) << 0x20 | zx.q(P)) s>> 2 u>> 0x20 {nzc}",
-      "P = ((zx.q(ACC) << 0x20 | zx.q(P)) s>> 2).d"
+      "ACC = asr.q{nzc}(zx.q(ACC) << 0x20 | zx.q(P), 2) u>> 0x20",
+      "P = (asr.q{nzc}(zx.q(ACC) << 0x20 | zx.q(P), 2)).d"
     ],
     "probe": "81560000"
   },
   "ASR64_ACC_P_T": {
     "class": "lifted",
     "il": [
-      "ACC = (zx.q(ACC) << 0x20 | zx.q(P)) s>> 1 u>> 0x20 {nzc}",
-      "P = ((zx.q(ACC) << 0x20 | zx.q(P)) s>> 1).d"
+      "ACC = asr.q{nzc}(zx.q(ACC) << 0x20 | zx.q(P), 1) u>> 0x20",
+      "P = (asr.q{nzc}(zx.q(ACC) << 0x20 | zx.q(P), 1)).d"
     ],
     "probe": "2c560000"
   },
   "ASRL_ACC_T": {
     "class": "lifted",
     "il": [
-      "ACC = ACC s>> zx.d(T) {nzc}"
+      "ACC = asr.d{nzc}(ACC, zx.d(T))"
     ],
     "probe": "10560000"
   },
   "ASR_AX_SHIFT": {
     "class": "lifted",
     "il": [
-      "AH = AH s>> 3 {nzc}"
+      "AH = asr.w{nzc}(AH, 3)"
     ],
     "probe": "b2ff0000"
   },
   "ASR_AX_T": {
     "class": "lifted",
     "il": [
-      "AH = AH s>> (T & 0xf) {nzc}"
+      "AH = asr.w{nzc}(AH, T & 0xf)"
     ],
     "probe": "65ff0000"
   },
@@ -663,7 +663,7 @@
   "IMPYAL_P_XT_LOC32": {
     "class": "lifted",
     "il": [
-      "ACC = ACC + P {*}",
+      "ACC = add.d{*}(ACC, P)",
       "P = XT * [((zx.d(DP) << 6) + 1) << 1].d"
     ],
     "probe": "4c560100"
@@ -685,7 +685,7 @@
   "IMPYSL_P_XT_LOC32": {
     "class": "lifted",
     "il": [
-      "ACC = ACC - P {*}",
+      "ACC = sub.d{*}(ACC, P)",
       "P = XT * [((zx.d(DP) << 6) + 1) << 1].d"
     ],
     "probe": "43560100"
@@ -834,30 +834,30 @@
   "LSL64_ACC_P_SHIFT": {
     "class": "lifted",
     "il": [
-      "ACC = (zx.q(ACC) << 0x20 | zx.q(P)) << 2 u>> 0x20 {nzc}",
-      "P = ((zx.q(ACC) << 0x20 | zx.q(P)) << 2).d"
+      "ACC = lsl.q{nzc}(zx.q(ACC) << 0x20 | zx.q(P), 2) u>> 0x20",
+      "P = (lsl.q{nzc}(zx.q(ACC) << 0x20 | zx.q(P), 2)).d"
     ],
     "probe": "a1560000"
   },
   "LSL64_ACC_P_T": {
     "class": "lifted",
     "il": [
-      "ACC = (zx.q(ACC) << 0x20 | zx.q(P)) << 1 u>> 0x20 {nzc}",
-      "P = ((zx.q(ACC) << 0x20 | zx.q(P)) << 1).d"
+      "ACC = lsl.q{nzc}(zx.q(ACC) << 0x20 | zx.q(P), 1) u>> 0x20",
+      "P = (lsl.q{nzc}(zx.q(ACC) << 0x20 | zx.q(P), 1)).d"
     ],
     "probe": "52560000"
   },
   "LSLL_ACC_T": {
     "class": "lifted",
     "il": [
-      "ACC = ACC << zx.d(T) {nz}"
+      "ACC = lsl.d{nz}(ACC, zx.d(T))"
     ],
     "probe": "3b560000"
   },
   "LSL_ACC_SHIFT": {
     "class": "lifted",
     "il": [
-      "ACC = ACC << 2 {nzc}"
+      "ACC = lsl.d{nzc}(ACC, 2)"
     ],
     "probe": "31ff0000"
   },
@@ -871,51 +871,51 @@
   "LSL_AX_SHIFT": {
     "class": "lifted",
     "il": [
-      "AH = AH << 3 {nzc}"
+      "AH = lsl.w{nzc}(AH, 3)"
     ],
     "probe": "92ff0000"
   },
   "LSL_AX_T": {
     "class": "lifted",
     "il": [
-      "AH = AH << (T & 0xf) {nzc}"
+      "AH = lsl.w{nzc}(AH, T & 0xf)"
     ],
     "probe": "67ff0000"
   },
   "LSR64_ACC_P_SHIFT": {
     "class": "lifted",
     "il": [
-      "ACC = (zx.q(ACC) << 0x20 | zx.q(P)) u>> 2 u>> 0x20 {nzc}",
-      "P = ((zx.q(ACC) << 0x20 | zx.q(P)) u>> 2).d"
+      "ACC = lsr.q{nzc}(zx.q(ACC) << 0x20 | zx.q(P), 2) u>> 0x20",
+      "P = (lsr.q{nzc}(zx.q(ACC) << 0x20 | zx.q(P), 2)).d"
     ],
     "probe": "91560000"
   },
   "LSR64_ACC_P_T": {
     "class": "lifted",
     "il": [
-      "ACC = (zx.q(ACC) << 0x20 | zx.q(P)) u>> 1 u>> 0x20 {nzc}",
-      "P = ((zx.q(ACC) << 0x20 | zx.q(P)) u>> 1).d"
+      "ACC = lsr.q{nzc}(zx.q(ACC) << 0x20 | zx.q(P), 1) u>> 0x20",
+      "P = (lsr.q{nzc}(zx.q(ACC) << 0x20 | zx.q(P), 1)).d"
     ],
     "probe": "5b560000"
   },
   "LSRL_ACC_T": {
     "class": "lifted",
     "il": [
-      "ACC = ACC u>> zx.d(T) {nzc}"
+      "ACC = lsr.d{nzc}(ACC, zx.d(T))"
     ],
     "probe": "22560000"
   },
   "LSR_AX_SHIFT": {
     "class": "lifted",
     "il": [
-      "AH = AH u>> 3 {nzc}"
+      "AH = lsr.w{nzc}(AH, 3)"
     ],
     "probe": "d2ff0000"
   },
   "LSR_AX_T": {
     "class": "lifted",
     "il": [
-      "AH = AH u>> (T & 0xf) {nzc}"
+      "AH = lsr.w{nzc}(AH, T & 0xf)"
     ],
     "probe": "63ff0000"
   },
@@ -930,7 +930,7 @@
   "MAC_P_LOC16_XAR7": {
     "class": "lifted",
     "il": [
-      "ACC = ACC + P {*}",
+      "ACC = add.d{*}(ACC, P)",
       "T = [((zx.d(DP) << 6) + 1) << 1].w",
       "P = sx.d(T) * sx.d([XAR7 << 1].w)"
     ],
@@ -939,7 +939,7 @@
   "MAC_P_LOC16_XAR7_POSTINC": {
     "class": "lifted",
     "il": [
-      "ACC = ACC + P {*}",
+      "ACC = add.d{*}(ACC, P)",
       "T = [((zx.d(DP) << 6) + 1) << 1].w",
       "P = sx.d(T) * sx.d([XAR7 << 1].w)",
       "XAR7 = XAR7 + 1"
@@ -1826,7 +1826,7 @@
   "MPYA_P_LOC16_CONST16": {
     "class": "lifted",
     "il": [
-      "ACC = ACC + P {*}",
+      "ACC = add.d{*}(ACC, P)",
       "T = [((zx.d(DP) << 6) + 1) << 1].w",
       "P = sx.d(T) * sx.d(2)"
     ],
@@ -1835,7 +1835,7 @@
   "MPYA_P_T_LOC16": {
     "class": "lifted",
     "il": [
-      "ACC = ACC + P {*}",
+      "ACC = add.d{*}(ACC, P)",
       "P = sx.d(T) * sx.d([((zx.d(DP) << 6) + 1) << 1].w)"
     ],
     "probe": "01170000"
@@ -1895,7 +1895,7 @@
   "MPYS_P_T_LOC16": {
     "class": "lifted",
     "il": [
-      "ACC = ACC - P {*}",
+      "ACC = sub.d{*}(ACC, P)",
       "P = sx.d(T) * sx.d([((zx.d(DP) << 6) + 1) << 1].w)"
     ],
     "probe": "01130000"
@@ -1966,7 +1966,7 @@
   "NEG64_ACC_P": {
     "class": "lifted",
     "il": [
-      "ACC = neg.d(ACC) {*}",
+      "ACC = neg.d{*}(ACC)",
       "P = neg.d(P)"
     ],
     "probe": "58560000"
@@ -1984,7 +1984,7 @@
     "class": "lifted",
     "il": [
       "if (flag:TC == 1) then 1 else 3",
-      "ACC = neg.d(ACC) {*}",
+      "ACC = neg.d{*}(ACC)",
       "goto 3"
     ],
     "probe": "32560000"
@@ -1992,14 +1992,14 @@
   "NEG_ACC": {
     "class": "lifted",
     "il": [
-      "ACC = neg.d(ACC) {*}"
+      "ACC = neg.d{*}(ACC)"
     ],
     "probe": "54ff0000"
   },
   "NEG_AX": {
     "class": "lifted",
     "il": [
-      "AH = neg.w(AH) {*}"
+      "AH = neg.w{*}(AH)"
     ],
     "probe": "5dff0000"
   },
@@ -2412,7 +2412,7 @@
   "QMPYAL_P_XT_LOC32": {
     "class": "lifted",
     "il": [
-      "ACC = ACC + P {*}",
+      "ACC = add.d{*}(ACC, P)",
       "P = XT * [((zx.d(DP) << 6) + 1) << 1].d"
     ],
     "probe": "46560100"
@@ -2434,7 +2434,7 @@
   "QMPYSL_P_XT_LOC32": {
     "class": "lifted",
     "il": [
-      "ACC = ACC - P {*}",
+      "ACC = sub.d{*}(ACC, P)",
       "P = XT * [((zx.d(DP) << 6) + 1) << 1].d"
     ],
     "probe": "45560100"
@@ -2456,14 +2456,14 @@
   "ROL_ACC": {
     "class": "lifted",
     "il": [
-      "ACC = rol.d(ACC, 1) {nzc}"
+      "ACC = rol.d{nzc}(ACC, 1)"
     ],
     "probe": "53ff0000"
   },
   "ROR_ACC": {
     "class": "lifted",
     "il": [
-      "ACC = ror.d(ACC, 1) {nzc}"
+      "ACC = ror.d{nzc}(ACC, 1)"
     ],
     "probe": "52ff0000"
   },
@@ -2520,7 +2520,7 @@
   "SBBU_ACC_LOC16": {
     "class": "lifted",
     "il": [
-      "ACC = sbb.d(ACC, zx.d([((zx.d(DP) << 6) + 1) << 1].w), flag:C ^ 1) {*}"
+      "ACC = sbb.d{*}(ACC, zx.d([((zx.d(DP) << 6) + 1) << 1].w), flag:C)"
     ],
     "probe": "011d0000"
   },
@@ -2577,7 +2577,7 @@
   "SFR_ACC_SHIFT": {
     "class": "lifted",
     "il": [
-      "ACC = ACC s>> 2 {nzc}"
+      "ACC = asr.d{nzc}(ACC, 2)"
     ],
     "probe": "41ff0000"
   },
@@ -2598,7 +2598,7 @@
   "SQRA_LOC16": {
     "class": "lifted",
     "il": [
-      "ACC = ACC + P {*}",
+      "ACC = add.d{*}(ACC, P)",
       "P = sx.d([((zx.d(DP) << 6) + 1) << 1].w) * sx.d([((zx.d(DP) << 6) + 1) << 1].w)"
     ],
     "probe": "15560100"
@@ -2606,7 +2606,7 @@
   "SQRS_LOC16": {
     "class": "lifted",
     "il": [
-      "ACC = ACC - P {*}",
+      "ACC = sub.d{*}(ACC, P)",
       "P = sx.d([((zx.d(DP) << 6) + 1) << 1].w) * sx.d([((zx.d(DP) << 6) + 1) << 1].w)"
     ],
     "probe": "11560100"
@@ -2614,14 +2614,14 @@
   "SUBBL_ACC_LOC32": {
     "class": "lifted",
     "il": [
-      "ACC = sbb.d(ACC, [((zx.d(DP) << 6) + 1) << 1].d, flag:C ^ 1) {*}"
+      "ACC = sbb.d{*}(ACC, [((zx.d(DP) << 6) + 1) << 1].d, flag:C)"
     ],
     "probe": "54560100"
   },
   "SUBB_ACC_CONST8": {
     "class": "lifted",
     "il": [
-      "ACC = ACC - zx.d(1) {*}"
+      "ACC = sub.d{*}(ACC, zx.d(1))"
     ],
     "probe": "01190000"
   },
@@ -2644,10 +2644,10 @@
     "il": [
       "temp0.q = (zx.q(ACC) << 1) + (zx.q(P) u>> 0x1f) - zx.q([((zx.d(DP) << 6) + 1) << 1].d)",
       "if (temp0.q s>= 0) then 2 else 5",
-      "ACC = temp0.q.d {nzc}",
+      "ACC = temp0.q.d",
       "P = (P << 1) + 1",
       "goto 8",
-      "ACC = ACC << 1 | P u>> 0x1f {nzc}",
+      "ACC = or.d{nzc}(ACC << 1, P u>> 0x1f)",
       "P = P << 1",
       "goto 8"
     ],
@@ -2658,9 +2658,9 @@
     "il": [
       "temp0.q = (zx.q(ACC) << 1) - (zx.q([((zx.d(DP) << 6) + 1) << 1].w) << 0x10)",
       "if (temp0.q s> 0) then 2 else 4",
-      "ACC = temp0.q.d + 1 {nzc}",
+      "ACC = add.d{nzc}(temp0.q.d, 1)",
       "goto 6",
-      "ACC = ACC << 1 {nzc}",
+      "ACC = lsl.d{nzc}(ACC, 1)",
       "goto 6"
     ],
     "probe": "011f0000"
@@ -2698,7 +2698,7 @@
   "SUBL_ACC_LOC32": {
     "class": "lifted",
     "il": [
-      "ACC = ACC - [((zx.d(DP) << 6) + 1) << 1].d {*}"
+      "ACC = sub.d{*}(ACC, [((zx.d(DP) << 6) + 1) << 1].d)"
     ],
     "probe": "01030000"
   },
@@ -2726,63 +2726,63 @@
   "SUBUL_ACC_LOC32": {
     "class": "lifted",
     "il": [
-      "ACC = ACC - [((zx.d(DP) << 6) + 1) << 1].d {*}"
+      "ACC = sub.d{*}(ACC, [((zx.d(DP) << 6) + 1) << 1].d)"
     ],
     "probe": "55560100"
   },
   "SUBUL_P_LOC32": {
     "class": "lifted",
     "il": [
-      "P = P - [((zx.d(DP) << 6) + 1) << 1].d {*}"
+      "P = sub.d{*}(P, [((zx.d(DP) << 6) + 1) << 1].d)"
     ],
     "probe": "5d560100"
   },
   "SUBU_ACC_LOC16": {
     "class": "lifted",
     "il": [
-      "ACC = ACC - zx.d([((zx.d(DP) << 6) + 1) << 1].w) {*}"
+      "ACC = sub.d{*}(ACC, zx.d([((zx.d(DP) << 6) + 1) << 1].w))"
     ],
     "probe": "01010000"
   },
   "SUB_ACC_CONST16_SHIFT": {
     "class": "lifted",
     "il": [
-      "ACC = ACC - (sx.d(1) << 2) {*}"
+      "ACC = sub.d{*}(ACC, sx.d(1) << 2)"
     ],
     "probe": "02ff0100"
   },
   "SUB_ACC_LOC16": {
     "class": "lifted",
     "il": [
-      "ACC = ACC - sx.d([((zx.d(DP) << 6) + 1) << 1].w) {*}"
+      "ACC = sub.d{*}(ACC, sx.d([((zx.d(DP) << 6) + 1) << 1].w))"
     ],
     "probe": "01ae0000"
   },
   "SUB_ACC_LOC16_SHIFT16": {
     "class": "lifted",
     "il": [
-      "ACC = ACC - (sx.d([((zx.d(DP) << 6) + 1) << 1].w) << 0x10) {*}"
+      "ACC = sub.d{*}(ACC, sx.d([((zx.d(DP) << 6) + 1) << 1].w) << 0x10)"
     ],
     "probe": "01040000"
   },
   "SUB_ACC_LOC16_SHIFT1_15_OBJMODE1": {
     "class": "lifted",
     "il": [
-      "ACC = ACC - (sx.d([((zx.d(DP) << 6) + 1) << 1].w) << 2) {*}"
+      "ACC = sub.d{*}(ACC, sx.d([((zx.d(DP) << 6) + 1) << 1].w) << 2)"
     ],
     "probe": "00560102"
   },
   "SUB_ACC_LOC16_SHIFT_T": {
     "class": "lifted",
     "il": [
-      "ACC = ACC - (sx.d([((zx.d(DP) << 6) + 1) << 1].w) << zx.d(T)) {*}"
+      "ACC = sub.d{*}(ACC, sx.d([((zx.d(DP) << 6) + 1) << 1].w) << zx.d(T))"
     ],
     "probe": "27560100"
   },
   "SUB_AX_LOC16": {
     "class": "lifted",
     "il": [
-      "AH = AH - [((zx.d(DP) << 6) + 2) << 1].w {*}"
+      "AH = sub.w{*}(AH, [((zx.d(DP) << 6) + 2) << 1].w)"
     ],
     "probe": "029f0000"
   },
@@ -2920,7 +2920,7 @@
   "XMAC_P_LOC16_PMA": {
     "class": "lifted",
     "il": [
-      "ACC = ACC + P {*}",
+      "ACC = add.d{*}(ACC, P)",
       "T = [((zx.d(DP) << 6) + 1) << 1].w",
       "P = sx.d(T) * sx.d([0x3f0002 << 1].w)"
     ],

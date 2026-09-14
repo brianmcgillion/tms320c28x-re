@@ -31,9 +31,8 @@ pub fn lift_rotate(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
     } else {
         il.ror(4, acc, one)
     };
-    il.set_reg(4, Register::ACC, expr)
-        .with_flag_write(FlagWrite::NZC)
-        .append();
+    let flagged = expr.with_flag_write(FlagWrite::NZC).build();
+    il.set_reg(4, Register::ACC, flagged).append();
     true
 }
 
@@ -71,14 +70,19 @@ fn shift_common(insn: &DecodedInstruction, il: &ILFunc, op_name: &str) -> bool {
         } else {
             il.lsr(8, combined, shift_amt)
         };
+        // The flag write belongs on the 64-bit shift, not on the `lsr` that
+        // extracts the high word afterwards. TI defines all three flags over the
+        // combined value -- N is bit 31 of ACC (bit 63 of the pair), Z is the
+        // whole 64 bits, C is the last bit shifted out of it -- and that is
+        // exactly what BN derives from a flagged 64-bit shift. Flagging the
+        // extraction instead would have produced a confident, wrong C.
+        let shifted_built = shifted.with_flag_write(FlagWrite::NZC).build();
         // Split back: ACC = high 32 bits, P = low 32 bits
-        let shifted_built = shifted.build();
         il.set_reg(
             4,
             Register::ACC,
             il.lsr(8, shifted_built, il.const_int(8, 32)),
         )
-        .with_flag_write(FlagWrite::NZC)
         .append();
         il.set_reg(4, Register::P, il.low_part(4, shifted_built))
             .append();
@@ -106,9 +110,8 @@ fn shift_common(insn: &DecodedInstruction, il: &ILFunc, op_name: &str) -> bool {
         } else {
             FlagWrite::NZC
         };
-        il.set_reg(4, Register::ACC, expr)
-            .with_flag_write(written)
-            .append();
+        let flagged = expr.with_flag_write(written).build();
+        il.set_reg(4, Register::ACC, flagged).append();
         return true;
     }
 
@@ -130,9 +133,8 @@ fn shift_common(insn: &DecodedInstruction, il: &ILFunc, op_name: &str) -> bool {
                 "lsr" => il.lsr(2, lhs, amt),
                 _ => il.asr(2, lhs, amt),
             };
-            il.set_reg(2, reg, expr)
-                .with_flag_write(FlagWrite::NZC)
-                .append();
+            let flagged = expr.with_flag_write(FlagWrite::NZC).build();
+            il.set_reg(2, reg, flagged).append();
         } else {
             il.unimplemented().append();
         }
@@ -155,9 +157,8 @@ fn shift_common(insn: &DecodedInstruction, il: &ILFunc, op_name: &str) -> bool {
                 "asr" => il.asr(size, lhs, rhs),
                 _ => unreachable!("shift_common called with invalid op_name"),
             };
-            il.set_reg(size, reg, expr)
-                .with_flag_write(FlagWrite::NZC)
-                .append();
+            let flagged = expr.with_flag_write(FlagWrite::NZC).build();
+            il.set_reg(size, reg, flagged).append();
             return true;
         }
     }
@@ -176,9 +177,8 @@ fn shift_common(insn: &DecodedInstruction, il: &ILFunc, op_name: &str) -> bool {
                 return true;
             }
         };
-        il.set_reg(4, Register::ACC, expr)
-            .with_flag_write(FlagWrite::NZC)
-            .append();
+        let flagged = expr.with_flag_write(FlagWrite::NZC).build();
+        il.set_reg(4, Register::ACC, flagged).append();
         return true;
     }
 

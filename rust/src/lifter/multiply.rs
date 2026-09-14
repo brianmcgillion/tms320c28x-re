@@ -100,13 +100,11 @@ pub fn lift(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
     // T was never loaded, leaving the multiply reading a stale T.
     if matches!(n, InsnId::MPYA_P_LOC16_CONST16) {
         if let (Some(loc), Some(imm)) = (op_at(insn, 0), op_at(insn, 1)) {
-            il.set_reg(
-                4,
-                Register::ACC,
-                il.add(4, il.reg(4, Register::ACC), il.reg(4, Register::P)),
-            )
-            .with_flag_write(FlagWrite::All)
-            .append();
+            let flagged = il
+                .add(4, il.reg(4, Register::ACC), il.reg(4, Register::P))
+                .with_flag_write(FlagWrite::All)
+                .build();
+            il.set_reg(4, Register::ACC, flagged).append();
             il.set_reg(2, Register::T, read_op(loc, il, 2)).append();
             let t = il.sx(4, il.reg(2, Register::T));
             let c = il.sx(4, il.const_int(2, imm.value as u64));
@@ -119,13 +117,11 @@ pub fn lift(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
     if matches!(n, InsnId::MPYA_P_T_LOC16) {
         if let Some(op) = op_at(insn, 0) {
             // ACC += P
-            il.set_reg(
-                4,
-                Register::ACC,
-                il.add(4, il.reg(4, Register::ACC), il.reg(4, Register::P)),
-            )
-            .with_flag_write(FlagWrite::All)
-            .append();
+            let flagged = il
+                .add(4, il.reg(4, Register::ACC), il.reg(4, Register::P))
+                .with_flag_write(FlagWrite::All)
+                .build();
+            il.set_reg(4, Register::ACC, flagged).append();
             // P = T * loc16
             let src = read_op(op, il, 2);
             il.set_reg(
@@ -142,13 +138,11 @@ pub fn lift(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
     if matches!(n, InsnId::MPYS_P_T_LOC16) {
         if let Some(op) = op_at(insn, 0) {
             // ACC -= P
-            il.set_reg(
-                4,
-                Register::ACC,
-                il.sub(4, il.reg(4, Register::ACC), il.reg(4, Register::P)),
-            )
-            .with_flag_write(FlagWrite::All)
-            .append();
+            let flagged = il
+                .sub(4, il.reg(4, Register::ACC), il.reg(4, Register::P))
+                .with_flag_write(FlagWrite::All)
+                .build();
+            il.set_reg(4, Register::ACC, flagged).append();
             // P = T * loc16
             let src = read_op(op, il, 2);
             il.set_reg(
@@ -190,13 +184,11 @@ pub fn lift(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
     if matches!(n, InsnId::IMPYAL_P_XT_LOC32 | InsnId::QMPYAL_P_XT_LOC32) {
         if let Some(op) = op_at(insn, 0) {
             // ACC += P:ACC shift; P = XT * loc32 (simplified: ACC += P, P = XT*loc32)
-            il.set_reg(
-                4,
-                Register::ACC,
-                il.add(4, il.reg(4, Register::ACC), il.reg(4, Register::P)),
-            )
-            .with_flag_write(FlagWrite::All)
-            .append();
+            let flagged = il
+                .add(4, il.reg(4, Register::ACC), il.reg(4, Register::P))
+                .with_flag_write(FlagWrite::All)
+                .build();
+            il.set_reg(4, Register::ACC, flagged).append();
             il.set_reg(
                 4,
                 Register::P,
@@ -208,13 +200,11 @@ pub fn lift(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
     }
     if matches!(n, InsnId::IMPYSL_P_XT_LOC32 | InsnId::QMPYSL_P_XT_LOC32) {
         if let Some(op) = op_at(insn, 0) {
-            il.set_reg(
-                4,
-                Register::ACC,
-                il.sub(4, il.reg(4, Register::ACC), il.reg(4, Register::P)),
-            )
-            .with_flag_write(FlagWrite::All)
-            .append();
+            let flagged = il
+                .sub(4, il.reg(4, Register::ACC), il.reg(4, Register::P))
+                .with_flag_write(FlagWrite::All)
+                .build();
+            il.set_reg(4, Register::ACC, flagged).append();
             il.set_reg(
                 4,
                 Register::P,
@@ -228,13 +218,11 @@ pub fn lift(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
     // ── Square: ACC += P; P = loc16 * loc16; T = loc16 ──
     if matches!(n, InsnId::SQRA_LOC16) {
         if let Some(op) = op_at(insn, 0) {
-            il.set_reg(
-                4,
-                Register::ACC,
-                il.add(4, il.reg(4, Register::ACC), il.reg(4, Register::P)),
-            )
-            .with_flag_write(FlagWrite::All)
-            .append();
+            let flagged = il
+                .add(4, il.reg(4, Register::ACC), il.reg(4, Register::P))
+                .with_flag_write(FlagWrite::All)
+                .build();
+            il.set_reg(4, Register::ACC, flagged).append();
             let src = read_op(op, il, 2);
             il.set_reg(
                 4,
@@ -247,13 +235,11 @@ pub fn lift(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
     }
     if matches!(n, InsnId::SQRS_LOC16) {
         if let Some(op) = op_at(insn, 0) {
-            il.set_reg(
-                4,
-                Register::ACC,
-                il.sub(4, il.reg(4, Register::ACC), il.reg(4, Register::P)),
-            )
-            .with_flag_write(FlagWrite::All)
-            .append();
+            let flagged = il
+                .sub(4, il.reg(4, Register::ACC), il.reg(4, Register::P))
+                .with_flag_write(FlagWrite::All)
+                .build();
+            il.set_reg(4, Register::ACC, flagged).append();
             let src = read_op(op, il, 2);
             il.set_reg(
                 4,
@@ -282,13 +268,11 @@ pub fn lift(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
         InsnId::XMAC_P_LOC16_PMA | InsnId::MAC_P_LOC16_XAR7 | InsnId::MAC_P_LOC16_XAR7_POSTINC
     ) {
         if let Some(loc) = op_at(insn, 0) {
-            il.set_reg(
-                4,
-                Register::ACC,
-                il.add(4, il.reg(4, Register::ACC), il.reg(4, Register::P)),
-            )
-            .with_flag_write(FlagWrite::All)
-            .append();
+            let flagged = il
+                .add(4, il.reg(4, Register::ACC), il.reg(4, Register::P))
+                .with_flag_write(FlagWrite::All)
+                .build();
+            il.set_reg(4, Register::ACC, flagged).append();
             let value = read_op(loc, il, 2);
             il.set_reg(2, Register::T, value).append();
 

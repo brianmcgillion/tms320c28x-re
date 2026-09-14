@@ -50,16 +50,14 @@ fn arith_common(insn: &DecodedInstruction, il: &ILFunc, is_add: bool) -> bool {
             il.mark_label(&mut yes);
             // ACC = temp(31:0) + 1
             let taken = il.add(4, il.low_part(4, il.reg(8, tmp)), il.const_int(4, 1));
-            il.set_reg(4, Register::ACC, taken)
-                .with_flag_write(FlagWrite::NZC)
-                .append();
+            let flagged = taken.with_flag_write(FlagWrite::NZC).build();
+            il.set_reg(4, Register::ACC, flagged).append();
             il.goto(&mut done).append();
             il.mark_label(&mut no);
             // ACC = ACC << 1
             let shifted = il.lsl(4, il.reg(4, Register::ACC), il.const_int(4, 1));
-            il.set_reg(4, Register::ACC, shifted)
-                .with_flag_write(FlagWrite::NZC)
-                .append();
+            let flagged = shifted.with_flag_write(FlagWrite::NZC).build();
+            il.set_reg(4, Register::ACC, flagged).append();
             il.mark_label(&mut done);
         } else {
             // temp(32:0) = ACC << 1 + P(31) - [loc32]
@@ -72,9 +70,11 @@ fn arith_common(insn: &DecodedInstruction, il: &ILFunc, is_add: bool) -> bool {
             il.if_expr(cond, &mut yes, &mut no).append();
             il.mark_label(&mut yes);
             // ACC = temp(31:0);  P = (P << 1) + 1
-            il.set_reg(4, Register::ACC, il.low_part(4, il.reg(8, tmp)))
+            let flagged = il
+                .low_part(4, il.reg(8, tmp))
                 .with_flag_write(FlagWrite::NZC)
-                .append();
+                .build();
+            il.set_reg(4, Register::ACC, flagged).append();
             let p_next = il.lsl(4, il.reg(4, Register::P), il.const_int(4, 1));
             il.set_reg(4, Register::P, il.add(4, p_next, il.const_int(4, 1)))
                 .append();
@@ -83,9 +83,11 @@ fn arith_common(insn: &DecodedInstruction, il: &ILFunc, is_add: bool) -> bool {
             // ACC:P = ACC:P << 1 -- ACC first, while P still holds its old bit 31
             let carry = il.lsr(4, il.reg(4, Register::P), il.const_int(4, 31));
             let acc_next = il.lsl(4, il.reg(4, Register::ACC), il.const_int(4, 1));
-            il.set_reg(4, Register::ACC, il.or(4, acc_next, carry))
+            let flagged = il
+                .or(4, acc_next, carry)
                 .with_flag_write(FlagWrite::NZC)
-                .append();
+                .build();
+            il.set_reg(4, Register::ACC, flagged).append();
             let p_shifted = il.lsl(4, il.reg(4, Register::P), il.const_int(4, 1));
             il.set_reg(4, Register::P, p_shifted).append();
             il.mark_label(&mut done);
@@ -127,9 +129,8 @@ fn arith_common(insn: &DecodedInstruction, il: &ILFunc, is_add: bool) -> bool {
             } else {
                 il.sub(4, acc, src)
             };
-            il.set_reg(4, Register::ACC, expr)
-                .with_flag_write(FlagWrite::All)
-                .append();
+            let flagged = expr.with_flag_write(FlagWrite::All).build();
+            il.set_reg(4, Register::ACC, flagged).append();
         }
         return true;
     }
@@ -144,9 +145,8 @@ fn arith_common(insn: &DecodedInstruction, il: &ILFunc, is_add: bool) -> bool {
             } else {
                 il.sub(4, acc, src)
             };
-            il.set_reg(4, Register::ACC, expr)
-                .with_flag_write(FlagWrite::All)
-                .append();
+            let flagged = expr.with_flag_write(FlagWrite::All).build();
+            il.set_reg(4, Register::ACC, flagged).append();
         }
         return true;
     }
@@ -167,9 +167,8 @@ fn arith_common(insn: &DecodedInstruction, il: &ILFunc, is_add: bool) -> bool {
             } else {
                 il.sub(4, acc, src)
             };
-            il.set_reg(4, Register::ACC, expr)
-                .with_flag_write(FlagWrite::All)
-                .append();
+            let flagged = expr.with_flag_write(FlagWrite::All).build();
+            il.set_reg(4, Register::ACC, flagged).append();
         }
         return true;
     }
@@ -195,14 +194,19 @@ fn arith_common(insn: &DecodedInstruction, il: &ILFunc, is_add: bool) -> bool {
         if let Some(op) = op_at(insn, 0) {
             let src = read_op(op, il, 4);
             let p = il.reg(4, Register::P);
+            // The flag write goes on the ARITHMETIC, not on the set_reg. BN
+            // derives C and V from the operands of the flagged expression, and
+            // a flag write attached to a set_reg arrives as LowLevelILFlagWriteOp
+            // ::SetReg, which carries none -- so C came out `unimplemented` and
+            // the SUBUL/SUBBL borrow chain that cl2000 emits for every 64-bit
+            // subtraction decompiled to nothing.
             let expr = if is_add {
                 il.add(4, p, src)
             } else {
                 il.sub(4, p, src)
             };
-            il.set_reg(4, Register::P, expr)
-                .with_flag_write(FlagWrite::All)
-                .append();
+            let result = expr.with_flag_write(FlagWrite::All).build();
+            il.set_reg(4, Register::P, result).append();
         }
         return true;
     }
@@ -309,9 +313,8 @@ fn arith_common(insn: &DecodedInstruction, il: &ILFunc, is_add: bool) -> bool {
             } else {
                 il.sub(4, acc, src)
             };
-            il.set_reg(4, Register::ACC, expr)
-                .with_flag_write(FlagWrite::All)
-                .append();
+            let flagged = expr.with_flag_write(FlagWrite::All).build();
+            il.set_reg(4, Register::ACC, flagged).append();
         }
         return true;
     }
@@ -326,9 +329,8 @@ fn arith_common(insn: &DecodedInstruction, il: &ILFunc, is_add: bool) -> bool {
             } else {
                 il.sub(4, acc, src)
             };
-            il.set_reg(4, Register::ACC, expr)
-                .with_flag_write(FlagWrite::All)
-                .append();
+            let flagged = expr.with_flag_write(FlagWrite::All).build();
+            il.set_reg(4, Register::ACC, flagged).append();
         }
         return true;
     }
@@ -342,9 +344,11 @@ fn arith_common(insn: &DecodedInstruction, il: &ILFunc, is_add: bool) -> bool {
             // add 255. The operand is `signed: true` in the table for the same
             // reason, so the two now agree.
             let val = il.sx(2, il.const_int(1, insn.operands[1].value as u64));
-            il.set_reg(2, reg, il.add(2, il.reg(2, reg), val))
+            let flagged = il
+                .add(2, il.reg(2, reg), val)
                 .with_flag_write(FlagWrite::All)
-                .append();
+                .build();
+            il.set_reg(2, reg, flagged).append();
         }
         return true;
     }
@@ -359,9 +363,8 @@ fn arith_common(insn: &DecodedInstruction, il: &ILFunc, is_add: bool) -> bool {
             } else {
                 il.sub(2, il.reg(2, reg), src)
             };
-            il.set_reg(2, reg, expr)
-                .with_flag_write(FlagWrite::All)
-                .append();
+            let flagged = expr.with_flag_write(FlagWrite::All).build();
+            il.set_reg(2, reg, flagged).append();
         }
         return true;
     }
@@ -371,11 +374,16 @@ fn arith_common(insn: &DecodedInstruction, il: &ILFunc, is_add: bool) -> bool {
     // ~C` (SUBBL). Two separate defects: the borrow was dropped entirely, and
     // SBBU sign-extended an operand its page writes as `0:[loc16]`.
     //
-    // The borrow polarity is not a guess. TI: "If the subtraction generates a
-    // borrow, C is cleared; otherwise C is set" -- so on this CPU C is the
-    // INVERSE of a borrow, which is why the page spells the term `~C`. BN's
-    // sbb(size, a, b, carry) is documented as subtracting `b` and the borrow
-    // from `a`, so the borrow operand is `C ^ 1`.
+    // Polarity, which is easy to get backwards. TI writes the term `~C` because
+    // on the C28x the hardware bit is the INVERSE of a borrow ("If the
+    // subtraction generates a borrow, C is cleared"). BN's `flag:C` is NOT that
+    // bit: `flag_write_llil` is left at BN's default, which computes `a u< b`
+    // for a subtract -- C SET on borrow, the common convention. Since
+    // sbb(a, b, carry) subtracts the borrow, the operand is `flag:C` as BN
+    // defines it, and writing `flag:C ^ 1` would invert it twice.
+    // Confirmed against cl2000, which pairs SUBUL with SUBBL for every 64-bit
+    // subtraction; see the note on ADDC below for why addition needs no such
+    // care (both conventions set C on carry-out).
     if matches!(n, InsnId::SBBU_ACC_LOC16 | InsnId::SUBBL_ACC_LOC32) {
         if let Some(op) = op_at(insn, 0) {
             let src = if matches!(n, InsnId::SBBU_ACC_LOC16) {
@@ -383,11 +391,9 @@ fn arith_common(insn: &DecodedInstruction, il: &ILFunc, is_add: bool) -> bool {
             } else {
                 read_op(op, il, 4)
             };
-            let borrow = il.xor(0, il.flag(Flag::C), il.const_int(0, 1));
-            let diff = il.sbb(4, il.reg(4, Register::ACC), src, borrow);
-            il.set_reg(4, Register::ACC, diff)
-                .with_flag_write(FlagWrite::All)
-                .append();
+            let diff = il.sbb(4, il.reg(4, Register::ACC), src, il.flag(Flag::C));
+            let flagged = diff.with_flag_write(FlagWrite::All).build();
+            il.set_reg(4, Register::ACC, flagged).append();
         }
         return true;
     }
@@ -409,9 +415,8 @@ fn arith_common(insn: &DecodedInstruction, il: &ILFunc, is_add: bool) -> bool {
             // ADDCL lifted identically to ADDL and the upper word of every
             // multi-word addition built out of them came out one short.
             let sum = il.adc(4, il.reg(4, Register::ACC), src, il.flag(Flag::C));
-            il.set_reg(4, Register::ACC, sum)
-                .with_flag_write(FlagWrite::All)
-                .append();
+            let flagged = sum.with_flag_write(FlagWrite::All).build();
+            il.set_reg(4, Register::ACC, flagged).append();
         }
         return true;
     }
@@ -447,9 +452,8 @@ fn arith_common(insn: &DecodedInstruction, il: &ILFunc, is_add: bool) -> bool {
             } else {
                 il.sub(size, il.reg(size, reg), src)
             };
-            il.set_reg(size, reg, expr)
-                .with_flag_write(FlagWrite::All)
-                .append();
+            let flagged = expr.with_flag_write(FlagWrite::All).build();
+            il.set_reg(size, reg, flagged).append();
             return true;
         }
     }
@@ -499,9 +503,8 @@ fn arith_common(insn: &DecodedInstruction, il: &ILFunc, is_add: bool) -> bool {
         } else {
             il.sub(4, acc, src)
         };
-        il.set_reg(4, Register::ACC, expr)
-            .with_flag_write(FlagWrite::All)
-            .append();
+        let flagged = expr.with_flag_write(FlagWrite::All).build();
+        il.set_reg(4, Register::ACC, flagged).append();
         return true;
     }
 
@@ -600,16 +603,20 @@ pub fn lift_cmp(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
 pub fn lift_misc(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
     match insn.id {
         InsnId::NEG_ACC => {
-            il.set_reg(4, Register::ACC, il.neg(4, il.reg(4, Register::ACC)))
+            let flagged = il
+                .neg(4, il.reg(4, Register::ACC))
                 .with_flag_write(FlagWrite::All)
-                .append();
+                .build();
+            il.set_reg(4, Register::ACC, flagged).append();
         }
         InsnId::NEG_AX => {
             if let Some(op) = op_at(insn, 0) {
                 let reg = reg_by_name(op.display_name());
-                il.set_reg(2, reg, il.neg(2, il.reg(2, reg)))
+                let flagged = il
+                    .neg(2, il.reg(2, reg))
                     .with_flag_write(FlagWrite::All)
-                    .append();
+                    .build();
+                il.set_reg(2, reg, flagged).append();
             }
         }
         InsnId::TEST_ACC => {
@@ -629,9 +636,11 @@ pub fn lift_misc(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
             let mut done = LowLevelILLabel::new();
             il.if_expr(cond, &mut negate, &mut done).append();
             il.mark_label(&mut negate);
-            il.set_reg(4, Register::ACC, il.neg(4, il.reg(4, Register::ACC)))
+            let flagged = il
+                .neg(4, il.reg(4, Register::ACC))
                 .with_flag_write(FlagWrite::All)
-                .append();
+                .build();
+            il.set_reg(4, Register::ACC, flagged).append();
             // ABSTC additionally toggles TC on the branch that negates:
             // "load the TC bit with the sign bit XORed with the previous value".
             if matches!(insn.id, InsnId::ABSTC_ACC) {
@@ -642,9 +651,11 @@ pub fn lift_misc(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
         }
         InsnId::NEG64_ACC_P => {
             // Negate 64-bit ACC:P — negate both halves
-            il.set_reg(4, Register::ACC, il.neg(4, il.reg(4, Register::ACC)))
+            let flagged = il
+                .neg(4, il.reg(4, Register::ACC))
                 .with_flag_write(FlagWrite::All)
-                .append();
+                .build();
+            il.set_reg(4, Register::ACC, flagged).append();
             il.set_reg(4, Register::P, il.neg(4, il.reg(4, Register::P)))
                 .append();
         }
@@ -658,9 +669,11 @@ pub fn lift_misc(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
             let mut done = LowLevelILLabel::new();
             il.if_expr(cond, &mut negate, &mut done).append();
             il.mark_label(&mut negate);
-            il.set_reg(4, Register::ACC, il.neg(4, il.reg(4, Register::ACC)))
+            let flagged = il
+                .neg(4, il.reg(4, Register::ACC))
                 .with_flag_write(FlagWrite::All)
-                .append();
+                .build();
+            il.set_reg(4, Register::ACC, flagged).append();
             il.mark_label(&mut done);
         }
         InsnId::SAT_ACC | InsnId::SAT64_ACC_P => {
