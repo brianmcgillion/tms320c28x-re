@@ -9,7 +9,9 @@ import os
 import glob
 import subprocess
 
-FIXTURE_DIR = os.path.join(os.path.dirname(__file__), "..", "tests", "fixtures", "c2000ware", "build")
+FIXTURE_DIR = os.path.join(
+    os.path.dirname(__file__), "..", "tests", "fixtures", "c2000ware", "build"
+)
 
 # BN 6.1 segfaults after roughly 15 BinaryViews have had their IL walked in one
 # process, so the driver validates each fixture in its own worker subprocess.
@@ -29,13 +31,16 @@ def _run_driver():
     for path in fixtures:
         proc = subprocess.run(
             [sys.executable, os.path.abspath(__file__), _WORKER_FLAG, path],
-            capture_output=True, text=True,
+            capture_output=True,
+            text=True,
         )
         tallied = False
         for line in proc.stdout.splitlines():
             if line.startswith("##TALLY "):
                 pa, fa, wa = (int(x) for x in line.split()[1:4])
-                tp += pa; tf += fa; tw += wa
+                tp += pa
+                tf += fa
+                tw += wa
                 tallied = True
             else:
                 print(line)
@@ -45,9 +50,9 @@ def _run_driver():
             print(proc.stderr.strip()[-500:])
             tf += 1
 
-    print(f"{'='*50}")
+    print(f"{'=' * 50}")
     print(f"TOTAL: {tp} passed, {tf} failed, {tw} warnings")
-    print(f"{'='*50}")
+    print(f"{'=' * 50}")
     return 1 if tf > 0 else 0
 
 
@@ -55,104 +60,77 @@ if _WORKER_FLAG not in sys.argv:
     sys.exit(_run_driver())
 
 sys.path.insert(0, os.path.dirname(__file__))
-from _bn_helpers import init_bn, load_c28x
+from _bn_helpers import init_bn, load_c28x  # noqa: E402 (needs the sys.path line above)
+from _functional_checks import STRUCT_CHECKS  # noqa: E402 (needs the sys.path line above)
 
 binaryninja = init_bn()
 
-# Structural checks: function → {check_name: [keywords_any_must_match]}
+# Structural checks per fixture: function -> [check names in _functional_checks]
 STRUCTURAL_CHECKS = {
     "led_blink.out": {
-        "main": {
-            "has body": ["=", "*", "0x"],
-        },
-        "InitSysCtrl": {
-            "has stores": ["=", "*"],
-        },
-        "InitPieVectTable": {
-            "has stores": ["=", "*"],
-        },
-        "GPIO_SetupPinOptions": {
-            "has stores": ["=", "*"],
-        },
+        "main": ["has_body"],
+        # Three calls and no stores: DisableDog(); InitPll(..); InitPeripheralClocks()
+        "InitSysCtrl": ["has_calls"],
+        "InitPieVectTable": ["has_stores"],
+        "GPIO_SetupPinOptions": ["has_stores"],
     },
     "adc_epwm.out": {
-        "main": {
-            "has body": ["=", "*", "0x"],
-        },
-        "adcA1ISR": {
-            "has stores": ["=", "*"],
-        },
-        "InitSysCtrl": {
-            "has stores": ["=", "*"],
-        },
-        "GPIO_WritePin": {
-            "has conditional": ["if", "cond:", "while", "for"],
-        },
+        "main": ["has_body"],
+        "adcA1ISR": ["has_stores"],
+        # Three calls and no stores: DisableDog(); InitPll(..); InitPeripheralClocks()
+        "InitSysCtrl": ["has_calls"],
+        "GPIO_WritePin": ["has_conditional"],
     },
     "sci_echoback.out": {
-        "main": {
-            "has body": ["=", "*", "0x"],
-        },
-        "InitSysCtrl": {
-            "has stores": ["=", "*"],
-        },
+        "main": ["has_body"],
+        # Three calls and no stores: DisableDog(); InitPll(..); InitPeripheralClocks()
+        "InitSysCtrl": ["has_calls"],
     },
     "gpio_setup.out": {
-        "main": {
-            "has body": ["=", "*", "0x"],
-        },
-        "InitGpio": {
-            "has stores": ["=", "*"],
-        },
+        "main": ["has_body"],
+        "InitGpio": ["has_stores"],
     },
     "timer_cputimers.out": {
-        "main": {
-            "has body": ["=", "*", "0x"],
-        },
-        "InitPieCtrl": {
-            "has stores": ["=", "*"],
-        },
+        "main": ["has_body"],
+        "InitPieCtrl": ["has_stores"],
     },
     "ecap_apwm.out": {
-        "main": {
-            "has body": ["=", "*", "0x"],
-        },
+        "main": ["has_body"],
     },
     "dma_transfer.out": {
-        "main": {
-            "has body": ["=", "*", "0x"],
-        },
+        "main": ["has_body"],
     },
     "spi_loopback.out": {
-        "main": {
-            "has body": ["=", "*", "0x"],
-        },
+        "main": ["has_body"],
     },
     "interrupts_prio.out": {
-        "main": {
-            "has body": ["=", "*", "0x"],
-        },
+        "main": ["has_body"],
     },
-    # F2833x (COFF) structural checks
     "f2833x_led_blink.out": {
-        "main": { "has body": ["=", "*", "0x"] },
+        "main": ["has_body"],
     },
     "f2833x_gpio_toggle.out": {
-        "main": { "has body": ["=", "*", "0x"] },
+        "main": ["has_body"],
     },
     "f2833x_cpu_timer.out": {
-        "main": { "has body": ["=", "*", "0x"] },
+        "main": ["has_body"],
     },
     "f2833x_epwm_int.out": {
-        "main": { "has body": ["=", "*", "0x"] },
+        "main": ["has_body"],
     },
     "f2833x_fpu.out": {
-        "main": { "has body": ["=", "*", "0x"] },
+        "main": ["has_body"],
     },
 }
 
 EXPECTED_FUNCTIONS = {
-    "led_blink.out": ["main", "InitSysCtrl", "InitGpio", "InitPieCtrl", "InitPieVectTable"],
+    "led_blink.out": [
+        "main",
+        "InitSysCtrl",
+        "InitGpio",
+        "InitPieCtrl",
+        "InitPieVectTable",
+    ],
     "adc_epwm.out": ["main", "InitSysCtrl"],
     "sci_echoback.out": ["main", "InitSysCtrl"],
     "gpio_setup.out": ["main", "InitSysCtrl", "InitGpio"],
@@ -185,12 +163,14 @@ total_warn = 0
 
 fixture_files = [sys.argv[sys.argv.index(_WORKER_FLAG) + 1]]
 
+
 def _validate_coff_python(fixture_path, fixture_name):
     """Validate COFF files using our Python parser (headless fallback)."""
     global total_pass, total_fail, total_warn
     import sys as _sys
+
     _sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-    from c28x.coff import parse_coff
+    from c28x_rs import parse_coff
 
     try:
         coff = parse_coff(fixture_path)
@@ -199,7 +179,9 @@ def _validate_coff_python(fixture_path, fixture_name):
         total_fail += 1
         return
 
-    print(f"  [OK] COFF parsed: {len(coff.sections)} sections, {len(coff.symbols)} symbols")
+    print(
+        f"  [OK] COFF parsed: {len(coff.sections)} sections, {len(coff.symbols)} symbols"
+    )
     total_pass += 1
 
     # Check for expected functions
@@ -223,18 +205,19 @@ def _validate_coff_python(fixture_path, fixture_name):
         print(f"  [OK] Code: {len(text_secs)} text sections, {total_code} bytes")
         total_pass += 1
     else:
-        print(f"  [FAIL] No text sections with code")
+        print("  [FAIL] No text sections with code")
         total_fail += 1
 
     # Decode a few instructions to verify decoder works on COFF code
-    from c28x.decoder import Decoder
+    from c28x_rs import Decoder
+
     d = Decoder(objmode=1)
     decoded = 0
     errors = 0
     for sec in text_secs[:3]:
         offset = 0
         while offset < len(sec.data) - 3:
-            insn = d.decode(sec.data[offset:offset+4], addr=sec.byte_addr + offset)
+            insn = d.decode(sec.data[offset : offset + 4], addr=sec.byte_addr + offset)
             if insn:
                 decoded += 1
                 offset += insn.size
@@ -248,13 +231,13 @@ def _validate_coff_python(fixture_path, fixture_name):
         print(f"  [OK] Decoded {decoded} instructions ({errors} decode errors)")
         total_pass += 1
     else:
-        print(f"  [FAIL] Could not decode any instructions")
+        print("  [FAIL] Could not decode any instructions")
         total_fail += 1
 
 
 for fixture_path in fixture_files:
     fixture_name = os.path.basename(fixture_path)
-    print(f"--- {fixture_name} ({os.path.getsize(fixture_path)//1024}KB) ---")
+    print(f"--- {fixture_name} ({os.path.getsize(fixture_path) // 1024}KB) ---")
 
     # Try loading with ELF platform hint
     bv = load_c28x(binaryninja, fixture_path)
@@ -265,19 +248,20 @@ for fixture_path in fixture_files:
         if bv is not None:
             bv.file.close()
         import struct as _struct
+
         with open(fixture_path, "rb") as _f:
             _magic = _struct.unpack("<H", _f.read(2))[0]
         if _magic == 0x00C2:
             # COFF file — validate via Python parser instead of BN
-            print(f"  [INFO] COFF format — validating via Python parser")
+            print("  [INFO] COFF format — validating via Python parser")
             _validate_coff_python(fixture_path, fixture_name)
             continue
-        print(f"  [FAIL] Could not load")
+        print("  [FAIL] Could not load")
         total_fail += 1
         continue
 
     if bv is None:
-        print(f"  [FAIL] Could not load")
+        print("  [FAIL] Could not load")
         total_fail += 1
         continue
 
@@ -346,14 +330,14 @@ for fixture_path in fixture_files:
             hlil_fail += 1
 
     if llil_errors == 0:
-        print(f"  [OK] LLIL: no errors")
+        print("  [OK] LLIL: no errors")
         total_pass += 1
     else:
         print(f"  [FAIL] LLIL: {llil_errors} errors")
         total_fail += 1
 
     if mlil_errors == 0:
-        print(f"  [OK] MLIL: no errors")
+        print("  [OK] MLIL: no errors")
         total_pass += 1
     else:
         print(f"  [FAIL] MLIL: {mlil_errors} errors")
@@ -364,10 +348,14 @@ for fixture_path in fixture_files:
         print(f"  [OK] Decompilation: {hlil_ok}/{len(all_funcs)} ({decompile_pct}%)")
         total_pass += 1
     elif decompile_pct >= 90:
-        print(f"  [WARN] Decompilation: {hlil_ok}/{len(all_funcs)} ({decompile_pct}%), {hlil_fail} failed")
+        print(
+            f"  [WARN] Decompilation: {hlil_ok}/{len(all_funcs)} ({decompile_pct}%), {hlil_fail} failed"
+        )
         total_warn += 1
     else:
-        print(f"  [FAIL] Decompilation: {hlil_ok}/{len(all_funcs)} ({decompile_pct}%), {hlil_fail} failed")
+        print(
+            f"  [FAIL] Decompilation: {hlil_ok}/{len(all_funcs)} ({decompile_pct}%), {hlil_fail} failed"
+        )
         total_fail += 1
 
     # Structural decompilation checks for key functions
@@ -379,21 +367,19 @@ for fixture_path in fixture_files:
                 f = func
                 break
         if f is None:
+            # Was a silent `continue`: a check whose function had vanished
+            # counted as neither pass nor fail, so the gate could not notice.
+            print(f"  [FAIL] {fname}: not found, {len(checks)} checks skipped")
+            total_fail += 1
             continue
 
-        try:
-            hlil = str(f.hlil)
-        except Exception:
-            continue
-
-        for check_name, keywords in checks.items():
-            found = any(kw in hlil for kw in keywords)
-            if found:
+        for check_name in checks:
+            if STRUCT_CHECKS[check_name](f):
                 print(f"  [OK] {fname}: {check_name}")
                 total_pass += 1
             else:
-                print(f"  [WARN] {fname}: {check_name} not found")
-                total_warn += 1
+                print(f"  [FAIL] {fname}: {check_name} not found")
+                total_fail += 1
 
     print()
     bv.file.close()

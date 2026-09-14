@@ -42,10 +42,10 @@ from _bn_helpers import init_bn
 # may have over-covered does not masquerade as decoder mismatches.
 TI_PADDING_MNEMS = {"ITRAP0", "ITRAP1"}
 
-DEFAULT_DUMP = ("/home/brian/projects/re/target/full-bird/J33/"
-                "dumps/20260602-121546/dump-reset")
-
-# Code-bearing regions: (section, origin_word, bin-filename).
+# Code-bearing regions: (section, origin_word, bin-filename). This is the
+# F28335 layout -- on-chip flash at word 0x300000, boot ROM at 0x3FE000 -- and
+# the filenames a dump directory is expected to use. A device convention, not
+# one firmware: any F28335 dump laid out this way works. Edit for another part.
 REGIONS = [("flash", 0x300000, "flash.bin"), ("bootrom", 0x3FE000, "bootrom.bin")]
 
 _HEX = re.compile(r"-?0x[0-9a-fA-F]+|-?\b\d+\b")
@@ -70,7 +70,9 @@ def parse_dis(path):
                 continue
             if stripped.startswith("||"):
                 if cur is not None:
-                    cur["parallel"] = stripped[2:].split()[0] if len(stripped) > 2 else "||"
+                    cur["parallel"] = (
+                        stripped[2:].split()[0] if len(stripped) > 2 else "||"
+                    )
                 continue
             toks = line.split()
             if len(toks) < 2 or len(toks[0]) != 8 or len(toks[1]) != 4:
@@ -83,10 +85,16 @@ def parse_dis(path):
                 cur = None
                 continue
             if len(toks) >= 3:  # primary line
-                cur = {"addr": addr, "words": [word], "len": 1,
-                       "mnem": toks[2], "ops": " ".join(toks[3:]), "parallel": None}
+                cur = {
+                    "addr": addr,
+                    "words": [word],
+                    "len": 1,
+                    "mnem": toks[2],
+                    "ops": " ".join(toks[3:]),
+                    "parallel": None,
+                }
                 insns[addr] = cur
-            else:               # continuation word
+            else:  # continuation word
                 if cur is not None and addr == cur["addr"] + cur["len"]:
                     cur["words"].append(word)
                     cur["len"] += 1
@@ -105,8 +113,11 @@ def numbers(s):
     out = []
     for tok in _HEX.findall(s or ""):
         try:
-            out.append(int(tok, 16) if tok.lower().lstrip("-").startswith("0x")
-                       else int(tok, 10))
+            out.append(
+                int(tok, 16)
+                if tok.lower().lstrip("-").startswith("0x")
+                else int(tok, 10)
+            )
         except ValueError:
             pass
     return out
@@ -118,7 +129,7 @@ def ti_branch_candidates(ti, word_addr):
     long branches absolute, short branches as a signed offset)."""
     cands = set()
     for n in numbers(ti["ops"]):
-        cands.add(n & 0x3FFFFF)                       # absolute word
+        cands.add(n & 0x3FFFFF)  # absolute word
         cands.add((word_addr + ti["len"] + n) & 0x3FFFFF)  # PC-relative
     return cands
 
@@ -129,8 +140,11 @@ def load_regions(dump):
     for section, origin, fname in REGIONS:
         p = os.path.join(dump, fname)
         if section == "flash" and not os.path.isfile(p):
-            cand = [f for f in os.listdir(dump)
-                    if "flash" in f and f.endswith(".bin") and not f.startswith("flash_")]
+            cand = [
+                f
+                for f in os.listdir(dump)
+                if "flash" in f and f.endswith(".bin") and not f.startswith("flash_")
+            ]
             p = os.path.join(dump, cand[0]) if cand else p
         if os.path.isfile(p):
             regions.append((origin, open(p, "rb").read()))
@@ -141,7 +155,7 @@ def fetch(regions, word, n=4):
     for origin, data in regions:
         off = (word - origin) * 2
         if 0 <= off < len(data):
-            return data[off:off + n]
+            return data[off : off + n]
     return b""
 
 
@@ -201,20 +215,35 @@ def python_decode_full(pydec, data, byte_addr):
     if insn is None:
         return None
     ops = ", ".join(o.name for o in insn.operands)
-    tgt = (insn.branch_target // 2) & 0x3FFFFF if insn.branch_target is not None else None
+    tgt = (
+        (insn.branch_target // 2) & 0x3FFFFF if insn.branch_target is not None else None
+    )
     return insn.size // 2, insn.name, ops, tgt
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("dump_dir", nargs="?", default=DEFAULT_DUMP)
+    ap.add_argument(
+        "dump_dir",
+        help="directory holding dis/dumped.dis, dis/dumped.analysis.json and "
+        "the region binaries named in REGIONS",
+    )
     ap.add_argument("--out", default="/tmp/decode_vs_dis.json")
     ap.add_argument("--limit-examples", type=int, default=60)
-    ap.add_argument("--backend", choices=("rust", "python"), default="rust",
-                    help="rust = the built plugin via BN (production decoder); "
-                         "python = the pure-Python decoder reading --isa (fast gate)")
-    ap.add_argument("--isa", default=None,
-                    help="isa/ dir for the python backend (default: repo isa/)")
+    ap.add_argument(
+        "--backend",
+        choices=("rust", "python"),
+        default="rust",
+        help="rust = the built plugin through BN; python = c28xdec. Since C1 "
+        "both reach the same c28x_core table, so they should agree exactly; "
+        "python needs no licence and is the one to use unless you are testing "
+        "the plugin's own decode path.",
+    )
+    ap.add_argument(
+        "--isa",
+        default=None,
+        help="isa/ dir for the python backend (default: repo isa/)",
+    )
     args = ap.parse_args()
 
     dump = args.dump_dir
@@ -230,44 +259,57 @@ def main():
     manifest = json.load(open(manifest_path))
     code_ranges = manifest["code_ranges"]
     regions = load_regions(dump)
-    print(f"  TI instructions: {len(ti)};  code_ranges: {len(code_ranges)};  "
-          f"regions: {[hex(o) for o, _ in regions]}", flush=True)
+    print(
+        f"  TI instructions: {len(ti)};  code_ranges: {len(code_ranges)};  "
+        f"regions: {[hex(o) for o, _ in regions]}",
+        flush=True,
+    )
 
-    from c28x.decoder import Decoder as PyDecoder
-    from c28x.isa import ISA
+    from c28x_rs import Decoder as PyDecoder
 
     if args.backend == "rust":
         bn = init_bn()
         arch = bn.Architecture["tms320c28x"]
         print(f"  backend=rust  BN {bn.core_version()}; arch {arch.name}", flush=True)
         try:
-            pydec = PyDecoder(objmode=1)       # for 3-way triage
+            pydec = PyDecoder(objmode=1)  # for 3-way triage
         except Exception as e:
             print(f"  (python triage unavailable: {e})", flush=True)
             pydec = None
+
         def decode_fn(data, byte_addr):
             return plugin_decode(arch, data, byte_addr)
     else:
-        isa = ISA(isa_dir=Path(args.isa)) if args.isa else ISA()
-        pydec = PyDecoder(isa=isa, objmode=1)
-        print(f"  backend=python  isa={args.isa or 'repo isa/'}", flush=True)
+        if args.isa:
+            # The Rust table is generated by core/c28x-core/build.rs and compiled
+            # in, so there is no runtime table to point elsewhere. Rebuild
+            # against the scratch tree instead:
+            #   cargo build --release --manifest-path core/Cargo.toml
+            sys.exit(
+                "--isa is gone with the Python decoder; rebuild c28xdec "
+                "against the isa/ tree you want to test"
+            )
+        pydec = PyDecoder(objmode=1)
+        print("  backend=decoder  (c28xdec, repo isa/)", flush=True)
+
         def decode_fn(data, byte_addr):
             return python_decode_full(pydec, data, byte_addr)
 
     # TI instruction starts that fall inside a code_range, in address order.
-    starts = sorted(a for a in ti
-                    if any(r["start_word"] <= a < r["end_word"] for r in code_ranges))
+    starts = sorted(
+        a for a in ti if any(r["start_word"] <= a < r["end_word"] for r in code_ranges)
+    )
     print(f"  comparing {len(starts)} instructions in code ranges ...", flush=True)
 
     cats = Counter()
-    by_mnem = defaultdict(Counter)        # mnemonic -> category counts
-    examples = defaultdict(list)          # category -> example rows
+    by_mnem = defaultdict(Counter)  # mnemonic -> category counts
+    examples = defaultdict(list)  # category -> example rows
     total = ok = skipped_pad = 0
 
     for w in starts:
         t = ti[w]
         tmn = norm_mnem(t["mnem"])
-        if tmn in TI_PADDING_MNEMS:        # 0x0000/0xFFFF filler, not real code
+        if tmn in TI_PADDING_MNEMS:  # 0x0000/0xFFFF filler, not real code
             skipped_pad += 1
             continue
         data = fetch(regions, w, 4)
@@ -275,8 +317,12 @@ def main():
             continue
         total += 1
         pd = decode_fn(data, w * 2)
-        row = {"word": w, "hex": "%06X" % w, "bytes": data.hex(),
-               "ti": {"len": t["len"], "mnem": t["mnem"], "ops": t["ops"]}}
+        row = {
+            "word": w,
+            "hex": "%06X" % w,
+            "bytes": data.hex(),
+            "ti": {"len": t["len"], "mnem": t["mnem"], "ops": t["ops"]},
+        }
 
         def attach_py():
             if args.backend != "rust":
@@ -308,7 +354,7 @@ def main():
             if rtgt not in ti_branch_candidates(t, w):
                 issue = "BRANCH_TGT"
         elif sorted(numbers(t["ops"])) != sorted(numbers(rops)):
-            issue = "OPVAL"   # non-branch: numeric operand values differ
+            issue = "OPVAL"  # non-branch: numeric operand values differ
 
         if issue is None:
             ok += 1
@@ -322,13 +368,15 @@ def main():
     # ── report ──
     mism = sum(cats.values())
     disp = cats["MNEM_DISP"]
-    real = mism - disp                      # genuine decode defects
-    decode_correct = ok + disp              # right instruction (maybe non-idiomatic text)
+    real = mism - disp  # genuine decode defects
+    decode_correct = ok + disp  # right instruction (maybe non-idiomatic text)
     print("\n" + "=" * 64)
     print(f"  DIFFERENTIAL DECODE  (skipped {skipped_pad} ITRAP padding words)")
-    print(f"  exact match      : {ok}/{total} ({100.0*ok/total:.2f}%)")
-    print(f"  decode-correct   : {decode_correct}/{total} "
-          f"({100.0*decode_correct/total:.2f}%)  [+{disp} display-only]")
+    print(f"  exact match      : {ok}/{total} ({100.0 * ok / total:.2f}%)")
+    print(
+        f"  decode-correct   : {decode_correct}/{total} "
+        f"({100.0 * decode_correct / total:.2f}%)  [+{disp} display-only]"
+    )
     print(f"  REAL defects     : {real}")
     print("=" * 64)
     for cat in ("DECODE_FAIL", "LEN", "MNEM", "BRANCH_TGT", "OPVAL", "MNEM_DISP"):
@@ -337,17 +385,22 @@ def main():
             print(f"  {cat:12s} {cats[cat]}{tag}")
     # Top offending mnemonics among REAL defects (the clusters to fix)
     print("\n  top mnemonics by REAL defect count:")
+
     def real_count(c):
         return sum(v for k, v in c.items() if k != "MNEM_DISP")
+
     worst = sorted(by_mnem.items(), key=lambda kv: -real_count(kv[1]))[:24]
     for mnem, c in worst:
         if real_count(c):
             print(f"    {mnem:14s} {dict(c)}")
 
     out = {
-        "dump": dump, "total": total, "match": ok,
+        "dump": dump,
+        "total": total,
+        "match": ok,
         "match_pct": round(100.0 * ok / total, 3) if total else 0,
-        "decode_correct": decode_correct, "real_defects": real,
+        "decode_correct": decode_correct,
+        "real_defects": real,
         "skipped_padding": skipped_pad,
         "categories": dict(cats),
         "by_mnemonic": {m: dict(c) for m, c in by_mnem.items() if sum(c.values())},

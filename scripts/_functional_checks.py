@@ -1,7 +1,11 @@
-"""Pure functional equivalence check functions.
+"""Functional equivalence check functions.
 
-Each check takes (hlil_text, spec, func=None) and returns (passed, detail).
-The func argument is a BN Function object for API-based checks (optional).
+Two families, with different signatures:
+
+- the `check_*` functions take (hlil_text, spec, func=None) and return
+  (passed, detail); `func` is a BN Function for the API-based checks;
+- the `struct_has_*` functions in STRUCT_CHECKS take only a BN Function and
+  return a bool, because they read the HLIL tree rather than its text.
 """
 
 import re
@@ -30,7 +34,7 @@ def check_callees(hlil_text, expected_names, func=None):
         found = name in bn_callees or f"_{name}" in bn_callees
         # HLIL text fallback
         if not found:
-            pattern = rf'_?{re.escape(name)}\s*\('
+            pattern = rf"_?{re.escape(name)}\s*\("
             found = bool(re.search(pattern, hlil_text))
         results.append((name, found))
     return results
@@ -41,15 +45,35 @@ def check_no_callees(hlil_text, _spec, func=None):
     if func is not None:
         try:
             callees = [c for c in func.callees if not c.name.startswith("sub_")]
-            return len(callees) == 0, f"{len(callees)} callees found" if callees else "no callees"
+            return len(
+                callees
+            ) == 0, f"{len(callees)} callees found" if callees else "no callees"
         except Exception:
             pass
     # Fallback: look for function call patterns in HLIL
-    calls = re.findall(r'[a-zA-Z_]\w+\s*\(', hlil_text)
+    calls = re.findall(r"[a-zA-Z_]\w+\s*\(", hlil_text)
     # Filter out type casts and keywords
-    calls = [c for c in calls if not any(c.strip().startswith(k) for k in
-             ["if ", "while ", "for ", "do ", "return ", "int", "void", "float",
-              "bool", "char", "zx.", "sx."])]
+    calls = [
+        c
+        for c in calls
+        if not any(
+            c.strip().startswith(k)
+            for k in [
+                "if ",
+                "while ",
+                "for ",
+                "do ",
+                "return ",
+                "int",
+                "void",
+                "float",
+                "bool",
+                "char",
+                "zx.",
+                "sx.",
+            ]
+        )
+    ]
     return len(calls) == 0, f"{len(calls)} call-like patterns" if calls else "no calls"
 
 
@@ -67,7 +91,7 @@ def check_mmio_patterns(hlil_text, patterns):
 
 def check_no_mmio_writes(hlil_text, _spec):
     """Verify no MMIO stores (no *0x... patterns)."""
-    has_mmio = bool(re.search(r'\*\s*0x[0-9a-fA-F]+', hlil_text))
+    has_mmio = bool(re.search(r"\*\s*0x[0-9a-fA-F]+", hlil_text))
     return not has_mmio, "MMIO writes found" if has_mmio else "no MMIO writes"
 
 
@@ -99,37 +123,40 @@ def check_loop_type(hlil_text, expected_type):
     """
     if expected_type == "infinite":
         evidence = [
-            r'while\s*\(\s*true\s*\)',
-            r'while\s*\(\s*1\s*\)',
-            r'while\s*\(\s*\)',
-            r'for\s*\(\s*;\s*;\s*\)',
+            r"while\s*\(\s*true\s*\)",
+            r"while\s*\(\s*1\s*\)",
+            r"while\s*\(\s*\)",
+            r"for\s*\(\s*;\s*;\s*\)",
             # BN may decompile as label+goto or do-while(true)
-            r'do\s*$',
+            r"do\s*$",
         ]
         found = any(re.search(e, hlil_text, re.MULTILINE) for e in evidence)
         return found, "infinite loop found" if found else "no infinite loop evidence"
 
     elif expected_type == "counted":
         evidence = [
-            r'-=\s*1',           # decrement
-            r'\+=\s*1',          # increment
-            r's?[<>]=?\s*0x',    # comparison with hex constant
-            r's?[<>]=?\s*\d',    # comparison with decimal
-            r'while\s*\(',       # while loop
-            r'\bdo\b',           # do-while
+            r"-=\s*1",  # decrement
+            r"\+=\s*1",  # increment
+            r"s?[<>]=?\s*0x",  # comparison with hex constant
+            r"s?[<>]=?\s*\d",  # comparison with decimal
+            r"while\s*\(",  # while loop
+            r"\bdo\b",  # do-while
         ]
         found = any(re.search(e, hlil_text) for e in evidence)
         return found, "counted loop found" if found else "no counted loop evidence"
 
     elif expected_type == "conditional":
         evidence = [
-            r'while\s*\(',
-            r'do\b',
-            r'==\s*0',
-            r'!=\s*0',
+            r"while\s*\(",
+            r"do\b",
+            r"==\s*0",
+            r"!=\s*0",
         ]
         found = any(re.search(e, hlil_text) for e in evidence)
-        return found, "conditional loop found" if found else "no conditional loop evidence"
+        return (
+            found,
+            "conditional loop found" if found else "no conditional loop evidence",
+        )
 
     return False, f"unknown loop type: {expected_type}"
 
@@ -146,16 +173,18 @@ def check_arithmetic_ops(hlil_text, expected_ops):
         elif op == ">>":
             found = ">>" in hlil_text
         elif op == "|":
-            found = bool(re.search(r'\|[^|]', hlil_text))  # avoid matching ||
+            found = bool(re.search(r"\|[^|]", hlil_text))  # avoid matching ||
         elif op == "&":
-            found = bool(re.search(r'&[^&]', hlil_text))   # avoid matching &&
+            found = bool(re.search(r"&[^&]", hlil_text))  # avoid matching &&
         elif op == "*":
             # Avoid matching pointer dereference — look for * between operands
-            found = bool(re.search(r'\w\s*\*\s*\w', hlil_text)) or bool(re.search(r'\*=', hlil_text))
+            found = bool(re.search(r"\w\s*\*\s*\w", hlil_text)) or bool(
+                re.search(r"\*=", hlil_text)
+            )
         elif op == "+":
             found = "+" in hlil_text
         elif op == "-":
-            found = bool(re.search(r'[^-]-[^-]', hlil_text)) or "-=" in hlil_text
+            found = bool(re.search(r"[^-]-[^-]", hlil_text)) or "-=" in hlil_text
         elif op == "^":
             found = "^" in hlil_text
         else:
@@ -166,7 +195,7 @@ def check_arithmetic_ops(hlil_text, expected_ops):
 
 def check_min_branches(hlil_text, min_count):
     """Verify minimum number of conditional branches."""
-    count = len(re.findall(r'\bif\b', hlil_text))
+    count = len(re.findall(r"\bif\b", hlil_text))
     passed = count >= min_count
     return passed, f"{count} branches (need {min_count}+)"
 
@@ -175,17 +204,17 @@ def check_min_stores(hlil_text, min_count):
     """Verify minimum number of store operations."""
     # Count lines with assignment that aren't just declarations
     store_patterns = [
-        r'^\s*\*',        # pointer dereference store
-        r'^\s*\w+\s*=',   # variable assignment
-        r'\+=',            # compound assignment
-        r'-=',
-        r'\*=',
-        r'&=',
-        r'\|=',
-        r'\^=',
+        r"^\s*\*",  # pointer dereference store
+        r"^\s*\w+\s*=",  # variable assignment
+        r"\+=",  # compound assignment
+        r"-=",
+        r"\*=",
+        r"&=",
+        r"\|=",
+        r"\^=",
     ]
     stores = 0
-    for line in hlil_text.split('\n'):
+    for line in hlil_text.split("\n"):
         for pat in store_patterns:
             if re.search(pat, line):
                 stores += 1
@@ -198,7 +227,135 @@ def check_global_writes(hlil_text, expected_globals):
     """Verify writes to specific named global variables."""
     results = []
     for name in expected_globals:
-        pattern = rf'{re.escape(name)}\s*[+\-*&|^]?='
+        pattern = rf"{re.escape(name)}\s*[+\-*&|^]?="
         found = bool(re.search(pattern, hlil_text))
         results.append((name, found))
     return results
+
+
+# ── Structural checks, against BN's HLIL tree ──
+#
+# These replace eight substring predicates that no non-empty HLIL could fail:
+# has_loop matched "do" inside `window`, has_conditional matched "if" inside
+# `notify`, has_arithmetic matched "-" inside "->", has_calls matched `if (`,
+# and has_float_ops matched "arg1". The 99% they reported measured nothing.
+
+_IL = None
+
+
+def _il():
+    """BN's IL classes, resolved on first use.
+
+    Not a module-level import: validate_functional.py imports this module
+    before it calls init_bn(), which is what puts BN's python/ on sys.path.
+    Importing at module scope binds None and every check silently returns
+    False -- a gate that cannot fail, which is the bug this section removes.
+    """
+    global _IL
+    if _IL is None:
+        try:
+            from binaryninja import commonil, highlevelil
+
+            _IL = (commonil, highlevelil)
+        except ImportError:
+            _IL = (None, None)
+    return _IL
+
+
+def _walk(node):
+    """Every node of one HLIL instruction tree, root included."""
+    yield node
+    for operand in getattr(node, "operands", None) or []:
+        for sub in operand if isinstance(operand, list) else [operand]:
+            if hasattr(sub, "operands"):
+                yield from _walk(sub)
+
+
+def _statements(func):
+    if func is None or _il()[0] is None:
+        return []
+    try:
+        hlil = func.hlil
+        return list(hlil.instructions) if hlil else []
+    except Exception:
+        return []
+
+
+def _nodes(func):
+    return [n for root in _statements(func) for n in _walk(root)]
+
+
+def _has(func, *types):
+    return any(isinstance(n, types) for n in _nodes(func))
+
+
+def struct_has_loop(func):
+    return _has(func, _il()[0].Loop)
+
+
+def struct_has_conditional(func):
+    hil = _il()[1]
+    return _has(func, hil.HighLevelILIf, hil.HighLevelILSwitch)
+
+
+def struct_has_calls(func):
+    return _has(func, _il()[0].Localcall)
+
+
+def struct_has_arithmetic(func):
+    return _has(func, _il()[0].Arithmetic)
+
+
+def struct_has_float_ops(func):
+    return _has(func, _il()[0].FloatingPoint)
+
+
+def struct_has_stores(func):
+    """An assignment whose destination dereferences memory."""
+    hil = _il()[1]
+    if hil is None:
+        return False
+    dest_kinds = (
+        hil.HighLevelILDeref,
+        hil.HighLevelILDerefField,
+        hil.HighLevelILArrayIndex,
+        hil.HighLevelILStructField,
+    )
+    return any(
+        isinstance(n, hil.HighLevelILAssign)
+        and isinstance(getattr(n, "dest", None), dest_kinds)
+        for n in _nodes(func)
+    )
+
+
+def struct_has_mask(func):
+    """A bitwise AND against a constant -- the shape of a register field mask."""
+    cil, hil = _il()
+    if hil is None:
+        return False
+    return any(
+        isinstance(n, hil.HighLevelILAnd)
+        and any(isinstance(o, cil.Constant) for o in (n.left, n.right))
+        for n in _nodes(func)
+    )
+
+
+def struct_has_body(func):
+    """More than a bare `return`."""
+    cil, hil = _il()
+    stmts = _statements(func)
+    if not stmts:
+        return False
+    return len(stmts) > 1 or not isinstance(stmts[0], (cil.Return, hil.HighLevelILNop))
+
+
+STRUCT_CHECKS = {
+    "has_loop": struct_has_loop,
+    "has_conditional": struct_has_conditional,
+    "has_stores": struct_has_stores,
+    "has_calls": struct_has_calls,
+    "has_float_ops": struct_has_float_ops,
+    "has_arithmetic": struct_has_arithmetic,
+    "has_mask": struct_has_mask,
+    "has_body": struct_has_body,
+}

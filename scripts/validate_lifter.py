@@ -13,6 +13,7 @@ IDLE, bit-reverse FLIP) are listed separately and not counted as gaps.
 
 Run:  nix develop -c python scripts/validate_lifter.py [<dump-dir>] [--out PATH]
 """
+
 import argparse
 import json
 import os
@@ -21,8 +22,13 @@ from collections import Counter, defaultdict
 
 sys.path.insert(0, os.path.dirname(__file__))
 from _bn_helpers import init_bn
-from validate_decode_vs_dis import (parse_dis, load_regions, fetch,
-                                     norm_mnem, TI_PADDING_MNEMS, DEFAULT_DUMP)
+from validate_decode_vs_dis import (
+    parse_dis,
+    load_regions,
+    fetch,
+    norm_mnem,
+    TI_PADDING_MNEMS,
+)
 
 # Instructions that have NO LLIL representation in this arch model, so a nop is
 # the correct lift (not a coverage gap). Each writes privileged/FPU-status/mode
@@ -45,10 +51,35 @@ from validate_decode_vs_dis import (parse_dis, load_regions, fetch,
 #                             those have no BN flag to model.
 #   .WORD                   - data, not an instruction
 INTENTIONAL_NOP = {
-    "NOP", "NOP_ZERO", "IDLE", "ESTOP0", "ESTOP1", "ITRAP0", "ITRAP1",
-    "FLIP", "NORM", "CSB", "EALLOW", "EDIS", "SPM", "SETFLG",
-    "MOVST0", "MOVST1", "RPT", "RPTB", "||RPT", "||NOP", "||NORM",
-    "NASP", "ABORTI", "LPADDR", "IACK", "SAT", "SETC", "CLRC", ".WORD",
+    "NOP",
+    "NOP_ZERO",
+    "IDLE",
+    "ESTOP0",
+    "ESTOP1",
+    "ITRAP0",
+    "ITRAP1",
+    "FLIP",
+    "NORM",
+    "CSB",
+    "EALLOW",
+    "EDIS",
+    "SPM",
+    "SETFLG",
+    "MOVST0",
+    "MOVST1",
+    "RPT",
+    "RPTB",
+    "||RPT",
+    "||NOP",
+    "||NORM",
+    "NASP",
+    "ABORTI",
+    "LPADDR",
+    "IACK",
+    "SAT",
+    "SETC",
+    "CLRC",
+    ".WORD",
 }
 
 # The dump captures two memory regions: the J33 firmware FLASH (word
@@ -65,7 +96,10 @@ BOOTROM_WORD = 0x3FE000
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("dump_dir", nargs="?", default=DEFAULT_DUMP)
+    ap.add_argument(
+        "dump_dir",
+        help="directory holding dis/dumped.dis and dis/dumped.analysis.json",
+    )
     ap.add_argument("--out", default="/tmp/lifter_coverage.json")
     ap.add_argument("--limit-examples", type=int, default=40)
     args = ap.parse_args()
@@ -85,18 +119,20 @@ def main():
     bn = init_bn()
     arch = bn.Architecture["tms320c28x"]
     from binaryninja.lowlevelil import LowLevelILFunction, LowLevelILOperation
+
     NOP = LowLevelILOperation.LLIL_NOP
     print(f"  BN {bn.core_version()}; arch {arch.name}", flush=True)
 
-    starts = sorted(a for a in ti
-                    if any(r["start_word"] <= a < r["end_word"] for r in code))
+    starts = sorted(
+        a for a in ti if any(r["start_word"] <= a < r["end_word"] for r in code)
+    )
     print(f"  lifting {len(starts)} instructions in code ranges ...", flush=True)
 
-    cats = Counter()                  # real / nop_only / intentional_nop / lift_fail
-    gap_by_mnem = Counter()           # mnemonic -> nop-only count (the gaps)
+    cats = Counter()  # real / nop_only / intentional_nop / lift_fail
+    gap_by_mnem = Counter()  # mnemonic -> nop-only count (the gaps)
     examples = defaultdict(list)
     total = 0
-    boot = Counter()                  # boot-ROM region tallies (reported separately)
+    boot = Counter()  # boot-ROM region tallies (reported separately)
 
     for w in starts:
         t = ti[w]
@@ -114,7 +150,9 @@ def main():
         except Exception:
             n = 0
             il = None
-        real = bool(n) and il is not None and not (len(il) == 1 and il[0].operation == NOP)
+        real = (
+            bool(n) and il is not None and not (len(il) == 1 and il[0].operation == NOP)
+        )
 
         # Boot ROM (>= 0x3FE000): known TI bootloader + IQmath data tables, not
         # the firmware. Tally separately; never counts toward the headline.
@@ -124,10 +162,19 @@ def main():
             continue
 
         total += 1
+
         def add_example(cat):  # bucket per mnemonic so every gap family has examples
             if len(examples[mn]) < args.limit_examples:
-                examples[mn].append({"cat": cat, "hex": "%06X" % w,
-                                     "bytes": data.hex(), "mnem": t["mnem"], "ops": t["ops"]})
+                examples[mn].append(
+                    {
+                        "cat": cat,
+                        "hex": "%06X" % w,
+                        "bytes": data.hex(),
+                        "mnem": t["mnem"],
+                        "ops": t["ops"],
+                    }
+                )
+
         if not n or il is None:
             cats["lift_fail"] += 1
             gap_by_mnem[mn] += 1
@@ -144,31 +191,45 @@ def main():
             cats["real"] += 1
 
     covered = cats["real"]
-    dataflow = total - cats["intentional_nop"]   # instructions that SHOULD lift
+    dataflow = total - cats["intentional_nop"]  # instructions that SHOULD lift
     print("\n" + "=" * 60)
-    print(f"  FLASH FIRMWARE (word < 0x3FE000)")
-    print(f"  LIFTER COVERAGE: {covered}/{total} produce real IL "
-          f"({100.0 * covered / total:.2f}%)")
-    print(f"  data-flow coverage (excl. {cats['intentional_nop']} intentional-nop): "
-          f"{covered}/{dataflow} ({100.0 * covered / dataflow:.2f}%)")
+    print("  FLASH FIRMWARE (word < 0x3FE000)")
+    print(
+        f"  LIFTER COVERAGE: {covered}/{total} produce real IL "
+        f"({100.0 * covered / total:.2f}%)"
+    )
+    print(
+        f"  data-flow coverage (excl. {cats['intentional_nop']} intentional-nop): "
+        f"{covered}/{dataflow} ({100.0 * covered / dataflow:.2f}%)"
+    )
     print("=" * 60)
     for k in ("real", "nop_only", "lift_fail", "intentional_nop"):
         print(f"  {k:16s} {cats[k]}")
     if boot["total"]:
-        print(f"\n  boot-ROM region (word >= 0x3FE000): {boot['total']} insns "
-              f"({boot['nop']} nop) — EXCLUDED: TI boot ROM / IQmath data tables,")
-        print(f"    classifier false-positives, not firmware (see BOOTROM_WORD note).")
+        print(
+            f"\n  boot-ROM region (word >= 0x3FE000): {boot['total']} insns "
+            f"({boot['nop']} nop) — EXCLUDED: TI boot ROM / IQmath data tables,"
+        )
+        print("    classifier false-positives, not firmware (see BOOTROM_WORD note).")
     print("\n  top GAP mnemonics (nop-only / lift-fail on non-NOP instructions):")
     for mn, c in gap_by_mnem.most_common(30):
         print(f"    {mn:16s} {c}")
 
-    json.dump({"dump": args.dump_dir, "total": total, "real": covered,
-               "coverage_pct": round(100.0 * covered / total, 3) if total else 0,
-               "dataflow_pct": round(100.0 * covered / dataflow, 3) if dataflow else 0,
-               "categories": dict(cats),
-               "bootrom_excluded": dict(boot),
-               "gap_by_mnemonic": dict(gap_by_mnem), "examples": dict(examples)},
-              open(args.out, "w"), indent=2)
+    json.dump(
+        {
+            "dump": args.dump_dir,
+            "total": total,
+            "real": covered,
+            "coverage_pct": round(100.0 * covered / total, 3) if total else 0,
+            "dataflow_pct": round(100.0 * covered / dataflow, 3) if dataflow else 0,
+            "categories": dict(cats),
+            "bootrom_excluded": dict(boot),
+            "gap_by_mnemonic": dict(gap_by_mnem),
+            "examples": dict(examples),
+        },
+        open(args.out, "w"),
+        indent=2,
+    )
     print(f"\n  corpus -> {args.out}")
     return 0
 
