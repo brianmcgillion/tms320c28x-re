@@ -39,5 +39,6 @@ tests/fixtures/c2000ware/sdk/
 # TI reference manuals — fetched by docs/reference/fetch.sh, never committed
 docs/reference/*.pdf
 docs/reference/*.txt
+docs/RENAMES.md
 docs/plans/
 core/target/
