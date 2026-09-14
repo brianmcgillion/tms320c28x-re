@@ -1,0 +1,12 @@
+[package]
+name = "c28x-core"
+version = "0.1.0"
+edition = "2021"
+description = "TMS320C28x instruction decoder and COFF reader (no Binary Ninja dependency)"
+license = "MIT"
+
+[dependencies]
+
+[build-dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_yaml = "0.9"

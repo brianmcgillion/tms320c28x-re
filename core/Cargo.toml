@@ -1,0 +1,10 @@
+# A workspace deliberately separate from rust/, not a member of it.
+#
+# The point is that nothing in here depends on Binary Ninja. A single workspace
+# would still resolve the binaryninja-api git dependency before running anything,
+# dragging in cmake, ninja and libclang -- which is exactly why the 23 decoder
+# tests never ran. Keeping this graph crates.io-only means `cargo test` works
+# with no BINARYNINJADIR, no licence, and no system toolchain.
+[workspace]
+resolver = "2"
+members = ["c28x-core", "c28x-tools"]
