@@ -83,10 +83,12 @@ class TICOFFView(BinaryView):
             if sh + 48 > len(raw_bytes):
                 break
 
-            raw_name = raw_bytes[sh:sh + 8]
+            raw_name = raw_bytes[sh : sh + 8]
             if raw_name[:4] == b"\x00\x00\x00\x00":
                 str_off = struct.unpack_from("<I", raw_name, 4)[0]
-                name = _read_string(raw_bytes, symtab_offset + num_symbols * 18 + str_off)
+                name = _read_string(
+                    raw_bytes, symtab_offset + num_symbols * 18 + str_off
+                )
             else:
                 name = raw_name.rstrip(b"\x00").decode("ascii", errors="replace")
 
@@ -120,7 +122,9 @@ class TICOFFView(BinaryView):
             if data_ptr > 0 and sec_size > 0 and not (sec_flags & STYP_BSS):
                 file_data_len = min(byte_size, len(raw_bytes) - data_ptr)
                 if file_data_len > 0:
-                    self.add_auto_segment(byte_addr, byte_size, data_ptr, file_data_len, flags)
+                    self.add_auto_segment(
+                        byte_addr, byte_size, data_ptr, file_data_len, flags
+                    )
             else:
                 self.add_auto_segment(byte_addr, byte_size, 0, 0, flags)
 
@@ -135,7 +139,7 @@ class TICOFFView(BinaryView):
                 if so + 18 > len(raw_bytes):
                     break
 
-                raw_name = raw_bytes[so:so + 8]
+                raw_name = raw_bytes[so : so + 8]
                 if raw_name[:4] == b"\x00\x00\x00\x00":
                     str_off = struct.unpack_from("<I", raw_name, 4)[0]
                     name = _read_string(raw_bytes, strtab_offset + str_off)
@@ -152,7 +156,9 @@ class TICOFFView(BinaryView):
 
                     # Strip TI C underscore prefix for display
                     display_name = name
-                    if display_name.startswith("_") and not display_name.startswith("__"):
+                    if display_name.startswith("_") and not display_name.startswith(
+                        "__"
+                    ):
                         display_name = display_name[1:]
 
                     if sclass in (C_EXT, C_LABEL) and sec_num in text_section_nums:

@@ -14,7 +14,6 @@ import binaryninja
 from binaryninja import (
     Architecture,
     BinaryView,
-    Platform,
     SegmentFlag,
     SectionSemantics,
     SymbolType,
@@ -23,6 +22,9 @@ from binaryninja import (
     log_info,
     log_warn,
 )
+
+from .memmap import PERIPHERALS, RAM_REGIONS
+from .patterns import is_function_prologue
 
 # Padding-pattern thresholds (words).
 # 0xFFFF (and 0xFFFFFFFF) decodes as `B PC, UNC` (branch-to-next-instruction) per
@@ -35,8 +37,9 @@ PAD_FFFF_MIN_WORDS = 2
 # Threshold higher because lone ESTOP0 in real code (debug guards) is plausible.
 PAD_ESTOP_MIN_WORDS = 8
 
-# ── F28335 Memory Map (word address, word size) ──
-# Converted to byte addresses at runtime: byte_addr = word_addr * 2
+# ── F28335 Memory Map (word address, word size); see binja/memmap.py ──
+# Flash H is the lowest sector; file offset = (word_addr - FLASH_H_WORD) * 2.
+FLASH_H_WORD = 0x300000
 
 FLASH_SECTORS = [
     ("FLASH_H", 0x300000, 0x8000),
@@ -49,55 +52,6 @@ FLASH_SECTORS = [
     ("FLASH_A", 0x338000, 0x7FF8),  # ends at 0x33FFF7
 ]
 
-RAM_REGIONS = [
-    ("M0_SARAM", 0x000000, 0x0400),
-    ("M1_SARAM", 0x000400, 0x0400),
-    ("L0_SARAM", 0x008000, 0x1000),
-    ("L1_SARAM", 0x009000, 0x1000),
-    ("L2_SARAM", 0x00A000, 0x1000),
-    ("L3_SARAM", 0x00B000, 0x1000),
-    ("L4_SARAM", 0x00C000, 0x1000),
-    ("L5_SARAM", 0x00D000, 0x1000),
-    ("L6_SARAM", 0x00E000, 0x1000),
-    ("L7_SARAM", 0x00F000, 0x1000),
-]
-
-# Peripheral MMIO: (name, word_base, word_size)
-PERIPHERALS = [
-    ("eCAN_A",       0x006000, 0x100),
-    ("eCAN_B",       0x006200, 0x100),
-    ("ePWM1",        0x006800, 0x040),
-    ("ePWM2",        0x006840, 0x040),
-    ("ePWM3",        0x006880, 0x040),
-    ("ePWM4",        0x0068C0, 0x040),
-    ("ePWM5",        0x006900, 0x040),
-    ("ePWM6",        0x006940, 0x040),
-    ("eCAP1",        0x006A00, 0x020),
-    ("eCAP2",        0x006A20, 0x020),
-    ("eQEP1",        0x006B00, 0x040),
-    ("eQEP2",        0x006B40, 0x040),
-    ("GPIO_CTRL",    0x006F80, 0x040),
-    ("GPIO_DATA",    0x006FC0, 0x020),
-    ("GPIO_INT",     0x007070, 0x010),
-    ("SPI_A",        0x007040, 0x010),
-    ("SCI_A",        0x007050, 0x010),
-    ("ADC",          0x007100, 0x020),
-    ("SCI_B",        0x007750, 0x010),
-    ("SCI_C",        0x007770, 0x010),
-    ("I2C_A",        0x007900, 0x040),
-    ("DMA",          0x001000, 0x200),
-    ("CPU_TIMER0",   0x000C00, 0x008),
-    ("CPU_TIMER1",   0x000C08, 0x008),
-    ("CPU_TIMER2",   0x000C10, 0x008),
-    ("PIE_CTRL",     0x000CE0, 0x020),
-    ("PIE_VECT",     0x000D00, 0x100),
-    ("SYS_CTRL",     0x007010, 0x020),
-    ("FLASH_REGS",   0x000A80, 0x020),
-    ("CSM",          0x000AE0, 0x010),
-    ("XINTF",        0x000B20, 0x040),
-    ("McBSP_A",      0x005000, 0x040),
-    ("McBSP_B",      0x005040, 0x040),
-]
 
 # Reset vector in word address space
 RESET_VECTOR_WORD = 0x3FFFC0
@@ -108,8 +62,8 @@ PIE_VECTOR_COUNT = 96
 
 # Known flash image sizes (bytes)
 KNOWN_FLASH_SIZES = [
-    256 * 1024,   # 256KB (128K words)
-    512 * 1024,   # 512KB (256K words)
+    256 * 1024,  # 256KB (128K words)
+    512 * 1024,  # 512KB (256K words)
     1024 * 1024,  # 1MB
 ]
 
@@ -127,47 +81,43 @@ class TMS320C28xFlashView(BinaryView):
         BinaryView.__init__(self, parent_view=data, file_metadata=data.file)
         self.raw = data
 
+    @staticmethod
+    def _looks_like_code(op16):
+        """Words cl2000 puts at the start of a sector's first function."""
+        return (
+            is_function_prologue(op16)  # ADDB SP, #n
+            or op16 == 0x761F  # MOVW DP, #16bit
+            or (op16 & 0xFFC0) == 0x0040  # LB  — boot branch
+            or (op16 & 0xFFC0) == 0x7640  # LCR — call at sector start
+        )
+
     @classmethod
     def is_valid_for_data(cls, data) -> bool:
+        """Claim whole-device flash reads of an F28335.
+
+        This used to accept any file of 64KB or more with something
+        code-shaped at the hardcoded byte offset 0x10000, or at 0 -- so it
+        claimed unrelated files that happened to look right there, and rejected
+        real dumps whose Flash G starts with anything else. The segment layout
+        this view builds assumes the file covers flash from word 0x300000, so
+        the size has to be a whole-device one; KNOWN_FLASH_SIZES was already
+        written down for this and never used.
+        """
         length = data.length
-        if length < 64 * 1024:
+        if length not in KNOWN_FLASH_SIZES:
             return False
 
-        # Heuristic: check for valid C28x instructions at likely code offsets.
-        # Flash H starts at word 0x300000. If file is loaded at byte 0x600000,
-        # code typically starts in Flash G (offset 0x10000 bytes into the file).
-        # Check for common instruction patterns at that offset.
-        code_offset = 0x10000  # Flash G start relative to Flash H
-        if length <= code_offset + 4:
-            return False
-
-        chunk = data.read(code_offset, 4)
-        if not chunk or len(chunk) < 4:
-            return False
-
-        # Check for ADDB SP (0xFE00 mask 0xFF80) — very common function prologue
-        op16 = chunk[0] | (chunk[1] << 8)
-        if (op16 & 0xFF80) == 0xFE00:
-            return True
-
-        # Check for MOVW DP (0x761F) — common at function start
-        if op16 == 0x761F:
-            return True
-
-        # Check for LB (0x0040 mask 0xFFC0) at code_start — boot branch
-        if (op16 & 0xFFC0) == 0x0040:
-            return True
-
-        # Check for LCR (0x7640 mask 0xFFC0) — function call at code start
-        if (op16 & 0xFFC0) == 0x7640:
-            return True
-
-        # Check at file start for branch instruction (Flash H, boot sector)
-        chunk0 = data.read(0, 4)
-        if chunk0 and len(chunk0) >= 2:
-            op0 = chunk0[0] | (chunk0[1] << 8)
-            # LB (long branch) or LCR (long call) at start of flash
-            if (op0 & 0xFFC0) == 0x0040 or (op0 & 0xFFC0) == 0x7640:
+        # Code may begin in any sector, not only Flash G.
+        for name, word_base, _size in FLASH_SECTORS:
+            offset = (word_base - FLASH_H_WORD) * 2
+            if not 0 <= offset <= length - 2:
+                continue
+            chunk = data.read(offset, 2)
+            if (
+                chunk
+                and len(chunk) >= 2
+                and cls._looks_like_code(chunk[0] | (chunk[1] << 8))
+            ):
                 return True
 
         return False
@@ -182,7 +132,7 @@ class TMS320C28xFlashView(BinaryView):
         file_len = self.raw.length
 
         # Determine base address: Flash H starts at word 0x300000 = byte 0x600000
-        flash_h_byte = _w2b(0x300000)
+        flash_h_byte = _w2b(FLASH_H_WORD)
 
         log_info(f"C28x Flash: loading {file_len} bytes at base 0x{flash_h_byte:X}")
 
@@ -192,10 +142,7 @@ class TMS320C28xFlashView(BinaryView):
             | SegmentFlag.SegmentExecutable
             | SegmentFlag.SegmentContainsCode
         )
-        data_flags = (
-            SegmentFlag.SegmentReadable
-            | SegmentFlag.SegmentContainsData
-        )
+        data_flags = SegmentFlag.SegmentReadable | SegmentFlag.SegmentContainsData
 
         file_offset = 0
         erased_count = 0
@@ -213,8 +160,11 @@ class TMS320C28xFlashView(BinaryView):
             sector_data = self.raw.read(file_offset, byte_size)
             is_erased = False
             if sector_data and len(sector_data) >= 4:
-                ff_words = sum(1 for i in range(0, len(sector_data) - 1, 2)
-                               if sector_data[i] == 0xFF and sector_data[i + 1] == 0xFF)
+                ff_words = sum(
+                    1
+                    for i in range(0, len(sector_data) - 1, 2)
+                    if sector_data[i] == 0xFF and sector_data[i + 1] == 0xFF
+                )
                 total_words = len(sector_data) // 2
                 if total_words > 0 and ff_words > total_words * 9 // 10:
                     is_erased = True
@@ -225,7 +175,9 @@ class TMS320C28xFlashView(BinaryView):
                     byte_start, byte_size, file_offset, byte_size, data_flags
                 )
                 self.add_auto_section(
-                    name, byte_start, byte_size,
+                    name,
+                    byte_start,
+                    byte_size,
                     SectionSemantics.ReadOnlyDataSectionSemantics,
                 )
                 log_info(f"C28x Flash: {name} erased — marked as data")
@@ -234,7 +186,9 @@ class TMS320C28xFlashView(BinaryView):
                     byte_start, byte_size, file_offset, byte_size, code_flags
                 )
                 self.add_auto_section(
-                    name, byte_start, byte_size,
+                    name,
+                    byte_start,
+                    byte_size,
                     SectionSemantics.ReadOnlyCodeSectionSemantics,
                 )
 
@@ -254,26 +208,26 @@ class TMS320C28xFlashView(BinaryView):
             byte_size = word_size * 2
             self.add_auto_segment(byte_start, byte_size, 0, 0, ram_flags)
             self.add_auto_section(
-                name, byte_start, byte_size, SectionSemantics.ReadWriteDataSectionSemantics
+                name,
+                byte_start,
+                byte_size,
+                SectionSemantics.ReadWriteDataSectionSemantics,
             )
 
         # ── Peripheral MMIO segments (non-file-backed) ──
-        mmio_flags = (
-            SegmentFlag.SegmentReadable
-            | SegmentFlag.SegmentWritable
-        )
+        mmio_flags = SegmentFlag.SegmentReadable | SegmentFlag.SegmentWritable
         for name, word_start, word_size in PERIPHERALS:
             byte_start = _w2b(word_start)
             byte_size = word_size * 2
             self.add_auto_segment(byte_start, byte_size, 0, 0, mmio_flags)
             self.add_auto_section(
-                name, byte_start, byte_size,
+                name,
+                byte_start,
+                byte_size,
                 SectionSemantics.ReadWriteDataSectionSemantics,
             )
             # Label the base address
-            self.define_auto_symbol(
-                Symbol(SymbolType.DataSymbol, byte_start, name)
-            )
+            self.define_auto_symbol(Symbol(SymbolType.DataSymbol, byte_start, name))
 
         # ── Pre-mark padding runs as data ──
         # Must run BEFORE function discovery / auto-analysis so BN never tries
@@ -354,12 +308,20 @@ class TMS320C28xFlashView(BinaryView):
                     j += 2
                 run_words = (j - run_start) // 2
                 if run_words >= min_words:
-                    for off in range(run_start, j, 2):
-                        try:
-                            self.define_user_data_var(base_addr + off, Type.int(2))
-                        except Exception:
-                            pass
-                    runs_marked += 1
+                    # One array per run, not one call per word. The count is
+                    # also only incremented on success now: the per-word
+                    # `except: pass` sat inside the loop, so "marked N runs"
+                    # could report N having marked nothing at all.
+                    try:
+                        self.define_user_data_var(
+                            base_addr + run_start, Type.array(Type.int(2), run_words)
+                        )
+                        runs_marked += 1
+                    except Exception as e:
+                        log_warn(
+                            f"C28x: could not mark padding run at "
+                            f"{base_addr + run_start:#x}: {e}"
+                        )
                 i = j
             else:
                 i += 2
@@ -385,7 +347,9 @@ class TMS320C28xFlashView(BinaryView):
 
         # Fallback: assume code starts at Flash G
         flash_g_byte = _w2b(0x308000)
-        log_info(f"C28x Flash: no reset vector found, using Flash G start 0x{flash_g_byte:X}")
+        log_info(
+            f"C28x Flash: no reset vector found, using Flash G start 0x{flash_g_byte:X}"
+        )
         self.add_entry_point(flash_g_byte)
 
     def _find_functions_from_pie(self, flash_base, file_len):
@@ -466,6 +430,10 @@ class TMS320C28xFlashView(BinaryView):
                 # Found a pointer table — create functions only in file-backed code segments
                 for i in range(run_count):
                     data = self.raw.read(run_start + i * 4, 4)
+                    # Same guard as the scan loop above; an unguarded unpack_from
+                    # on a short read raises inside init() and aborts the load.
+                    if not data or len(data) < 4:
+                        break
                     word_addr = struct.unpack_from("<I", data)[0] & 0x3FFFFF
                     byte_addr = _w2b(word_addr)
                     seg = self.get_segment_at(byte_addr)
@@ -497,7 +465,7 @@ class TMS320C28xFlashView(BinaryView):
             data = self.raw.read(offset, 2)
             if data and len(data) >= 2:
                 op16 = data[0] | (data[1] << 8)
-                if (op16 & 0xFF80) == 0xFE00:
+                if is_function_prologue(op16):
                     byte_addr = flash_base + offset
                     self.add_function(byte_addr)
                     count += 1

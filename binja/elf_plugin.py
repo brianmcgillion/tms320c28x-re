@@ -160,7 +160,9 @@ class C28xELFView(BinaryView):
             name = ""
             if shstrtab_off > 0 and shstrtab_off + sh_name_off < len(raw):
                 end = raw.index(b"\x00", shstrtab_off + sh_name_off)
-                name = raw[shstrtab_off + sh_name_off:end].decode("ascii", errors="replace")
+                name = raw[shstrtab_off + sh_name_off : end].decode(
+                    "ascii", errors="replace"
+                )
 
             if name and sh_addr > 0:
                 byte_addr = _w2b(sh_addr)
@@ -168,7 +170,14 @@ class C28xELFView(BinaryView):
                 semantics = SectionSemantics.DefaultSectionSemantics
                 if name in (".text", ".cinit", ".pinit", ".switch"):
                     semantics = SectionSemantics.ReadOnlyCodeSectionSemantics
-                elif name in (".bss", ".data", ".ebss", ".esysmem", ".stack", ".sysmem"):
+                elif name in (
+                    ".bss",
+                    ".data",
+                    ".ebss",
+                    ".esysmem",
+                    ".stack",
+                    ".sysmem",
+                ):
                     semantics = SectionSemantics.ReadWriteDataSectionSemantics
                 elif name in (".const", ".econst"):
                     semantics = SectionSemantics.ReadOnlyDataSectionSemantics
@@ -226,7 +235,7 @@ class C28xELFView(BinaryView):
 
             st_name = struct.unpack_from("<I", raw, sym_off)[0]
             st_value = struct.unpack_from("<I", raw, sym_off + 4)[0]
-            st_size = struct.unpack_from("<I", raw, sym_off + 8)[0]
+            _st_size = struct.unpack_from("<I", raw, sym_off + 8)[0]  # layout only
             st_info = raw[sym_off + 12]
             st_shndx = struct.unpack_from("<H", raw, sym_off + 14)[0]
 
@@ -240,7 +249,7 @@ class C28xELFView(BinaryView):
             name = ""
             if strtab_off + st_name < len(raw):
                 end = raw.index(b"\x00", strtab_off + st_name)
-                name = raw[strtab_off + st_name:end].decode("ascii", errors="replace")
+                name = raw[strtab_off + st_name : end].decode("ascii", errors="replace")
 
             if not name or name.startswith("."):
                 continue
@@ -255,7 +264,9 @@ class C28xELFView(BinaryView):
             if display.startswith("_") and not display.startswith("__"):
                 display = display[1:]
 
-            if st_type == STT_FUNC or (st_bind in (STB_GLOBAL, STB_WEAK) and st_type == 0):
+            if st_type == STT_FUNC or (
+                st_bind in (STB_GLOBAL, STB_WEAK) and st_type == 0
+            ):
                 self.define_auto_symbol(
                     Symbol(SymbolType.FunctionSymbol, byte_addr, display)
                 )
