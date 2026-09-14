@@ -3,8 +3,8 @@
 
 import pytest
 
-from c28x.decoder import Decoder
-from c28x.types import BranchType
+from c28x_rs import Decoder
+from c28x_rs import BranchType
 
 
 @pytest.fixture
@@ -24,26 +24,33 @@ def _encode32(opcode: int) -> bytes:
     second word (LOW 16 bits) goes to bytes [2:3].
     """
     word0 = (opcode >> 16) & 0xFFFF  # HIGH half -> first in memory
-    word1 = opcode & 0xFFFF          # LOW half -> second in memory
-    return bytes([
-        word0 & 0xFF, (word0 >> 8) & 0xFF,
-        word1 & 0xFF, (word1 >> 8) & 0xFF,
-    ])
+    word1 = opcode & 0xFFFF  # LOW half -> second in memory
+    return bytes(
+        [
+            word0 & 0xFF,
+            (word0 >> 8) & 0xFF,
+            word1 & 0xFF,
+            (word1 >> 8) & 0xFF,
+        ]
+    )
 
 
 class TestUtil:
     """Verify encoding helpers match INL's DataToOpcode."""
 
     def test_encode16_roundtrip(self):
-        from c28x.util import bytes_to_opcode16
+        from c28x_rs import bytes_to_opcode16
+
         assert bytes_to_opcode16(_encode16(0x9200)) == 0x9200
 
     def test_encode32_roundtrip(self):
-        from c28x.util import bytes_to_opcode32
+        from c28x_rs import bytes_to_opcode32
+
         assert bytes_to_opcode32(_encode32(0x8D000000)) == 0x8D000000
 
     def test_encode32_mixed(self):
-        from c28x.util import bytes_to_opcode32
+        from c28x_rs import bytes_to_opcode32
+
         # opcode 0x76401234: word0=0x7640, word1=0x1234
         data = _encode32(0x76401234)
         assert bytes_to_opcode32(data) == 0x76401234
@@ -140,20 +147,20 @@ class TestMov:
         # MOV AL, *XAR0 -> opcode 0x9280 (ax=0=AL, loc=0x80=*XAR0)
         insn = decoder.decode(_encode16(0x9280))
         assert insn is not None
-        assert "MOV_AX" in insn.name
+        assert "MOV_AX" in insn.yaml_name
         assert insn.size == 2
 
     def test_movb_acc_const8(self, decoder):
         # MOVB ACC, #0x42
         insn = decoder.decode(_encode16(0x0242))
         assert insn is not None
-        assert "MOVB_ACC" in insn.name
+        assert "MOVB_ACC" in insn.yaml_name
 
     def test_movl_xar0_const22(self, decoder):
         # MOVL XAR0, #0x1234 -> opcode 0x8D001234
         insn = decoder.decode(_encode32(0x8D001234), addr=0)
         assert insn is not None
-        assert "MOVL_XAR0" in insn.name
+        assert "MOVL_XAR0" in insn.yaml_name
         assert insn.size == 4
 
     def test_push_loc16(self, decoder):
@@ -172,19 +179,22 @@ class TestArithmetic:
         # ADDB ACC, #5
         insn = decoder.decode(_encode16(0x0905))
         assert insn is not None
-        assert "ADDB_ACC" in insn.name
-        assert insn.flags_written == ["N", "Z", "C", "V"]
+        assert "ADDB_ACC" in insn.yaml_name
+        # No flags_written: the decoder does not carry a per-row flag list, and
+        # the lifter does not read one -- it declares FlagWrite::All at the
+        # point of emission. Assert the operand the encoding actually carries.
+        assert [op.value for op in insn.operands] == [5]
 
     def test_subb_acc_const8(self, decoder):
         insn = decoder.decode(_encode16(0x1903))
         assert insn is not None
-        assert "SUBB_ACC" in insn.name
+        assert "SUBB_ACC" in insn.yaml_name
 
     def test_cmpb_ax_const8(self, decoder):
         # CMPB AL, #0x10
         insn = decoder.decode(_encode16(0x5210))
         assert insn is not None
-        assert "CMPB_AX" in insn.name
+        assert "CMPB_AX" in insn.yaml_name
 
     def test_inc_loc16(self, decoder):
         insn = decoder.decode(_encode16(0x0AA9))  # INC @AL
@@ -199,12 +209,12 @@ class TestArithmetic:
     def test_abs_acc(self, decoder):
         insn = decoder.decode(_encode16(0xFF56))
         assert insn is not None
-        assert insn.name == "ABS_ACC"
+        assert insn.yaml_name == "ABS_ACC"
 
     def test_neg_acc(self, decoder):
         insn = decoder.decode(_encode16(0xFF54))
         assert insn is not None
-        assert insn.name == "NEG_ACC"
+        assert insn.yaml_name == "NEG_ACC"
 
 
 class TestLogical:
@@ -270,7 +280,8 @@ class TestResolvedOperand:
         assert insn is not None
         loc_op = insn.operands[1]  # second operand is loc16
         assert loc_op.resolved is not None
-        from c28x.operands import AddressingMode
+        from c28x_rs import AddressingMode
+
         assert loc_op.resolved.mode == AddressingMode.DP_DIRECT
         assert loc_op.resolved.offset == 5
 
@@ -279,7 +290,8 @@ class TestResolvedOperand:
         assert insn is not None
         loc_op = insn.operands[1]
         assert loc_op.resolved is not None
-        from c28x.operands import AddressingMode
+        from c28x_rs import AddressingMode
+
         assert loc_op.resolved.mode == AddressingMode.REGISTER_DIRECT
         assert loc_op.resolved.register == "AL"
 
@@ -287,7 +299,8 @@ class TestResolvedOperand:
         insn = decoder.decode(_encode16(0x9283))  # MOV AL, *XAR3++
         loc_op = insn.operands[1]
         assert loc_op.resolved is not None
-        from c28x.operands import AddressingMode
+        from c28x_rs import AddressingMode
+
         assert loc_op.resolved.mode == AddressingMode.INDIRECT_POST_INC
         assert loc_op.resolved.xar_index == 3
 
@@ -302,62 +315,73 @@ class TestOperands:
     """Test loc16/loc32 operand decoding."""
 
     def test_dp_direct(self):
-        from c28x.operands import decode_loc16
+        from c28x_rs import decode_loc16
+
         result = decode_loc16(0x05)  # DP-direct, offset=5
-        assert result.text == "@5"
+        assert result.text == "@0x5"
 
     def test_sp_relative(self):
-        from c28x.operands import decode_loc16
+        from c28x_rs import decode_loc16
+
         result = decode_loc16(0x43)  # SP-relative, offset=3
         assert result.text == "*-SP[3]"
 
     def test_indirect_xar0(self):
-        from c28x.operands import decode_loc16
+        from c28x_rs import decode_loc16
+
         result = decode_loc16(0xC0)  # *XAR0, which TI renders as *+XAR0[0]
         assert result.text == "*+XAR0[0]"
 
     def test_indirect_xar3_postinc(self):
-        from c28x.operands import decode_loc16
+        from c28x_rs import decode_loc16
+
         result = decode_loc16(0x83)  # *XAR3++
         assert result.text == "*XAR3++"
 
     def test_indirect_predec_xar2(self):
-        from c28x.operands import decode_loc16
+        from c28x_rs import decode_loc16
+
         result = decode_loc16(0x8A)  # *--XAR2
         assert result.text == "*--XAR2"
 
     def test_register_direct_ah(self):
-        from c28x.operands import decode_loc16
+        from c28x_rs import decode_loc16
+
         result = decode_loc16(0xA8)
-        assert result.text == "@AH"
+        assert result.text == "AH"
         assert result.register == "AH"
 
     def test_register_direct_al(self):
-        from c28x.operands import decode_loc16
+        from c28x_rs import decode_loc16
+
         result = decode_loc16(0xA9)
-        assert result.text == "@AL"
+        assert result.text == "AL"
 
     def test_loc32_acc(self):
-        from c28x.operands import decode_loc32
+        from c28x_rs import decode_loc32
+
         result = decode_loc32(0xA8)
-        assert result.text == "@ACC"
+        assert result.text == "ACC"
         assert result.register == "ACC"
 
     def test_loc32_p(self):
-        from c28x.operands import decode_loc32
+        from c28x_rs import decode_loc32
+
         result = decode_loc32(0xAA)
-        assert result.text == "@P"
+        assert result.text == "P"
 
     def test_loc16_br0_dec(self):
         """0xAF is *BR0-- per TI; unimplemented, so it takes the labelled fallback."""
-        from c28x.operands import decode_loc16
+        from c28x_rs import decode_loc16
+
         result = decode_loc16(0xAF)
-        assert result.text == "*ind(0xAF)"
+        assert result.text == "*BR0--"
 
     def test_loc32_br0_dec(self):
-        from c28x.operands import decode_loc32
+        from c28x_rs import decode_loc32
+
         result = decode_loc32(0xAF)
-        assert result.text == "*ind(0xAF)"
+        assert result.text == "*BR0--"
 
 
 class TestFpuMov32:
@@ -373,7 +397,7 @@ class TestFpuMov32:
         # Check operands: RaH=R0H (bits [10:8]=0), mem32=@54 (bits [7:0]=0x36)
         assert len(insn.operands) == 3
         assert insn.operands[0].name == "R0H"  # rah
-        assert insn.operands[2].name == "UNC"  # cndf=0xF
+        assert insn.operands[2].name == "UNCF"  # cndf=0xF
 
     def test_mov32_rah_mem32_sp_relative(self, decoder):
         """MOV32 R0H, *-SP[36], UNCF — from firmware: af e2 64 00."""
@@ -381,7 +405,8 @@ class TestFpuMov32:
         assert insn is not None
         assert insn.operands[0].name == "R0H"
         assert insn.operands[1].resolved is not None
-        from c28x.operands import AddressingMode
+        from c28x_rs import AddressingMode
+
         assert insn.operands[1].resolved.mode == AddressingMode.SP_RELATIVE
         assert insn.operands[1].resolved.offset == 36
 
@@ -400,7 +425,8 @@ class TestFpuMov32:
         assert insn.name == "MOV32"
         # mem32 = bits [7:0] = 0x64 → SP-relative @36
         assert insn.operands[0].resolved is not None
-        from c28x.operands import AddressingMode
+        from c28x_rs import AddressingMode
+
         assert insn.operands[0].resolved.mode == AddressingMode.SP_RELATIVE
         assert insn.operands[0].resolved.offset == 36
         # rah = bits [10:8] = 0 → R0H
@@ -419,7 +445,8 @@ class TestFpuMov32:
         assert insn.size == 4
         assert insn.yaml_name == "MOV32_MEM32_STF"
         assert insn.name == "MOV32"
-        from c28x.operands import AddressingMode
+        from c28x_rs import AddressingMode
+
         assert insn.operands[0].resolved.mode == AddressingMode.SP_RELATIVE
         assert insn.operands[0].resolved.offset == 16
 
@@ -429,7 +456,8 @@ class TestFpuMov32:
         assert insn is not None
         assert insn.size == 4
         assert insn.yaml_name == "MOV32_STF_MEM32"
-        from c28x.operands import AddressingMode
+        from c28x_rs import AddressingMode
+
         assert insn.operands[0].resolved.mode == AddressingMode.SP_RELATIVE
         assert insn.operands[0].resolved.offset == 16
 
@@ -474,7 +502,7 @@ class TestMovAbsoluteAddr:
         assert insn.size == 4
         assert insn.yaml_name == "MOV_LOC16_MEM16"
         # loc16 = 0xA9 = @AL
-        assert insn.operands[0].name == "@AL"
+        assert insn.operands[0].name == "AL"
         # addr16 = 0x0F12
         assert insn.operands[1].value == 0x0F12
 
@@ -484,32 +512,40 @@ class TestMovAbsoluteAddr:
         assert insn is not None
         assert insn.size == 4
         assert insn.yaml_name == "MOV_MEM16_LOC16"
-        assert insn.operands[0].name == "@AL"
+        assert insn.operands[0].name == "AL"
         assert insn.operands[1].value == 0x0F12
 
     def test_mov_loc16_abs16_indirect(self, decoder):
         """MOV *+XAR2[AR1], *(0:0x0F12) — loc16=0x9A."""
         insn = decoder.decode(_encode32(0xF59A0F12), addr=0)
         assert insn is not None
-        from c28x.operands import AddressingMode
+        from c28x_rs import AddressingMode
+
         assert insn.operands[0].resolved.mode == AddressingMode.INDIRECT_AR1
 
     def test_mov_abs16_loc16_pl(self, decoder):
         """MOV *(0:0x0F12), @PL — loc16=0xAB."""
         insn = decoder.decode(_encode32(0xF4AB0F12), addr=0)
         assert insn is not None
-        assert insn.operands[0].name == "@PL"
+        assert insn.operands[0].name == "PL"
 
 
 class TestFpuConversions:
     """Test FPU conversion instructions (Phase 2)."""
 
     def test_ui16tof32_rah_mem16(self, decoder):
-        """UI16TOF32 R4H, @63 — from firmware: c4 e2 3f 00."""
+        """dis2000: e2c4 003f = `UI16TOF32 R0H, @0x3f`, e2c4 043f = R4H.
+
+        RaH is in the second word at bits [10:8], not in the first word.
+        """
         insn = decoder.decode(_encode32(0xE2C4003F), addr=0)
         assert insn is not None
         assert insn.size == 4
         assert insn.yaml_name == "UI16TOF32_RAH_MEM16"
+        assert insn.operands[0].name == "R0H"
+
+        insn = decoder.decode(_encode32(0xE2C4043F), addr=0)
+        assert insn is not None
         assert insn.operands[0].name == "R4H"
 
     def test_ui16tof32_no_conflict_i16tof32(self, decoder):

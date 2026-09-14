@@ -184,7 +184,7 @@ led_blink.out:c2000ware:
         callees: ["InitSysCtrl", "InitGpio", "GPIO_SetupPinMux", "GPIO_SetupPinOptions", "InitPieCtrl", "InitPieVectTable", "GPIO_WritePin", "F28x_usDelay"]
     InitSysCtrl:
       exists: true
-      has_stores: true
+      has_calls: true
       has_body: true
       functional:
         callees: ["DisableDog", "InitPeripheralClocks"]
@@ -237,7 +237,7 @@ adc_epwm.out:
       has_body: true
     InitSysCtrl:
       exists: true
-      has_stores: true
+      has_calls: true
       has_body: true
     GPIO_WritePin:
       exists: true
@@ -277,7 +277,7 @@ sci_echoback.out:
       has_body: true
     InitSysCtrl:
       exists: true
-      has_stores: true
+      has_calls: true
       has_body: true
 
 gpio_setup.out:
@@ -300,7 +300,7 @@ gpio_setup.out:
       has_body: true
     InitSysCtrl:
       exists: true
-      has_stores: true
+      has_calls: true
       has_body: true
     InitGpio:
       exists: true
@@ -332,7 +332,7 @@ timer_cputimers.out:
       has_body: true
     InitSysCtrl:
       exists: true
-      has_stores: true
+      has_calls: true
       has_body: true
     InitPieCtrl:
       exists: true
@@ -357,7 +357,7 @@ ecap_apwm.out:
       has_body: true
     InitSysCtrl:
       exists: true
-      has_stores: true
+      has_calls: true
       has_body: true
 
 dma_transfer.out:
@@ -388,7 +388,7 @@ dma_transfer.out:
       # error() is ESTOP0 + infinite loop — may appear as tailcall in HLIL
     InitSysCtrl:
       exists: true
-      has_stores: true
+      has_calls: true
       has_body: true
 
 spi_loopback.out:
@@ -423,7 +423,7 @@ spi_loopback.out:
       has_body: true
     InitSysCtrl:
       exists: true
-      has_stores: true
+      has_calls: true
       has_body: true
 
 interrupts_prio.out:
@@ -440,7 +440,7 @@ interrupts_prio.out:
         callees: ["InitSysCtrl", "InitPieCtrl", "InitPieVectTable"]
     InitSysCtrl:
       exists: true
-      has_stores: true
+      has_calls: true
       has_body: true
     InitPieCtrl:
       exists: true

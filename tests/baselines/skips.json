@@ -1,0 +1,8 @@
+{
+  "_comment": "Expected skips per reason. The goal is not zero: it is that no test can go dark without someone editing this number. Regenerate deliberately with `pytest tests/ -q -rs` and read the diff.",
+  "expected": {
+    "tests/test_firmware_bn.py: Binary Ninja not installed": 8,
+    "tests/test_pmsm_bn.py: Binary Ninja not installed": 7,
+    "tests/test_pmsm_firmware.py: PMSM firmware absent; run tests/fixtures/pmsm/fetch.sh": 18
+  }
+}

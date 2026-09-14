@@ -12,12 +12,14 @@ import pytest
 
 try:
     import binaryninja
-    BN_AVAILABLE = True
+
+    # tests/conftest_bn_stub.py installs a MagicMock under this name; it is
+    # enough to import binja/, not to analyse a binary.
+    BN_AVAILABLE = not getattr(binaryninja, "_c28x_stub", False)
 except ImportError:
     BN_AVAILABLE = False
 
-from pathlib import Path
-from tests.conftest import build_firmware, write_firmware_bin, FUNCTIONS
+from tests.conftest import write_firmware_bin, FUNCTIONS
 
 
 pytestmark = pytest.mark.skipif(not BN_AVAILABLE, reason="Binary Ninja not installed")
@@ -56,7 +58,9 @@ class TestBNFunctionDiscovery:
         """Functions exist at all expected byte addresses."""
         func_addrs = {f.start for f in bv.functions}
         for name, _, byte_addr in FUNCTIONS:
-            assert byte_addr in func_addrs, f"Function {name} not found at 0x{byte_addr:X}"
+            assert byte_addr in func_addrs, (
+                f"Function {name} not found at 0x{byte_addr:X}"
+            )
 
 
 class TestBNDisassembly:
@@ -65,9 +69,7 @@ class TestBNDisassembly:
     def test_main_has_lcr_instructions(self, bv):
         main_func = bv.get_function_at(0x020)
         assert main_func is not None
-        disasm = "\n".join(
-            str(line) for line in main_func.llil
-        )
+        disasm = "\n".join(str(line) for line in main_func.llil)
         # main should contain call instructions
         assert "call" in disasm.lower()
 
@@ -80,12 +82,8 @@ class TestBNDisassembly:
     def test_delay_has_loop(self, bv):
         func = bv.get_function_at(0x088)
         assert func is not None
-        # delay should have a conditional branch (the loop)
-        has_cond = any(
-            hasattr(insn, 'condition') or 'if' in str(insn).lower()
-            for insn in func.llil
-        )
-        # At minimum it should have multiple basic blocks (loop structure)
+        # A conditional-branch check was computed here and never asserted.
+        # The block-count assertion below is what this test actually tests.
         assert len(func.basic_blocks) >= 2, "delay() should have loop structure"
 
 
@@ -109,8 +107,12 @@ class TestBNDecompilation:
             pytest.skip("Decompiler not available for delay()")
         text = str(hlil)
         # The decompiler should produce a while/do-while or similar loop
-        has_loop = ("while" in text.lower() or "do" in text.lower()
-                    or "goto" in text.lower() or "loop" in text.lower())
+        has_loop = (
+            "while" in text.lower()
+            or "do" in text.lower()
+            or "goto" in text.lower()
+            or "loop" in text.lower()
+        )
         assert has_loop or len(func.basic_blocks) >= 2, (
             "delay() should decompile to a loop"
         )

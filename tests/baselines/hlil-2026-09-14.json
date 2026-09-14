@@ -1,0 +1,62 @@
+{
+  "adc_epwm.out": {
+    "calls_multi_ret": 5,
+    "calls_total": 8,
+    "cond_n": 21,
+    "funcs": 171,
+    "hlil_fail": 0,
+    "hlil_lines": 1542,
+    "if_count": 48,
+    "llil_total": 2224,
+    "llil_unimpl": 0,
+    "raw_acc": 269,
+    "raw_xar": 154,
+    "unimplemented": 6,
+    "var_count": 1
+  },
+  "f2833x_fpu.out": {
+    "calls_multi_ret": 12,
+    "calls_total": 14,
+    "cond_n": 2,
+    "funcs": 212,
+    "hlil_fail": 0,
+    "hlil_lines": 1123,
+    "if_count": 44,
+    "llil_total": 1523,
+    "llil_unimpl": 0,
+    "raw_acc": 108,
+    "raw_xar": 109,
+    "unimplemented": 2,
+    "var_count": 0
+  },
+  "led_blink.out": {
+    "calls_multi_ret": 5,
+    "calls_total": 10,
+    "cond_n": 17,
+    "funcs": 166,
+    "hlil_fail": 0,
+    "hlil_lines": 1401,
+    "if_count": 41,
+    "llil_total": 2024,
+    "llil_unimpl": 0,
+    "raw_acc": 203,
+    "raw_xar": 154,
+    "unimplemented": 5,
+    "var_count": 1
+  },
+  "sci_echoback.out": {
+    "calls_multi_ret": 8,
+    "calls_total": 15,
+    "cond_n": 19,
+    "funcs": 169,
+    "hlil_fail": 0,
+    "hlil_lines": 1455,
+    "if_count": 43,
+    "llil_total": 2074,
+    "llil_unimpl": 0,
+    "raw_acc": 225,
+    "raw_xar": 178,
+    "unimplemented": 5,
+    "var_count": 0
+  }
+}
