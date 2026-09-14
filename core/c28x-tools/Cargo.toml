@@ -1,0 +1,13 @@
+[package]
+name = "c28x-tools"
+version = "0.1.0"
+edition = "2021"
+description = "Command-line access to the C28x decoder, for tests and CI"
+license = "MIT"
+
+[[bin]]
+name = "c28xdec"
+path = "src/main.rs"
+
+[dependencies]
+c28x-core = { path = "../c28x-core" }
