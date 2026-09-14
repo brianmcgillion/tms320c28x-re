@@ -7,8 +7,8 @@ use binaryninja::low_level_il::LowLevelILMutableFunction;
 
 use binaryninja::low_level_il::lifting::LowLevelILLabel;
 
-use super::{read_op, write_loc, reg_by_name};
-use crate::arch::Register;
+use super::{read_op, reg_by_name, write_loc};
+use crate::arch::{Intrinsic, Register};
 
 type ILFunc = LowLevelILMutableFunction;
 
@@ -16,22 +16,44 @@ pub fn lift(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
     let ops = &insn.operands;
     let n = insn.id;
 
-    // ── MOV32 RaH <-> CPU register (ACC / P / XARn). Only RaH is a decoded
-    //    operand; the CPU register is opcode word0 bits[3:0] (0x0-0x7=XAR0-7,
-    //    0x9=ACC, 0xB=P) — read it from the opcode and emit the 32-bit move. ──
-    if matches!(n, InsnId::MOV32_RAH_CPUREG | InsnId::MOV32_CPUREG_RAH) {
-        if let Some(op0) = ops.first() {
-            let rah = reg_by_name(op0.display_name());
-            let cpu = match ((insn.opcode >> 16) & 0xF) as u8 {
-                0 => Register::XAR0, 1 => Register::XAR1, 2 => Register::XAR2, 3 => Register::XAR3,
-                4 => Register::XAR4, 5 => Register::XAR5, 6 => Register::XAR6, 7 => Register::XAR7,
-                9 => Register::ACC, 0xB => Register::P,
-                _ => Register::ACC,
-            };
-            if matches!(n, InsnId::MOV32_RAH_CPUREG) {
-                il.set_reg(4, rah, il.reg(4, cpu)).append();   // RaH = CPUreg
+    // ── SETFLG FLAG, VALUE ──
+    // Sets/clears STF mode bits, which BN has no representation for. It was
+    // reaching the catch-all at the bottom of this function -- 444 occurrences
+    // across the four fixtures, every single unlifted instruction in the corpus.
+    // An intrinsic keeps it readable and tells dataflow that STF is clobbered.
+    if matches!(n, InsnId::SETFLG) {
+        let flags = il.const_int(
+            4,
+            insn.operands.first().map(|o| o.value as u64).unwrap_or(0),
+        );
+        il.intrinsic([Register::STF], Intrinsic::SetFlg, [flags])
+            .append();
+        return true;
+    }
+
+    // ── MOV32 loc32 <-> *(0:16bitAddr). The assembler spells the FPU half of
+    //    this as a register (`MOV32 ACC, R2H`), but RaH is encoded as the
+    //    address: R0H..R7H are 0x0F12 + 4n. Only the register-direct loc32
+    //    codes 0xA0-0xAB (XAR0-7 / ACC / P) are modelled; anything else is a
+    //    real memory move and falls through. ──
+    if matches!(n, InsnId::MOV32_ADDR16_LOC32 | InsnId::MOV32_LOC32_ADDR16) {
+        let cpu = match ((insn.opcode >> 16) & 0xFF) as u8 {
+            v @ 0xA0..=0xA7 => Some(reg_by_name(&format!("XAR{}", v - 0xA0))),
+            0xA9 => Some(Register::ACC),
+            0xAB => Some(Register::P),
+            _ => None,
+        };
+        let rah = match (insn.opcode & 0xFFFF) as u16 {
+            a if (0x0F12..=0x0F2E).contains(&a) && (a - 0x0F12) % 4 == 0 => {
+                Some(reg_by_name(&format!("R{}H", (a - 0x0F12) / 4)))
+            }
+            _ => None,
+        };
+        if let (Some(cpu), Some(rah)) = (cpu, rah) {
+            if matches!(n, InsnId::MOV32_ADDR16_LOC32) {
+                il.set_reg(4, rah, il.reg(4, cpu)).append(); // RaH = CPUreg
             } else {
-                il.set_reg(4, cpu, il.reg(4, rah)).append();   // CPUreg = RaH
+                il.set_reg(4, cpu, il.reg(4, rah)).append(); // CPUreg = RaH
             }
             return true;
         }
@@ -42,16 +64,24 @@ pub fn lift(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
     //    SP post-inc/pre-dec specials don't carry an xar_index for the generic
     //    loc path — so model them directly as a 32-bit STF push/pop. ──
     if matches!(n, InsnId::MOV32_MEM32_STF) {
-        let sp_byte = il.lsl(4, il.zx(4, il.reg(2, Register::SP)), il.const_int(4, 1));
-        il.store(4, sp_byte, il.reg(4, Register::STF)).append();   // [SP] = STF
-        il.set_reg(2, Register::SP,
-            il.add(2, il.reg(2, Register::SP), il.const_int(2, 2))).append(); // SP += 2 words
+        let sp_byte = il.reg(4, Register::SP);
+        il.store(4, sp_byte, il.reg(4, Register::STF)).append(); // [SP] = STF
+        il.set_reg(
+            4,
+            Register::SP,
+            il.add(4, il.reg(4, Register::SP), il.const_int(4, 4)),
+        )
+        .append(); // SP += 2 words
         return true;
     }
     if matches!(n, InsnId::MOV32_STF_MEM32) {
-        il.set_reg(2, Register::SP,
-            il.sub(2, il.reg(2, Register::SP), il.const_int(2, 2))).append(); // SP -= 2 words
-        let sp_byte = il.lsl(4, il.zx(4, il.reg(2, Register::SP)), il.const_int(4, 1));
+        il.set_reg(
+            4,
+            Register::SP,
+            il.sub(4, il.reg(4, Register::SP), il.const_int(4, 4)),
+        )
+        .append(); // SP -= 2 words
+        let sp_byte = il.reg(4, Register::SP);
         il.set_reg(4, Register::STF, il.load(4, sp_byte)).append(); // STF = [SP]
         return true;
     }
@@ -66,7 +96,7 @@ pub fn lift(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
         return true;
     }
     if matches!(n, InsnId::CMPF32_RAH_0) {
-        if ops.len() >= 1 {
+        if !ops.is_empty() {
             let a = il.reg(4, reg_by_name(ops[0].display_name()));
             il.fsub(4, a, il.const_int(4, 0)).append();
         }
@@ -74,8 +104,13 @@ pub fn lift(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
     }
 
     // ── Integer ↔ Float conversions ──
-    if matches!(n, InsnId::I16TOF32_RAH_RBH | InsnId::I32TOF32_RAH_RBH |
-                    InsnId::UI16TOF32_RAH_RBH | InsnId::UI32TOF32_RAH_RBH) {
+    if matches!(
+        n,
+        InsnId::I16TOF32_RAH_RBH
+            | InsnId::I32TOF32_RAH_RBH
+            | InsnId::UI16TOF32_RAH_RBH
+            | InsnId::UI32TOF32_RAH_RBH
+    ) {
         if ops.len() >= 2 {
             let dst = reg_by_name(ops[0].display_name());
             let src = il.reg(4, reg_by_name(ops[1].display_name()));
@@ -83,9 +118,15 @@ pub fn lift(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
         }
         return true;
     }
-    if matches!(n, InsnId::F32TOI16_RAH_RBH | InsnId::F32TOI16R_RAH_RBH |
-                    InsnId::F32TOI32_RAH_RBH | InsnId::F32TOUI16_RAH_RBH |
-                    InsnId::F32TOUI16R_RAH_RBH | InsnId::F32TOUI32_RAH_RBH) {
+    if matches!(
+        n,
+        InsnId::F32TOI16_RAH_RBH
+            | InsnId::F32TOI16R_RAH_RBH
+            | InsnId::F32TOI32_RAH_RBH
+            | InsnId::F32TOUI16_RAH_RBH
+            | InsnId::F32TOUI16R_RAH_RBH
+            | InsnId::F32TOUI32_RAH_RBH
+    ) {
         if ops.len() >= 2 {
             let dst = reg_by_name(ops[0].display_name());
             let src = il.reg(4, reg_by_name(ops[1].display_name()));
@@ -98,7 +139,8 @@ pub fn lift(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
         if ops.len() >= 2 {
             let dst = reg_by_name(ops[0].display_name());
             let src = read_op(&ops[1], il, 2);
-            il.set_reg(4, dst, il.int_to_float(4, il.sx(4, src))).append();
+            il.set_reg(4, dst, il.int_to_float(4, il.sx(4, src)))
+                .append();
         }
         return true;
     }
@@ -111,10 +153,7 @@ pub fn lift(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
         return true;
     }
     // ── ZERO RaH: RaH = 0.0 (single FPU-register operand) ──
-    if display_mnemonic(n, None) == "ZERO"
-        && !ops.is_empty()
-        && ops[0].op_type == OperandType::Register
-    {
+    if matches!(n, InsnId::ZERO) && !ops.is_empty() && ops[0].op_type == OperandType::Register {
         let dst = reg_by_name(ops[0].display_name());
         il.set_reg(4, dst, il.const_int(4, 0)).append();
         return true;
@@ -132,20 +171,30 @@ pub fn lift(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
         let src1 = il.reg(4, reg_by_name(ops[1].display_name()));
         let src2 = il.reg(4, reg_by_name(ops[2].display_name()));
 
-        let mnem = display_mnemonic(n, None);
-        let result = if mnem.starts_with("ADDF32") {
-            il.fadd(4, src1, src2).build()
-        } else if mnem.starts_with("SUBF32") {
-            il.fsub(4, src1, src2).build()
-        } else if mnem.starts_with("MPYF32") {
-            il.fmul(4, src1, src2).build()
-        } else if mnem.starts_with("MACF32") {
-            // MAC: dst += src1 * src2 (multiply-accumulate)
-            il.fadd(4, il.reg(4, dst), il.fmul(4, src1, src2)).build()
-        } else {
-            // Unknown 3-reg FPU op family — keep identity/length, no semantics.
-            il.nop().append();
-            return true;
+        // Dispatch on InsnId, not on the display name. This used to be
+        // `display_mnemonic(n, None).starts_with("ADDF32")`, so renaming a row
+        // for B6 would have turned a float add into `unimplemented()` with no
+        // compile error -- and a new row whose name happened to start with a
+        // family prefix would have been lifted as that family.
+        let result = match n {
+            InsnId::ADDF32_RAH_RBH_RCH | InsnId::ADDF32_MOV32_LOAD | InsnId::ADDF32_MOV32_STORE => {
+                il.fadd(4, src1, src2).build()
+            }
+            InsnId::SUBF32_RAH_RBH_RCH | InsnId::SUBF32_MOV32_LOAD | InsnId::SUBF32_MOV32_STORE => {
+                il.fsub(4, src1, src2).build()
+            }
+            InsnId::MPYF32_RAH_RBH_RCH
+            | InsnId::MPYF32_ADDF32_PAR
+            | InsnId::MPYF32_MOV32_LOAD
+            | InsnId::MPYF32_MOV32_STORE => il.fmul(4, src1, src2).build(),
+            // MAC: dst += src1 * src2
+            InsnId::MACF32_RAH_RBH_RCH => {
+                il.fadd(4, il.reg(4, dst), il.fmul(4, src1, src2)).build()
+            }
+            _ => {
+                il.unimplemented().append();
+                return true;
+            }
         };
         il.set_reg(4, dst, result).append();
 
@@ -155,7 +204,12 @@ pub fn lift(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
             let mov_dst = &ops[3];
             let mov_src = &ops[4];
             if mov_dst.op_type == OperandType::Register {
-                il.set_reg(4, reg_by_name(mov_dst.display_name()), read_op(mov_src, il, 4)).append();
+                il.set_reg(
+                    4,
+                    reg_by_name(mov_dst.display_name()),
+                    read_op(mov_src, il, 4),
+                )
+                .append();
             } else if matches!(mov_dst.op_type, OperandType::Loc16 | OperandType::Loc32) {
                 write_loc(mov_dst, il, 4, read_op(mov_src, il, 4));
             }
@@ -182,7 +236,8 @@ pub fn lift(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
             };
             let mut keep_label = LowLevelILLabel::new();
             let mut replace_label = LowLevelILLabel::new();
-            il.if_expr(cond, &mut keep_label, &mut replace_label).append();
+            il.if_expr(cond, &mut keep_label, &mut replace_label)
+                .append();
             il.mark_label(&mut replace_label);
             let src_reload = il.reg(4, reg_by_name(ops[1].display_name()));
             il.set_reg(4, dst, src_reload).append();
@@ -202,6 +257,29 @@ pub fn lift(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
         return true;
     }
 
+    // ── MOVIZ / MOVXI RaH, #16bit : load one half of RaH ──
+    //    SPRUEO2B's own example is the specification:
+    //        MOVIZF32 R0H,#0x4049   ; R0H = 0x40490000
+    //        MOVXI    R0H,#0x0FDB   ; R0H = 0x40490FDB
+    //    The two-operand arm below gave `RaH = imm` for both, which drops
+    //    MOVIZ's shift and clobbers the half MOVXI must preserve.
+    if matches!(n, InsnId::MOVIZ | InsnId::MOVXI) && ops.len() >= 2 {
+        let dst = reg_by_name(ops[0].display_name());
+        let imm = ops[1].value as u64 & 0xFFFF;
+        let value = if matches!(n, InsnId::MOVIZ) {
+            il.const_int(4, imm << 16)
+        } else {
+            il.or(
+                4,
+                il.and(4, il.reg(4, dst), il.const_int(4, 0xFFFF_0000)),
+                il.const_int(4, imm),
+            )
+            .build()
+        };
+        il.set_reg(4, dst, value).append();
+        return true;
+    }
+
     // ── MOV32 with memory operand ──
     if ops.len() >= 2 {
         let op0 = &ops[0];
@@ -212,11 +290,12 @@ pub fn lift(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
             return true;
         }
         if op0.op_type == OperandType::Register {
-            il.set_reg(4, reg_by_name(op0.display_name()), read_op(op1, il, 4)).append();
+            il.set_reg(4, reg_by_name(op0.display_name()), read_op(op1, il, 4))
+                .append();
             return true;
         }
     }
 
-    il.nop().append(); // guard: FPU with unrecognized operand types
+    il.unimplemented().append(); // guard: FPU with unrecognized operand types
     true
 }

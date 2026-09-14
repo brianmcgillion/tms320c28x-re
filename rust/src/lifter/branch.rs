@@ -12,41 +12,27 @@ use super::{ar_reg, reg_by_name};
 
 type ILFunc = LowLevelILMutableFunction;
 
-/// Emit a conditional branch. Both labels must resolve (be inside the
-/// current function) for if_expr to work. If either target is outside
-/// the function, fall back to unimplemented — BN still builds the CFG
-/// correctly from instruction_info.
+/// Emit a conditional branch.
+///
+/// Fresh labels plus an explicit jump, which is correct whether or not the
+/// target lies inside the current function. The previous version keyed on
+/// il.label_for_address, which only resolves in-function addresses, and in the
+/// three cases where it returned None it discarded the condition entirely --
+/// emitting an unconditional jump or a bare nop, so BN saw no conditional.
 fn emit_cond_branch(
     il: &ILFunc,
-    cond: binaryninja::low_level_il::LowLevelILMutableExpression<'_, binaryninja::low_level_il::expression::ValueExpr>,
+    cond: binaryninja::low_level_il::LowLevelILMutableExpression<
+        '_,
+        binaryninja::low_level_il::expression::ValueExpr,
+    >,
     target: u64,
-    fallthrough: u64,
 ) {
-    let t_label = il.label_for_address(target);
-    let f_label = il.label_for_address(fallthrough);
-
-    match (t_label, f_label) {
-        (Some(mut t), Some(mut f)) => {
-            il.if_expr(cond, &mut t, &mut f).append();
-        }
-        (Some(_), None) => {
-            // True target resolved, fallthrough outside function.
-            // Emit jump to the true target (BN follows it).
-            let _ = cond;
-            il.jump(il.const_ptr(target)).append();
-        }
-        (None, Some(_)) => {
-            // True target outside function, fallthrough resolved.
-            // Fall through naturally (nop) — BN handles from instruction_info.
-            let _ = cond;
-            il.nop().append();
-        }
-        (None, None) => {
-            // Both outside function — emit jump to target.
-            let _ = cond;
-            il.jump(il.const_ptr(target)).append();
-        }
-    }
+    let mut t_label = LowLevelILLabel::new();
+    let mut f_label = LowLevelILLabel::new();
+    il.if_expr(cond, &mut t_label, &mut f_label).append();
+    il.mark_label(&mut t_label);
+    il.jump(il.const_ptr(target)).append();
+    il.mark_label(&mut f_label);
 }
 
 /// Lift unconditional branch (LB, B UNC).
@@ -64,7 +50,7 @@ pub fn lift_branch(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
 }
 
 /// Lift conditional branch (B cond, SB cond, BF cond).
-pub fn lift_cond_branch(insn: &DecodedInstruction, addr: u64, il: &ILFunc) -> bool {
+pub fn lift_cond_branch(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
     // Find condition operand
     let cond_op = insn
         .operands
@@ -101,7 +87,7 @@ pub fn lift_cond_branch(insn: &DecodedInstruction, addr: u64, il: &ILFunc) -> bo
     };
 
     match flag_condition_il(cond_op.value as u8, il) {
-        Some(cond) => emit_cond_branch(il, cond, target, addr + insn.size as u64),
+        Some(cond) => emit_cond_branch(il, cond, target),
         None => il.nop().append(),
     }
     true
@@ -152,7 +138,10 @@ pub fn lift_return(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
 
 /// Lift XRETC (conditional return).
 pub fn lift_xretc(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
-    let cond_op = insn.operands.iter().find(|op| op.op_type == OperandType::Condition);
+    let cond_op = insn
+        .operands
+        .iter()
+        .find(|op| op.op_type == OperandType::Condition);
 
     match cond_op {
         Some(cop) if cop.value == 0xF => {
@@ -181,7 +170,7 @@ pub fn lift_xretc(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
 }
 
 /// Lift SBF (short branch fast) — condition encoded in opcode bits [9:8].
-pub fn lift_sbf(insn: &DecodedInstruction, addr: u64, il: &ILFunc) -> bool {
+pub fn lift_sbf(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
     let target = match insn.branch_target {
         Some(t) => t,
         None => {
@@ -203,12 +192,12 @@ pub fn lift_sbf(insn: &DecodedInstruction, addr: u64, il: &ILFunc) -> bool {
         }
     };
 
-    emit_cond_branch(il, cond, target, addr + insn.size as u64);
+    emit_cond_branch(il, cond, target);
     true
 }
 
 /// Lift BAR (branch if ARn == / != ARm).
-pub fn lift_bar(insn: &DecodedInstruction, addr: u64, il: &ILFunc, equal: bool) -> bool {
+pub fn lift_bar(insn: &DecodedInstruction, _addr: u64, il: &ILFunc, equal: bool) -> bool {
     let target = match insn.branch_target {
         Some(t) => t,
         None => {
@@ -237,12 +226,12 @@ pub fn lift_bar(insn: &DecodedInstruction, addr: u64, il: &ILFunc, equal: bool) 
         il.cmp_ne(2, il.reg(2, ar_n), il.reg(2, ar_m)).build()
     };
 
-    emit_cond_branch(il, cond, target, addr + insn.size as u64);
+    emit_cond_branch(il, cond, target);
     true
 }
 
 /// Lift BANZ (branch if ARn not zero, decrement).
-pub fn lift_banz(insn: &DecodedInstruction, addr: u64, il: &ILFunc) -> bool {
+pub fn lift_banz(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
     let target = match insn.branch_target {
         Some(t) => t,
         None => {
@@ -270,12 +259,12 @@ pub fn lift_banz(insn: &DecodedInstruction, addr: u64, il: &ILFunc) -> bool {
 
     // Branch if ARn != 0
     let cond = il.cmp_ne(2, il.reg(2, ar), il.const_int(2, 0)).build();
-    emit_cond_branch(il, cond, target, addr + insn.size as u64);
+    emit_cond_branch(il, cond, target);
     true
 }
 
 /// Map 4-bit C28x condition code to a BN flag-condition IL expression.
-/// Made `pub(crate)` so other lifter modules (e.g. `mov::lift_movb_cond`)
+/// Made `pub(crate)` so other lifter modules (e.g. `emit_conditional`)
 /// can wrap their bodies in `if_expr(flag_condition_il(cond), ...)`.
 pub(crate) fn flag_condition_il<'a>(
     code: u8,
