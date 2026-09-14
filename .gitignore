@@ -7,6 +7,7 @@ dist/
 .eggs/
 .pytest_cache/
 .venv/
+.serena/
 
 # Rust
 rust/target/
@@ -31,5 +32,12 @@ tests/fixtures/c2000ware/sdk/
 *.swp
 *~
 
-# Package manager locks (reproducible via flake.lock / uv.lock)
-uv.lock
+# uv.lock IS tracked: it is what makes CI and the devShell resolve the same
+# Python environment. It was ignored here while sitting in the working tree,
+# so no clone could reproduce the environment it describes.
+
+# TI reference manuals — fetched by docs/reference/fetch.sh, never committed
+docs/reference/*.pdf
+docs/reference/*.txt
+docs/plans/
+core/target/

@@ -5,8 +5,146 @@ on:
   pull_request:
     branches: [main]
 
+# ci.yml declared no permissions and inherited the repository default.
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  build:
+  # ── The decoder's own workspace: crates.io only, no BN, no cmake ──────────
+  core:
+    name: core (cargo test)
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: core
+      # core/Cargo.toml is deliberately a separate workspace with no
+      # binaryninja dependency, so this needs no licence, no BINARYNINJADIR and
+      # no cmake/ninja/libclang. It is also where build.rs rejects a malformed
+      # instruction table, so a bad opcode fails here first.
+      - run: cargo test --manifest-path core/Cargo.toml
+
+  # ── The instruction table checks itself ──────────────────────────────────
+  isa:
+    name: isa (table integrity)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: core
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      # Builds first: build.rs panics on an opcode outside its mask, a
+      # duplicate name, an identical (opcode, mask, format) under another name,
+      # or an operand field inside the mask.
+      - run: cargo build --release --manifest-path core/Cargo.toml
+      - run: uv sync --frozen --extra dev
+      - name: Every row reachable, and the addressing tables match dis2000
+        run: |
+          uv run pytest -q \
+            tests/test_isa_reachable.py \
+            tests/test_addressing_text.py
+
+  # ── Real compiler output, decoded and diffed ─────────────────────────────
+  golden:
+    name: golden (decode transcript)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: core
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - run: cargo build --release --manifest-path core/Cargo.toml
+      - run: uv sync --frozen --extra dev
+      # The objects are committed, so this needs no cl2000 and no licence.
+      - run: uv run python3 scripts/gen_golden.py --check
+
+  # ── Counts that may fall and must never rise ─────────────────────────────
+  ratchet:
+    name: ratchet (unmodeled bits, skips)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: core
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - run: cargo build --release --manifest-path core/Cargo.toml
+      - run: uv sync --frozen --extra dev
+      - name: Unmodeled encoding bits
+        run: uv run pytest -q tests/test_isa_gaps.py
+      # The skip ratchet runs in conftest's sessionfinish, so it needs the full
+      # run: a subset legitimately skips less and would pass either way.
+      - name: Skip count
+        run: uv run pytest -q tests/
+
+  # ── Python ───────────────────────────────────────────────────────────────
+  python:
+    name: python (ruff, pytest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: core
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      # c28x_rs.py drives this binary; without it every decoder test errors.
+      - run: cargo build --release --manifest-path core/Cargo.toml
+      # --frozen resolves from the committed uv.lock, which is what makes this
+      # the same environment the devShell builds.
+      - run: uv sync --frozen --extra dev
+      - run: uvx ruff@0.16.6 check .
+      - run: uvx ruff@0.16.6 format --check .
+      - run: uv run pytest tests/ -q
+
+  # ── Rust lint ────────────────────────────────────────────────────────────
+  lint-rust:
+    name: lint-rust (fmt, clippy)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+      - name: Install stub build deps
+        run: sudo apt-get update && sudo apt-get install -y cmake ninja-build libclang-dev
+      - run: cargo fmt --manifest-path core/Cargo.toml --all --check
+      - run: cargo fmt --manifest-path rust/Cargo.toml --all --check
+      - run: cargo clippy --manifest-path core/Cargo.toml --all-targets -- -D warnings
+      # DESTDIR: the BN stub's CMakeLists installs its library onto itself, and
+      # the copy removes the destination before reading the source. See
+      # scripts/run_all_tests.sh for the full note.
+      - run: cargo clippy --manifest-path rust/Cargo.toml --all-targets --no-default-features -- -D warnings
+        env:
+          DESTDIR: ${{ runner.temp }}/bn-stub
+
+  # ── The plugin links against the stub on every platform ──────────────────
+  plugin-build:
+    name: plugin-build (stub link)
     strategy:
       fail-fast: false
       matrix:
@@ -23,8 +161,8 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
-
-      # cmake + ninja needed by binaryninjacore-sys to build stub library
+      - uses: Swatinem/rust-cache@v2
+      # cmake + ninja needed by binaryninjacore-sys to build the stub library
       - name: Install build deps (Linux)
         if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y cmake ninja-build libclang-dev
@@ -34,16 +172,7 @@ jobs:
       - name: Install build deps (Windows)
         if: runner.os == 'Windows'
         run: choco install cmake ninja llvm -y
-
       - name: Build
         run: cargo build --release --manifest-path rust/Cargo.toml --target ${{ matrix.target }} --no-default-features
-
-  python-tests:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - run: pip install pyyaml pytest
-      - run: pytest tests/ -x -q --ignore=tests/test_firmware_bn.py --ignore=tests/test_pmsm_bn.py
+        env:
+          DESTDIR: ${{ runner.temp }}/bn-stub

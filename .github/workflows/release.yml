@@ -39,7 +39,11 @@ jobs:
         run: choco install cmake ninja llvm -y
 
       - name: Build native plugin
+        # DESTDIR: the BN stub's CMakeLists installs its library onto itself and
+        # destroys it in the process. See scripts/run_all_tests.sh.
         run: cargo build --release --manifest-path rust/Cargo.toml --target ${{ matrix.target }} --no-default-features
+        env:
+          DESTDIR: ${{ runner.temp }}/bn-stub
 
       - name: Package plugin
         shell: bash
@@ -48,12 +52,12 @@ jobs:
           ARTIFACT_NAME: ${{ matrix.artifact }}
         run: |
           mkdir -p dist/tms320c28x
-          cp binja/__init__.py dist/tms320c28x/
-          cp binja/coff_plugin.py dist/tms320c28x/
-          cp binja/elf_plugin.py dist/tms320c28x/
-          cp binja/flash.py dist/tms320c28x/
-          cp binja/tools.py dist/tms320c28x/
-          cp binja/plugin.json dist/tms320c28x/
+          # Every module, by glob. The hand-written list this replaces omitted
+          # memmap.py, patterns.py and dis_sidecar.py -- and flash.py:27 and
+          # tools.py:23 both do `from .memmap import ...`, so every published
+          # archive raised ImportError on load. scripts/package.sh:62 has had
+          # the glob, and a comment warning about exactly this, all along.
+          cp binja/*.py binja/plugin.json dist/tms320c28x/
           cp "rust/target/${BUILD_TARGET}/release/${ARTIFACT_NAME}" dist/tms320c28x/
 
       - name: Create archive
