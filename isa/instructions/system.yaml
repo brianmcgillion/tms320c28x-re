@@ -4,6 +4,8 @@
 instructions:
   - name: NOP
     full_name: "No operation"
+    mnemonic: NOP
+    operand_text: ""
     format: 16
     opcode: 0x7700
     mask: 0xFF00
@@ -11,6 +13,8 @@ instructions:
 
   - name: NOP_ZERO
     full_name: "No operation (zero word / alignment padding)"
+    mnemonic: ITRAP0
+    operand_text: ""
     format: 16
     opcode: 0x0000
     mask: 0xFFFF
@@ -18,36 +22,37 @@ instructions:
 
   - name: ITRAP1
     full_name: "Illegal instruction trap (erased flash filler)"
+    mnemonic: ITRAP1
+    operand_text: ""
     format: 16
     opcode: 0xFFFF
     mask: 0xFFFF
     semantics: { type: trap }
 
-  - name: MAC_P_LOC16_PMA
-    full_name: "Multiply accumulate with program memory"
+  - name: AND_ACC_IMM16_SHIFT16
+    full_name: "AND ACC with 16-bit constant shifted left 16"
+    mnemonic: AND
+    operand_text: "ACC, {0:04x} << 16"
     format: 32
     opcode: 0x56080000
     mask: 0xFFFF0000
     operands:
-      - { name: loc16, type: loc16, bits: [7, 0] }
-    semantics: { type: mpy }
-
-  - name: IACK_CONST16
-    full_name: "Interrupt acknowledge"
-    format: 16
-    opcode: 0x3E80
-    mask: 0xFFFF
-    semantics: { type: system }
+      - { name: const16, type: imm16, bits: [15, 0] }
+    semantics: { type: and, dest: ACC, flags: [N, Z] }
 
   - name: NORM_ACC_IND
     full_name: "Normalize ACC content"
+    mnemonic: NORM
+    operand_text: "ACC, *"
     format: 16
-    opcode: 0x5631
+    opcode: 0x5624
     mask: 0xFFFF
     semantics: { type: system }
 
   - name: EALLOW
     full_name: "Enable EALLOW-protected register access"
+    mnemonic: EALLOW
+    operand_text: ""
     format: 16
     opcode: 0x7622
     mask: 0xFFFF
@@ -57,6 +62,8 @@ instructions:
 
   - name: EDIS
     full_name: "Disable EALLOW-protected register access"
+    mnemonic: EDIS
+    operand_text: ""
     format: 16
     opcode: 0x761A
     mask: 0xFFFF
@@ -66,6 +73,8 @@ instructions:
 
   - name: ESTOP0
     full_name: "Emulation stop 0"
+    mnemonic: ESTOP0
+    operand_text: ""
     format: 16
     opcode: 0x7625
     mask: 0xFFFF
@@ -73,6 +82,8 @@ instructions:
 
   - name: ESTOP1
     full_name: "Emulation stop 1"
+    mnemonic: ESTOP1
+    operand_text: ""
     format: 16
     opcode: 0x7624
     mask: 0xFFFF
@@ -80,6 +91,8 @@ instructions:
 
   - name: ABORTI
     full_name: "Abort interrupt"
+    mnemonic: ABORTI
+    operand_text: ""
     format: 16
     opcode: 0x0001
     mask: 0xFFFF
@@ -87,6 +100,8 @@ instructions:
 
   - name: IDLE
     full_name: "Idle until interrupt"
+    mnemonic: IDLE
+    operand_text: ""
     format: 16
     opcode: 0x7621
     mask: 0xFFFF
@@ -94,6 +109,8 @@ instructions:
 
   - name: SETC_MODE
     full_name: "Set status bit"
+    mnemonic: SETC
+    operand_text: "{0}"
     format: 16
     opcode: 0x3B00
     mask: 0xFF00
@@ -105,6 +122,8 @@ instructions:
 
   - name: CLRC_MODE
     full_name: "Clear status bit"
+    mnemonic: CLRC
+    operand_text: "{0}"
     format: 16
     opcode: 0x2900
     mask: 0xFF00
@@ -116,6 +135,8 @@ instructions:
 
   - name: TRAP
     full_name: "Software trap"
+    mnemonic: TRAP
+    operand_text: "{0:d}"
     format: 16
     opcode: 0x0020
     mask: 0xFFE0
@@ -125,6 +146,8 @@ instructions:
 
   - name: INTR
     full_name: "Software interrupt"
+    mnemonic: INTR
+    operand_text: "{0}"
     format: 16
     opcode: 0x0010
     mask: 0xFFF0
@@ -134,6 +157,8 @@ instructions:
 
   - name: RPT_CONST8
     full_name: "Repeat next instruction N+1 times"
+    mnemonic: RPT
+    operand_text: "{0:d}"
     format: 16
     opcode: 0xF600
     mask: 0xFF00
@@ -145,17 +170,24 @@ instructions:
 
   - name: SPM_SHIFT
     full_name: "Set product shift mode"
+    mnemonic: SPM
+    operand_text: "{0:d}"
     format: 16
     opcode: 0xFF68
-    mask: 0xFFFC
+    # dis2000 spans 0xFF68-0xFF6F: the field is 3 bits and encodes the shift as
+    # 1 - field, so 0 is `SPM #1` and 7 is `SPM #-6`. A 2-bit field left the
+    # upper four encodings undecodable.
+    mask: 0xFFF8
     operands:
-      - { name: shift, type: imm2, bits: [1, 0] }
+      - { name: shift, type: imm4, bits: [2, 0] }
     semantics:
       type: system
       side_effects: ["PM = shift"]
 
   - name: CLRC_AMODE
     full_name: "Clear AMODE status bit"
+    mnemonic: CLRC
+    operand_text: "AMODE"
     format: 16
     opcode: 0x5616
     mask: 0xFFFF
@@ -165,6 +197,8 @@ instructions:
 
   - name: CLRC_M0M1MAP
     full_name: "Clear M0M1MAP status bit"
+    mnemonic: CLRC
+    operand_text: "M0M1MAP"
     format: 16
     opcode: 0x563F
     mask: 0xFFFF
@@ -174,6 +208,8 @@ instructions:
 
   - name: CLRC_OBJMODE
     full_name: "Clear OBJMODE status bit"
+    mnemonic: CLRC
+    operand_text: "OBJMODE"
     format: 16
     opcode: 0x5636
     mask: 0xFFFF
@@ -183,6 +219,8 @@ instructions:
 
   - name: CLRC_OVC
     full_name: "Clear overflow counter"
+    mnemonic: CLRC
+    operand_text: "OVC"
     format: 16
     opcode: 0x565C
     mask: 0xFFFF
@@ -192,6 +230,8 @@ instructions:
 
   - name: CLRC_XF
     full_name: "Clear XF status bit"
+    mnemonic: CLRC
+    operand_text: "XF"
     format: 16
     opcode: 0x561B
     mask: 0xFFFF
@@ -201,6 +241,8 @@ instructions:
 
   - name: SETC_M0M1MAP
     full_name: "Set M0M1MAP status bit"
+    mnemonic: SETC
+    operand_text: "M0M1MAP"
     format: 16
     opcode: 0x561A
     mask: 0xFFFF
@@ -210,6 +252,8 @@ instructions:
 
   - name: SETC_OBJMODE
     full_name: "Set OBJMODE status bit"
+    mnemonic: SETC
+    operand_text: "OBJMODE"
     format: 16
     opcode: 0x561F
     mask: 0xFFFF
@@ -219,6 +263,8 @@ instructions:
 
   - name: SETC_XF
     full_name: "Set XF status bit"
+    mnemonic: SETC
+    operand_text: "XF"
     format: 16
     opcode: 0x5626
     mask: 0xFFFF
@@ -228,6 +274,8 @@ instructions:
 
   - name: LPADDR
     full_name: "Set large pointer address mode"
+    mnemonic: SETC
+    operand_text: "AMODE"
     format: 16
     opcode: 0x561E
     mask: 0xFFFF
@@ -237,6 +285,8 @@ instructions:
 
   - name: ASP
     full_name: "Align stack pointer"
+    mnemonic: ASP
+    operand_text: ""
     format: 16
     opcode: 0x761B
     mask: 0xFFFF
@@ -246,6 +296,8 @@ instructions:
 
   - name: NASP
     full_name: "Unalign stack pointer"
+    mnemonic: NASP
+    operand_text: ""
     format: 16
     opcode: 0x7617
     mask: 0xFFFF
@@ -255,6 +307,8 @@ instructions:
 
   - name: AND_IER_CONST16
     full_name: "AND IER with 16-bit constant"
+    mnemonic: AND
+    operand_text: "IER, {0:04x}"
     format: 32
     opcode: 0x76260000
     mask: 0xFFFF0000
@@ -266,6 +320,8 @@ instructions:
 
   - name: AND_IFR_CONST16
     full_name: "AND IFR with 16-bit constant"
+    mnemonic: AND
+    operand_text: "IFR, {0:04x}"
     format: 32
     opcode: 0x762F0000
     mask: 0xFFFF0000
@@ -277,6 +333,8 @@ instructions:
 
   - name: OR_IER_CONST16
     full_name: "OR IER with 16-bit constant"
+    mnemonic: OR
+    operand_text: "IER, {0:04x}"
     format: 32
     opcode: 0x76230000
     mask: 0xFFFF0000
@@ -288,6 +346,8 @@ instructions:
 
   - name: OR_IFR_CONST16
     full_name: "OR IFR with 16-bit constant"
+    mnemonic: OR
+    operand_text: "IFR, {0:04x}"
     format: 32
     opcode: 0x76270000
     mask: 0xFFFF0000
@@ -299,6 +359,8 @@ instructions:
 
   - name: IACK_CONST16
     full_name: "Interrupt acknowledge"
+    mnemonic: IACK
+    operand_text: "{0:04x}"
     format: 32
     opcode: 0x763F0000
     mask: 0xFFFF0000
@@ -310,6 +372,8 @@ instructions:
 
   - name: INTR_NMI
     full_name: "Non-maskable interrupt"
+    mnemonic: INTR
+    operand_text: "NMI"
     format: 16
     opcode: 0x7616
     mask: 0xFFFF
@@ -317,6 +381,8 @@ instructions:
 
   - name: INTR_EMUINT
     full_name: "Emulation interrupt"
+    mnemonic: INTR
+    operand_text: "EMU"
     format: 16
     opcode: 0x761C
     mask: 0xFFFF
@@ -324,6 +390,8 @@ instructions:
 
   - name: RPT_LOC16
     full_name: "Repeat next instruction by loc16 count"
+    mnemonic: RPT
+    operand_text: "{0}"
     format: 16
     opcode: 0xF700
     mask: 0xFF00
@@ -333,15 +401,10 @@ instructions:
       type: system
       side_effects: ["repeat next instruction loc16+1 times"]
 
-  - name: NOP_IND_ARPN
-    full_name: "No operation with ARP update"
-    format: 16
-    opcode: 0x7700
-    mask: 0xFF00
-    semantics: { type: nop }
-
   - name: NORM_ACC_XARN_POSTINC
     full_name: "Normalize ACC with XARn post-increment"
+    mnemonic: NORM
+    operand_text: "ACC, {0}"
     format: 16
     opcode: 0xFF78
     mask: 0xFFF8
@@ -354,6 +417,8 @@ instructions:
 
   - name: NORM_ACC_XARN_POSTDEC
     full_name: "Normalize ACC with XARn post-decrement"
+    mnemonic: NORM
+    operand_text: "ACC, {0}"
     format: 16
     opcode: 0xFF70
     mask: 0xFFF8
@@ -366,6 +431,8 @@ instructions:
 
   - name: PREAD_LOC16_XAR7
     full_name: "Read program memory via XAR7"
+    mnemonic: PREAD
+    operand_text: "{0}, *XAR7"
     format: 16
     opcode: 0x2400
     mask: 0xFF00
@@ -378,6 +445,8 @@ instructions:
 
   - name: PWRITE_XAR7_LOC16
     full_name: "Write program memory via XAR7"
+    mnemonic: PWRITE
+    operand_text: "*XAR7, {0}"
     format: 16
     opcode: 0x2600
     mask: 0xFF00
@@ -390,6 +459,8 @@ instructions:
 
   - name: IN_LOC16_PA
     full_name: "Input data from I/O port"
+    mnemonic: IN
+    operand_text: "{0}, *({1:b04x})"
     format: 32
     opcode: 0xB4000000
     mask: 0xFF000000
@@ -402,6 +473,8 @@ instructions:
 
   - name: OUT_PA_LOC16
     full_name: "Output data to I/O port"
+    mnemonic: OUT
+    operand_text: "*({0:b04x}), {1}"
     format: 32
     opcode: 0xBC000000
     mask: 0xFF000000
@@ -414,6 +487,8 @@ instructions:
 
   - name: UOUT_PA_LOC16
     full_name: "Unprotected output data to I/O port"
+    mnemonic: UOUT
+    operand_text: "*({0:b04x}), {1}"
     format: 32
     opcode: 0xB0000000
     mask: 0xFF000000
@@ -426,6 +501,8 @@ instructions:
 
   - name: TBIT_LOC16_BIT
     full_name: "Test bit of loc16"
+    mnemonic: TBIT
+    operand_text: "{0}, {1}"
     format: 16
     opcode: 0x4000
     mask: 0xF000
@@ -439,9 +516,11 @@ instructions:
 
   - name: TBIT_LOC16_T
     full_name: "Test bit of loc16 specified by T"
+    mnemonic: TBIT
+    operand_text: "{0}, T"
     format: 32
     opcode: 0x56250000
-    mask: 0xFFFF0000
+    mask: 0xFFFFFF00
     operands:
       - { name: loc16, type: loc16, bits: [7, 0] }
     semantics:
@@ -451,12 +530,14 @@ instructions:
 
   - name: TCLR_LOC16_BIT
     full_name: "Test and clear bit of loc16"
+    mnemonic: TCLR
+    operand_text: "{0}, {1}"
     format: 32
     opcode: 0x56090000
-    mask: 0xFFF00000
+    mask: 0xFFFFF000
     operands:
       - { name: loc16, type: loc16, bits: [7, 0] }
-      - { name: bit, type: imm4, bits: [19, 16] }
+      - { name: bit, type: imm4, bits: [11, 8] }
     semantics:
       type: test
       src: "loc16"
@@ -465,12 +546,14 @@ instructions:
 
   - name: TSET_LOC16_BIT
     full_name: "Test and set bit of loc16"
+    mnemonic: TSET
+    operand_text: "{0}, {1}"
     format: 32
     opcode: 0x560D0000
-    mask: 0xFFF00000
+    mask: 0xFFFFF000
     operands:
       - { name: loc16, type: loc16, bits: [7, 0] }
-      - { name: bit, type: imm4, bits: [19, 16] }
+      - { name: bit, type: imm4, bits: [11, 8] }
     semantics:
       type: test
       src: "loc16"
@@ -479,6 +562,8 @@ instructions:
 
   - name: MAC_P_LOC16_XAR7
     full_name: "Multiply and accumulate with program memory"
+    mnemonic: MAC
+    operand_text: "P, {0}, *XAR7"
     format: 32
     opcode: 0x5607C700
     mask: 0xFFFFFF00
@@ -492,6 +577,8 @@ instructions:
 
   - name: MAC_P_LOC16_XAR7_POSTINC
     full_name: "Multiply and accumulate with program memory, XAR7++"
+    mnemonic: MAC
+    operand_text: "P, {0}, *XAR7++"
     format: 32
     opcode: 0x56078700
     mask: 0xFFFFFF00
@@ -506,9 +593,11 @@ instructions:
 
   - name: MAX_AX_LOC16
     full_name: "Maximum of AX and loc16"
+    mnemonic: MAX
+    operand_text: "{0}, {1:@AH|AL}"
     format: 32
     opcode: 0x56720000
-    mask: 0xFFFE0000
+    mask: 0xFFFEFF00
     operands:
       - { name: ax, type: ax, bits: [16, 16] }
       - { name: loc16, type: loc16, bits: [7, 0] }
@@ -521,9 +610,11 @@ instructions:
 
   - name: MIN_AX_LOC16
     full_name: "Minimum of AX and loc16"
+    mnemonic: MIN
+    operand_text: "{0}, {1:@AH|AL}"
     format: 32
     opcode: 0x56740000
-    mask: 0xFFFE0000
+    mask: 0xFFFEFF00
     operands:
       - { name: ax, type: ax, bits: [16, 16] }
       - { name: loc16, type: loc16, bits: [7, 0] }
@@ -536,9 +627,11 @@ instructions:
 
   - name: MAXL_ACC_LOC32
     full_name: "Maximum of ACC and loc32"
+    mnemonic: MAXL
+    operand_text: "ACC, {0}"
     format: 32
     opcode: 0x56610000
-    mask: 0xFFFF0000
+    mask: 0xFFFFFF00
     operands:
       - { name: loc32, type: loc32, bits: [7, 0] }
     semantics:
@@ -550,9 +643,11 @@ instructions:
 
   - name: MINL_ACC_LOC32
     full_name: "Minimum of ACC and loc32"
+    mnemonic: MINL
+    operand_text: "ACC, {0}"
     format: 32
     opcode: 0x56500000
-    mask: 0xFFFF0000
+    mask: 0xFFFFFF00
     operands:
       - { name: loc32, type: loc32, bits: [7, 0] }
     semantics:
@@ -564,9 +659,11 @@ instructions:
 
   - name: MAXCUL_P_LOC32
     full_name: "Unsigned maximum of P and loc32 with carry"
+    mnemonic: MAXCUL
+    operand_text: "P, {0}"
     format: 32
     opcode: 0x56510000
-    mask: 0xFFFF0000
+    mask: 0xFFFFFF00
     operands:
       - { name: loc32, type: loc32, bits: [7, 0] }
     semantics:
@@ -578,9 +675,11 @@ instructions:
 
   - name: MINCUL_P_LOC32
     full_name: "Unsigned minimum of P and loc32 with carry"
+    mnemonic: MINCUL
+    operand_text: "P, {0}"
     format: 32
     opcode: 0x56590000
-    mask: 0xFFFF0000
+    mask: 0xFFFFFF00
     operands:
       - { name: loc32, type: loc32, bits: [7, 0] }
     semantics:
@@ -592,6 +691,8 @@ instructions:
 
   - name: ZAPA
     full_name: "Zero ACC, P, and OVC"
+    mnemonic: ZAPA
+    operand_text: ""
     format: 16
     opcode: 0x5633
     mask: 0xFFFF
@@ -601,6 +702,8 @@ instructions:
 
   - name: MOV_MEM16_LOC16
     full_name: "Move loc16 to memory16"
+    mnemonic: MOV
+    operand_text: "*(0:{1:b04x}), {0}"
     format: 32
     opcode: 0xF4000000
     mask: 0xFF000000
@@ -614,6 +717,8 @@ instructions:
 
   - name: MOV_LOC16_MEM16
     full_name: "Move memory16 to loc16"
+    mnemonic: MOV
+    operand_text: "{0}, *(0:{1:b04x})"
     format: 32
     opcode: 0xF5000000
     mask: 0xFF000000
@@ -625,8 +730,37 @@ instructions:
       dest: "loc16"
       src: "mem16"
 
+  # SPRU430F: `10000100LLLLLLLL / CCCCCCCCCCCCCCCC`. 153 occurrences across
+  # the fixtures and, until now, the only instruction the decoder could not
+  # decode at all. XMACD is the same shape at 0xA4.
+  - name: XMAC_P_LOC16_PMA
+    full_name: "Extended multiply-accumulate from program memory"
+    mnemonic: XMAC
+    operand_text: "P, {0}, *({1:b04x})"
+    format: 32
+    opcode: 0x84000000
+    mask: 0xFF000000
+    operands:
+      - { name: loc16, type: loc16, bits: [23, 16] }
+      - { name: pma, type: imm16, bits: [15, 0] }
+    semantics: { type: mpy, dest: P }
+
+  - name: XMACD_P_LOC16_PMA
+    full_name: "Extended multiply-accumulate and delay from program memory"
+    mnemonic: XMACD
+    operand_text: "P, {0}, *({1:b04x})"
+    format: 32
+    opcode: 0xA4000000
+    mask: 0xFF000000
+    operands:
+      - { name: loc16, type: loc16, bits: [23, 16] }
+      - { name: pma, type: imm16, bits: [15, 0] }
+    semantics: { type: mpy, dest: P }
+
   - name: XPREAD_LOC16_PMA
     full_name: "Extended program read from address"
+    mnemonic: XPREAD
+    operand_text: "{0}, *({1:b04x})"
     format: 32
     opcode: 0xAC000000
     mask: 0xFF000000
@@ -640,9 +774,11 @@ instructions:
 
   - name: XPREAD_LOC16_AL
     full_name: "Extended program read via AL"
+    mnemonic: XPREAD
+    operand_text: "{0}, *AL"
     format: 32
     opcode: 0x563C0000
-    mask: 0xFFFF0000
+    mask: 0xFFFFFF00
     operands:
       - { name: loc16, type: loc16, bits: [7, 0] }
     semantics:
@@ -652,9 +788,11 @@ instructions:
 
   - name: XPWRITE_AL_LOC16
     full_name: "Extended program write via AL"
+    mnemonic: XPWRITE
+    operand_text: "*AL, {0}"
     format: 32
     opcode: 0x563D0000
-    mask: 0xFFFF0000
+    mask: 0xFFFFFF00
     operands:
       - { name: loc16, type: loc16, bits: [7, 0] }
     semantics:

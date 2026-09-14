@@ -4,45 +4,55 @@
 instructions:
   - name: LSL_ACC_SHIFT
     full_name: "Logical shift left ACC by immediate"
+    mnemonic: LSL
+    operand_text: "ACC, {0:b}"
     format: 16
     opcode: 0xFF30
     mask: 0xFFF0
     operands:
-      - { name: shift, type: imm4, bits: [3, 0] }
+      - { name: shift, type: imm4, bits: [3, 0], bias: 1 }
     semantics: { type: lsl, dest: ACC, flags: [N, Z, C] }
 
   - name: LSL_AX_SHIFT
     full_name: "Logical shift left AX by immediate"
+    mnemonic: LSL
+    operand_text: "{0}, {1:b}"
     format: 16
     opcode: 0xFF80
     mask: 0xFFE0
     operands:
       - { name: ax, type: ax, bits: [4, 4] }
-      - { name: shift, type: imm4, bits: [3, 0] }
+      - { name: shift, type: imm4, bits: [3, 0], bias: 1 }
     semantics: { type: lsl, flags: [N, Z, C] }
 
   - name: LSR_AX_SHIFT
     full_name: "Logical shift right AX by immediate"
+    mnemonic: LSR
+    operand_text: "{0}, {1:b}"
     format: 16
     opcode: 0xFFC0
     mask: 0xFFE0
     operands:
       - { name: ax, type: ax, bits: [4, 4] }
-      - { name: shift, type: imm4, bits: [3, 0] }
+      - { name: shift, type: imm4, bits: [3, 0], bias: 1 }
     semantics: { type: lsr, flags: [N, Z, C] }
 
   - name: ASR_AX_SHIFT
     full_name: "Arithmetic shift right AX by immediate"
+    mnemonic: ASR
+    operand_text: "{0}, {1:b}"
     format: 16
     opcode: 0xFFA0
     mask: 0xFFE0
     operands:
       - { name: ax, type: ax, bits: [4, 4] }
-      - { name: shift, type: imm4, bits: [3, 0] }
+      - { name: shift, type: imm4, bits: [3, 0], bias: 1 }
     semantics: { type: asr, flags: [N, Z, C] }
 
   - name: ROL_ACC
     full_name: "Rotate ACC left through carry"
+    mnemonic: ROL
+    operand_text: "ACC"
     format: 16
     opcode: 0xFF53
     mask: 0xFFFF
@@ -50,6 +60,8 @@ instructions:
 
   - name: ROR_ACC
     full_name: "Rotate ACC right through carry"
+    mnemonic: ROR
+    operand_text: "ACC"
     format: 16
     opcode: 0xFF52
     mask: 0xFFFF
@@ -57,6 +69,8 @@ instructions:
 
   - name: LSL_ACC_T
     full_name: "Logical shift left ACC by T register"
+    mnemonic: LSL
+    operand_text: "ACC, T"
     format: 16
     opcode: 0xFF50
     mask: 0xFFFF
@@ -64,6 +78,8 @@ instructions:
 
   - name: LSL_AX_T
     full_name: "Logical shift left AX by T register"
+    mnemonic: LSL
+    operand_text: "{0}, T"
     format: 16
     opcode: 0xFF66
     mask: 0xFFFE
@@ -73,6 +89,8 @@ instructions:
 
   - name: LSR_AX_T
     full_name: "Logical shift right AX by T register"
+    mnemonic: LSR
+    operand_text: "{0}, T"
     format: 16
     opcode: 0xFF62
     mask: 0xFFFE
@@ -82,6 +100,8 @@ instructions:
 
   - name: ASR_AX_T
     full_name: "Arithmetic shift right AX by T register"
+    mnemonic: ASR
+    operand_text: "{0}, T"
     format: 16
     opcode: 0xFF64
     mask: 0xFFFE
@@ -91,6 +111,8 @@ instructions:
 
   - name: LSL64_ACC_P_SHIFT
     full_name: "Logical shift left 64-bit ACC:P by immediate"
+    mnemonic: LSL64
+    operand_text: "ACC:P, {0:b}"
     # Shift field is 4 bits (0-15) per TI SPRU430F and INL bn-tic28x-arch
     # reference (MASK_FFF0). The previous mask 0xFFE0 / imm5 allowed bit 4
     # as part of the shift, which shadowed the entire 0x56B0-0x56BF range
@@ -99,11 +121,13 @@ instructions:
     opcode: 0x56A0
     mask: 0xFFF0
     operands:
-      - { name: shift, type: imm4, bits: [3, 0] }
+      - { name: shift, type: imm4, bits: [3, 0], bias: 1 }
     semantics: { type: lsl, dest: "ACC:P", flags: [N, Z, C] }
 
   - name: LSL64_ACC_P_T
     full_name: "Logical shift left 64-bit ACC:P by T register"
+    mnemonic: LSL64
+    operand_text: "ACC:P, T"
     format: 16
     opcode: 0x5652
     mask: 0xFFFF
@@ -111,16 +135,20 @@ instructions:
 
   - name: LSR64_ACC_P_SHIFT
     full_name: "Logical shift right 64-bit ACC:P by immediate"
+    mnemonic: LSR64
+    operand_text: "ACC:P, {0:b}"
     # See LSL64_ACC_P_SHIFT — same 4-bit shift field per TI/INL.
     format: 16
     opcode: 0x5690
     mask: 0xFFF0
     operands:
-      - { name: shift, type: imm4, bits: [3, 0] }
+      - { name: shift, type: imm4, bits: [3, 0], bias: 1 }
     semantics: { type: lsr, dest: "ACC:P", flags: [N, Z, C] }
 
   - name: LSR64_ACC_P_T
     full_name: "Logical shift right 64-bit ACC:P by T register"
+    mnemonic: LSR64
+    operand_text: "ACC:P, T"
     format: 16
     opcode: 0x565B
     mask: 0xFFFF
@@ -128,16 +156,20 @@ instructions:
 
   - name: ASR64_ACC_P_SHIFT
     full_name: "Arithmetic shift right 64-bit ACC:P by immediate"
+    mnemonic: ASR64
+    operand_text: "ACC:P, {0:b}"
     # See LSL64_ACC_P_SHIFT — same 4-bit shift field per TI/INL.
     format: 16
     opcode: 0x5680
     mask: 0xFFF0
     operands:
-      - { name: shift, type: imm4, bits: [3, 0] }
+      - { name: shift, type: imm4, bits: [3, 0], bias: 1 }
     semantics: { type: asr, dest: "ACC:P", flags: [N, Z, C] }
 
   - name: ASR64_ACC_P_T
     full_name: "Arithmetic shift right 64-bit ACC:P by T register"
+    mnemonic: ASR64
+    operand_text: "ACC:P, T"
     format: 16
     opcode: 0x562C
     mask: 0xFFFF
@@ -145,6 +177,8 @@ instructions:
 
   - name: LSLL_ACC_T
     full_name: "Logical shift left ACC by T (long)"
+    mnemonic: LSLL
+    operand_text: "ACC, T"
     format: 16
     opcode: 0x563B
     mask: 0xFFFF
@@ -152,6 +186,8 @@ instructions:
 
   - name: LSRL_ACC_T
     full_name: "Logical shift right ACC by T (long)"
+    mnemonic: LSRL
+    operand_text: "ACC, T"
     format: 16
     opcode: 0x5622
     mask: 0xFFFF
@@ -159,6 +195,8 @@ instructions:
 
   - name: ASRL_ACC_T
     full_name: "Arithmetic shift right ACC by T (long)"
+    mnemonic: ASRL
+    operand_text: "ACC, T"
     format: 16
     opcode: 0x5610
     mask: 0xFFFF
@@ -166,15 +204,19 @@ instructions:
 
   - name: SFR_ACC_SHIFT
     full_name: "Shift ACC right by immediate"
+    mnemonic: SFR
+    operand_text: "ACC, {0:b}"
     format: 16
     opcode: 0xFF40
     mask: 0xFFF0
     operands:
-      - { name: shift, type: imm4, bits: [3, 0] }
+      - { name: shift, type: imm4, bits: [3, 0], bias: 1 }
     semantics: { type: asr, dest: ACC, flags: [N, Z, C] }
 
   - name: SFR_ACC_T
     full_name: "Shift ACC right by T register"
+    mnemonic: SFR
+    operand_text: "ACC, T"
     format: 16
     opcode: 0xFF51
     mask: 0xFFFF
@@ -182,6 +224,8 @@ instructions:
 
   - name: FLIP_AX
     full_name: "Flip bit ordering of AX"
+    mnemonic: FLIP
+    operand_text: "{0}"
     format: 16
     opcode: 0x5670
     mask: 0xFFFE
