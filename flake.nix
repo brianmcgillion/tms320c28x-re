@@ -38,49 +38,37 @@
       };
     in
     {
-      # Consumers get `python3Packages.c28x` built against *their* interpreter.
+      # BREAKING in 0.2.0: the `python3Packages.c28x` overlay is gone.
       #
-      # A pythonPackagesExtensions entry rather than a plain `packages` output
-      # on purpose: this flake pins its own nixpkgs, so a package built here
-      # would land in some other python3.X/site-packages and simply not be on
-      # the consumer's PYTHONPATH — an import that vanishes rather than fails.
-      overlays.default = _final: prev: {
-        pythonPackagesExtensions = (prev.pythonPackagesExtensions or [ ]) ++ [
-          (pyfinal: _pyprev: {
-            c28x = pyfinal.buildPythonPackage {
-              # pname must match the distribution in pyproject.toml or the
-              # metadata check fails; the attribute and importable module are
-              # both `c28x`.
-              pname = "tms320c28x-re";
-              version = "0.1.0";
-              pyproject = true;
-
-              src = self;
-
-              build-system = [ pyfinal.setuptools ];
-              dependencies = [ pyfinal.pyyaml ];
-
-              # pyproject.toml packages only `c28x*`, and isa/ has to stay at
-              # the repo root for rust/build.rs. Install a copy beside the
-              # module so the fallback in c28x/isa.py finds it.
-              postInstall = ''
-                cp -r isa "$out/${pyfinal.python.sitePackages}/c28x/isa"
-              '';
-
-              pythonImportsCheck = [
-                "c28x"
-                "c28x.decoder"
-              ];
-
-              meta = {
-                description = "TMS320C28x ISA decoder and COFF reader";
-                homepage = "https://github.com/brianmcgillion/tms320c28x-re";
-                license = nixpkgs.lib.licenses.mit;
-              };
-            };
-          })
-        ];
-      };
+      # It packaged a second decoder, generated from the same YAML as the Rust
+      # one and compared against it by nothing, so the two could drift silently.
+      # It was also broken as shipped: c28x/isa.py returned quietly when the ISA
+      # directory was missing and pyproject.toml packaged no YAML, so an install
+      # decoded every input to None without raising. What replaces it is the
+      # binary the tests themselves now use.
+      packages = forAllSystems (pkgs: rec {
+        default = c28xdec;
+        c28xdec = pkgs.rustPlatform.buildRustPackage {
+          pname = "c28xdec";
+          version = "0.2.0";
+          src = self;
+          # core/ is its own workspace, deliberately free of the binaryninja
+          # dependency, so this needs no cmake, ninja or libclang. cargoRoot
+          # rather than buildAndTestSubdir: the vendor hook looks for
+          # Cargo.lock relative to the source root, and ours is in core/.
+          cargoRoot = "core";
+          buildAndTestSubdir = "core";
+          cargoLock.lockFile = ./core/Cargo.lock;
+          # build.rs reads ../../isa/instructions relative to CARGO_MANIFEST_DIR,
+          # which is why src is the whole tree rather than core/ alone.
+          meta = {
+            description = "TMS320C28x decoder CLI: NDJSON disassembly, COFF parsing, addressing tables";
+            homepage = "https://github.com/brianmcgillion/tms320c28x-re";
+            license = nixpkgs.lib.licenses.mit;
+            mainProgram = "c28xdec";
+          };
+        };
+      });
 
       # nix run .#tests — full test suite (run from repo root)
       apps = forAllSystems (pkgs: {
@@ -89,8 +77,15 @@
           program = let
             testScript = pkgs.writeShellScript "run-tests" ''
               export PATH="${pkgs.lib.makeBinPath (with pkgs; [
-                rustc cargo patchelf python3 uv git coreutils
-              ] ++ pkgs.lib.optionals (pkgs.stdenv.isLinux && pkgs.stdenv.isx86_64) [
+                # scripts/validate_functional.py and friends import yaml; the
+                # devShell gets it from .venv, this app has no .venv.
+                rustc cargo patchelf (python3.withPackages (ps: [ ps.pyyaml ])) uv git coreutils
+                # cmake + ninja for the REQUIRED stub-link stage: binaryninjacore-sys
+                # builds its stub library with them, and that is the only link smoke
+                # over arch.rs and the lifter that needs no licence.
+                cmake ninja
+              ] ++ pkgs.lib.optionals
+                (pkgs.stdenv.hostPlatform.isLinux && pkgs.stdenv.hostPlatform.isx86_64) [
                 (ti-cgt-c2000 { inherit pkgs; })
               ])}:$PATH"
               export LIBCLANG_PATH="${pkgs.llvmPackages.libclang.lib}/lib"
@@ -118,12 +113,25 @@
         };
       });
 
-      devShells = forAllSystems (pkgs: {
+      devShells = forAllSystems (pkgs: let
+        # PATH only, never `packages`. As a package, nix appends its include/ to
+        # NIX_CFLAGS_COMPILE and lib/ to NIX_LDFLAGS -- and those hold C28x
+        # *target* headers and a C28x libc.a, which shadow glibc's. Every host C
+        # compile in the shell then fails: `gcc` on a bare `int main(void){}`
+        # dies on `undefined reference to __libc_start_main`. That also broke the
+        # binaryninjacore stub build, and with it the only licence-free link
+        # smoke over arch.rs and the lifter.
+        tiCgt = pkgs.lib.optionals
+          (pkgs.stdenv.hostPlatform.isLinux && pkgs.stdenv.hostPlatform.isx86_64)
+          [ (ti-cgt-c2000 { inherit pkgs; }) ];
+      in {
         default = pkgs.mkShell {
           packages = with pkgs; [
             # Python
             python3
             uv
+
+            zip   # scripts/package.sh
 
             # Rust
             rustc
@@ -146,9 +154,6 @@
             basedpyright # type checking + completions
             ruff # linting + formatting (includes ruff server)
             semgrep # security/SAST analysis (includes semgrep lsp)
-          ] ++ pkgs.lib.optionals (pkgs.stdenv.isLinux && pkgs.stdenv.isx86_64) [
-            # TI C2000 cross-compiler (x86_64-linux only)
-            (ti-cgt-c2000 { inherit pkgs; })
           ];
 
           LIBCLANG_PATH = "${pkgs.llvmPackages.libclang.lib}/lib";
@@ -159,9 +164,18 @@
           # "DSO missing from command line" because rustc's linker
           # invocation for build-script binaries doesn't go through
           # the NixOS cc-wrapper.
+          #
+          # POSSIBLY REDUNDANT since ti-cgt-c2000 left `packages` above: with it
+          # unset, a clean `cargo build --release --manifest-path core/Cargo.toml`
+          # -- build script and all -- now succeeds. The same shadowing that broke
+          # every C compile is the likeliest original cause. Kept because that was
+          # checked only for core/, and removing it is its own change.
           CARGO_BUILD_RUSTFLAGS = "-C link-arg=-L${pkgs.glibc}/lib";
 
-          shellHook = ''
+          shellHook = pkgs.lib.optionalString (tiCgt != [ ]) ''
+            # cl2000/asm2000/dis2000, on PATH and nothing more -- see tiCgt above.
+            export PATH="${pkgs.lib.makeBinPath tiCgt}:$PATH"
+          '' + ''
             # Auto-detect BINARYNINJADIR from PATH (needed by binaryninjacore-sys)
             if command -v binaryninja &>/dev/null && [ -z "''${BINARYNINJADIR:-}" ]; then
               _bn_real="$(readlink -f "$(which binaryninja)")"
