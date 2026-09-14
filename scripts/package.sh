@@ -27,10 +27,19 @@ echo "Native: $NATIVE"
 # Build native library
 echo
 echo "Building Rust plugin..."
-cargo build --release --manifest-path rust/Cargo.toml ${TARGET:+--target "$TARGET"} 2>&1 | tail -3
+# Only cross-compile when actually cross-compiling. Passing --target for the
+# host triple makes cargo build build scripts in a separate host pass that does
+# not inherit CARGO_BUILD_RUSTFLAGS, so the devShell's glibc link flag is lost
+# and every build script fails to link.
+HOST=$(rustc -vV | sed -n 's/^host: //p')
+if [ "$TARGET" = "$HOST" ]; then
+    cargo build --release --manifest-path rust/Cargo.toml 2>&1 | tail -3
+else
+    cargo build --release --manifest-path rust/Cargo.toml --target "$TARGET" 2>&1 | tail -3
+fi
 
 # Find the built library
-if [ -n "$TARGET" ] && [ -d "rust/target/$TARGET/release" ]; then
+if [ "$TARGET" != "$HOST" ] && [ -d "rust/target/$TARGET/release" ]; then
     NATIVE_PATH="rust/target/$TARGET/release/$NATIVE"
 else
     NATIVE_PATH="rust/target/release/$NATIVE"
@@ -48,13 +57,9 @@ rm -rf "$PKG"
 mkdir -p "$PKG"
 
 # Copy Python plugin files
-cp binja/__init__.py "$PKG/"
-cp binja/coff_plugin.py "$PKG/"
-cp binja/elf_plugin.py "$PKG/"
-cp binja/flash.py "$PKG/"
-cp binja/tools.py "$PKG/"
-cp binja/dis_sidecar.py "$PKG/"
-cp binja/plugin.json "$PKG/"
+# Every module, so a new shared one (memmap.py, patterns.py) cannot be left
+# out of the release and break the plugin on a user's machine only.
+cp binja/*.py binja/plugin.json "$PKG/"
 
 # Copy native library
 cp "$NATIVE_PATH" "$PKG/"

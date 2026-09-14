@@ -12,13 +12,22 @@ from _bn_helpers import init_bn, load_c28x
 
 binaryninja = init_bn()
 
-FIXTURE_DIR = os.path.join(os.path.dirname(__file__), "..", "tests", "fixtures", "build")
+FIXTURE_DIR = os.path.join(
+    os.path.dirname(__file__), "..", "tests", "fixtures", "build"
+)
 
 EXPECTED_FUNCTIONS = {
     "led_blink.out": ["main", "delay", "gpio_toggle"],
     "pid_loop.out": ["main", "pid_init", "pid_compute", "run_pid_loop"],
     "switch_table.out": ["main", "process_command", "run_commands"],
-    "isr_handler.out": ["main", "buf_init", "buf_put", "buf_get", "sci_rx_isr", "process_received"],
+    "isr_handler.out": [
+        "main",
+        "buf_init",
+        "buf_put",
+        "buf_get",
+        "sci_rx_isr",
+        "process_received",
+    ],
 }
 
 total_pass = 0
@@ -69,7 +78,9 @@ for fixture_path in fixture_files:
             total_pass += 1
         else:
             print(f"  [FAIL] Missing function: {fname}")
-            print(f"         Available: {sorted(f.name for f in bv.functions if not f.name.startswith('sub_'))}")
+            print(
+                f"         Available: {sorted(f.name for f in bv.functions if not f.name.startswith('sub_'))}"
+            )
             total_fail += 1
 
     # Check IL quality
@@ -108,14 +119,14 @@ for fixture_path in fixture_files:
             hlil_fail += 1
 
     if llil_errors == 0:
-        print(f"  [OK] LLIL: no errors")
+        print("  [OK] LLIL: no errors")
         total_pass += 1
     else:
         print(f"  [FAIL] LLIL: {llil_errors} errors")
         total_fail += 1
 
     if mlil_errors == 0:
-        print(f"  [OK] MLIL: no errors")
+        print("  [OK] MLIL: no errors")
         total_pass += 1
     else:
         print(f"  [FAIL] MLIL: {mlil_errors} errors")
@@ -132,7 +143,7 @@ for fixture_path in fixture_files:
     print()
     bv.file.close()
 
-print(f"{'='*50}")
+print(f"{'=' * 50}")
 print(f"TOTAL: {total_pass} passed, {total_fail} failed, {total_warn} warnings")
-print(f"{'='*50}")
+print(f"{'=' * 50}")
 sys.exit(1 if total_fail > 0 else 0)

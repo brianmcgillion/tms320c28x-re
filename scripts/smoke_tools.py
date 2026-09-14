@@ -10,26 +10,39 @@ This script imports `binja.tools` and exercises each Task's `run()` against a
 permissive `MagicMock` BinaryView. Mock-induced AttributeError / TypeError is
 tolerated; only `NameError` (missing import) fails the smoke test.
 
-Run: nix develop -c python3 scripts/smoke_tools.py
+It used to load the file standalone via `spec_from_file_location`, with a
+comment claiming that matched how BN loads it. It does not: package.sh ships a
+`tms320c28x/` directory and `__init__.py` imports the modules as
+`tms320c28x.tools`, so importing the package is the faithful thing -- and it
+is what lets the modules share code at all.
+
+Run: nix develop -c python3 scripts/smoke_tools.py [--stub]
+
+`--stub` swaps the real Binary Ninja for tests/conftest_bn_stub.py, so the
+check runs with no install and no licence. Nothing here needs real BN -- every
+Task is already exercised against a MagicMock BinaryView -- the import of
+binja.tools was the only thing that did. That makes this a CI gate.
 """
 
-import importlib.util
 import os
 import sys
 from unittest.mock import MagicMock
 
 sys.path.insert(0, os.path.dirname(__file__))
-from _bn_helpers import init_bn
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.insert(0, ROOT)
 
-binaryninja = init_bn()
+if "--stub" in sys.argv:
+    from tests.conftest_bn_stub import install as install_bn_stub
 
-ROOT = os.path.join(os.path.dirname(__file__), "..")
-TOOLS_PY = os.path.join(ROOT, "binja", "tools.py")
+    install_bn_stub()
+    import binaryninja
+else:
+    from _bn_helpers import init_bn
 
-# Load binja/tools.py as a standalone module (matches how BN itself loads it).
-spec = importlib.util.spec_from_file_location("tools", TOOLS_PY)
-tools = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(tools)
+    binaryninja = init_bn()
+
+from binja import tools  # noqa: E402 (needs the sys.path line above)
 
 
 def make_mock_bv():

@@ -14,28 +14,40 @@ asserts the plan's Phase-2 gates:
 Run:  nix develop -c python scripts/validate_dis_sidecar.py [dump-dir]
 """
 
-import importlib.util
 import json
 import os
 import sys
 
 sys.path.insert(0, os.path.dirname(__file__))
-from _bn_helpers import init_bn
+from _bn_helpers import load_binja_module, init_bn
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DEFAULT_DUMP = ("/home/brian/projects/re/target/full-bird/J33/"
-                "dumps/20260602-121546/dump-reset")
-
-
-def _load(path, name):
-    spec = importlib.util.spec_from_file_location(name, path)
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
-    return mod
+# ── Baseline-specific constants ─────────────────────────────────────────────
+#
+# Unlike the other two validators, this script cannot be pointed at an arbitrary
+# dump. Gates 3 and 4 below assert on addresses inside ONE firmware image: the
+# WGS84 semi-major-axis constant, and five named landmarks. Against any other
+# binary those addresses mean nothing, so a "pass" would be an accident.
+# Replace this block when retargeting, and read the numbers as data about that
+# image rather than as something the script can work out for itself.
+WGS84_WORD = 0x338A45
+LANDMARKS = {
+    0x306F33: "attitude DCM resolve (mid-routine)",
+    0x30F6EC: "+2ch pipeline (mid-routine)",
+    0x31436E: "state-bank (entry)",
+    0x31A2CF: "fp_sin_cos (entry)",
+    0x31B245: "_c_int00 (entry)",
+}
 
 
 def main():
-    dump = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_DUMP
+    if len(sys.argv) < 2:
+        sys.exit(
+            "usage: validate_dis_sidecar.py <dump-dir>\n"
+            "  needs flash.bin and dis/dumped.analysis.json, and its gates are "
+            "specific to one firmware image -- see LANDMARKS."
+        )
+    dump = sys.argv[1]
     flash_path = os.path.join(dump, "flash.bin")
     manifest_path = os.path.join(dump, "dis", "dumped.analysis.json")
     for p in (flash_path, manifest_path):
@@ -44,8 +56,8 @@ def main():
             return 1
 
     bn = init_bn()
-    flash_mod = _load(os.path.join(ROOT, "binja", "flash.py"), "flash")
-    sidecar = _load(os.path.join(ROOT, "binja", "dis_sidecar.py"), "dis_sidecar")
+    flash_mod = load_binja_module("flash")
+    sidecar = load_binja_module("dis_sidecar")
 
     # Load flash.bin exactly as the GUI does: raw -> TMS320C28xFlashView @0x600000.
     raw = bn.BinaryViewType["Raw"].open(flash_path)
@@ -59,7 +71,9 @@ def main():
     bv.update_analysis_and_wait()
 
     manifest = json.load(open(manifest_path))
-    w2b = lambda w: w * 2  # FlashView base 0x600000 == word*2
+
+    def w2b(w):
+        return w * 2  # FlashView base 0x600000 == word*2
 
     from binaryninja import Symbol, SymbolType
 
@@ -78,12 +92,18 @@ def main():
 
     def check(name, ok, detail=""):
         results.append((name, ok))
-        print(f"  [{'PASS' if ok else 'FAIL'}] {name}" + (f" — {detail}" if detail else ""))
+        print(
+            f"  [{'PASS' if ok else 'FAIL'}] {name}"
+            + (f" — {detail}" if detail else "")
+        )
 
     # 1. the importer actually seeded the previously-missed functions
-    check("importer seeded new functions", task.stats["funcs_added"] > 0,
-          f"funcs_added={task.stats['funcs_added']}, removed={task.stats['funcs_removed']} "
-          f"false-code funcs, marked {task.stats['data_words']} data words")
+    check(
+        "importer seeded new functions",
+        task.stats["funcs_added"] > 0,
+        f"funcs_added={task.stats['funcs_added']}, removed={task.stats['funcs_removed']} "
+        f"false-code funcs, marked {task.stats['data_words']} data words",
+    )
 
     # 2. (almost) every mapped manifest entry is a function — the real measure of
     #    "function count jumps to roughly the manifest count" (the LB-dispatched
@@ -100,41 +120,56 @@ def main():
         elif len(missing) < 10:
             missing.append(hex(f["entry_word"]))
     frac = present / mapped if mapped else 0
-    check("≥95% of mapped manifest funcs are functions", frac >= 0.95,
-          f"{present}/{mapped} ({frac*100:.1f}%) missing e.g. {missing}")
+    check(
+        "≥95% of mapped manifest funcs are functions",
+        frac >= 0.95,
+        f"{present}/{mapped} ({frac * 100:.1f}%) missing e.g. {missing}",
+    )
 
     # 3. total count is in the manifest ballpark (not exploded by false code)
-    check("function count ≈ manifest count", n_manifest * 0.7 <= funcs_after <= n_manifest * 1.8,
-          f"{funcs_after} vs manifest {n_manifest}")
+    check(
+        "function count ≈ manifest count",
+        n_manifest * 0.7 <= funcs_after <= n_manifest * 1.8,
+        f"{funcs_after} vs manifest {n_manifest}",
+    )
 
     # 4. WGS84 dead block: DATA, no function spanning it. Use the manifest's own
-    #    data_range covering the baseline WGS84 semi-major-axis word 0x338A45.
-    wgs_word = 0x338A45
-    dr = next((r for r in manifest["data_ranges"]
-               if r["start_word"] <= wgs_word < r["end_word"]), None)
+    #    data_range covering the baseline WGS84 semi-major-axis word.
+    wgs_word = WGS84_WORD
+    dr = next(
+        (
+            r
+            for r in manifest["data_ranges"]
+            if r["start_word"] <= wgs_word < r["end_word"]
+        ),
+        None,
+    )
     if dr is None:
-        check("WGS84 in a manifest data_range", False, "no data_range covers 0x338A45")
+        check(
+            "WGS84 in a manifest data_range",
+            False,
+            f"no data_range covers {WGS84_WORD:#x}",
+        )
     else:
         lo, hi = w2b(dr["start_word"]), w2b(dr["end_word"])
         fns_in = [f for f in bv.functions if lo <= f.start < hi]
         dv = bv.get_data_var_at(lo)
-        check("WGS84 block has no functions", len(fns_in) == 0,
-              f"range [{dr['start_word']:06X},{dr['end_word']:06X}) funcs_in={len(fns_in)}")
-        check("WGS84 block start is a data var", dv is not None,
-              f"data var @0x{lo:X} = {dv}")
+        check(
+            "WGS84 block has no functions",
+            len(fns_in) == 0,
+            f"range [{dr['start_word']:06X},{dr['end_word']:06X}) funcs_in={len(fns_in)}",
+        )
+        check(
+            "WGS84 block start is a data var",
+            dv is not None,
+            f"data var @0x{lo:X} = {dv}",
+        )
 
     # 5. named upper-region landmarks "present and decode cleanly" — they decode
     #    as CODE inside a function (some are mid-routine, not function starts) and
     #    are NOT mis-marked data.
-    landmarks = {
-        0x306F33: "attitude DCM resolve (mid-routine)",
-        0x30F6EC: "+2ch pipeline (mid-routine)",
-        0x31436E: "state-bank (entry)",
-        0x31A2CF: "fp_sin_cos (entry)",
-        0x31B245: "_c_int00 (entry)",
-    }
     bad = []
-    for w, lbl in landmarks.items():
+    for w, lbl in LANDMARKS.items():
         b = w2b(w)
         in_func = len(bv.get_functions_containing(b)) > 0
         dv = bv.get_data_var_at(b)
@@ -160,15 +195,20 @@ def main():
     # functions that BN's own reanalysis dropped while settling (convergence
     # lag), which is correct re-seeding, not clobbering. The 67->≤2 collapse is
     # the idempotency signal.
-    check("idempotent: 2nd import re-seeds ≤2 functions", task2.stats["funcs_added"] <= 2,
-          f"2nd-run funcs_added={task2.stats['funcs_added']} (1st added "
-          f"{task.stats['funcs_added']})")
-    check("idempotent: analyst rename preserved",
-          sym is not None and sym.name == "ANALYST_KEPT",
-          f"symbol @0x{probe_byte:X} = {sym.name if sym else None}")
+    check(
+        "idempotent: 2nd import re-seeds ≤2 functions",
+        task2.stats["funcs_added"] <= 2,
+        f"2nd-run funcs_added={task2.stats['funcs_added']} (1st added "
+        f"{task.stats['funcs_added']})",
+    )
+    check(
+        "idempotent: analyst rename preserved",
+        sym is not None and sym.name == "ANALYST_KEPT",
+        f"symbol @0x{probe_byte:X} = {sym.name if sym else None}",
+    )
 
     npass = sum(1 for _, ok in results if ok)
-    print(f"\n{'='*60}\n  {npass}/{len(results)} checks passed\n{'='*60}")
+    print(f"\n{'=' * 60}\n  {npass}/{len(results)} checks passed\n{'=' * 60}")
     return 0 if npass == len(results) else 1
 
 
