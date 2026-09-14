@@ -5,6 +5,8 @@ instructions:
   # --- AX / ACC general moves ---
   - name: MOV_AX_LOC16
     full_name: "Move loc16 to AX"
+    mnemonic: MOV
+    operand_text: "{0}, {1:@AH|AL}"
     format: 16
     opcode: 0x9200
     mask: 0xFE00
@@ -16,6 +18,8 @@ instructions:
 
   - name: MOV_LOC16_AX
     full_name: "Move AX to loc16"
+    mnemonic: MOV
+    operand_text: "{0}, {1}"
     format: 16
     opcode: 0x9600
     mask: 0xFE00
@@ -27,6 +31,8 @@ instructions:
 
   - name: MOV_ACC_LOC16
     full_name: "Move loc16 to ACC (sign-extended)"
+    mnemonic: MOV
+    operand_text: "ACC, {0}"
     format: 16
     opcode: 0x8500
     mask: 0xFF00
@@ -37,6 +43,8 @@ instructions:
 
   - name: MOV_ACC_CONST16_SHIFT
     full_name: "Move 16-bit constant shifted to ACC"
+    mnemonic: MOV
+    operand_text: "ACC, {0} << {1:b} | ACC, {0:d}"
     format: 32
     opcode: 0xFF200000
     mask: 0xFFF00000
@@ -48,6 +56,8 @@ instructions:
 
   - name: MOV_LOC16_CONST16
     full_name: "Move 16-bit constant to loc16"
+    mnemonic: MOV
+    operand_text: "{0}, {1:04x}"
     format: 32
     opcode: 0x28000000
     mask: 0xFF000000
@@ -59,6 +69,8 @@ instructions:
 
   - name: MOV_ACC_LOC16_SHIFT16
     full_name: "Move loc16 to high half of ACC"
+    mnemonic: MOV
+    operand_text: "ACC, {0} << 16"
     format: 16
     opcode: 0x2500
     mask: 0xFF00
@@ -69,6 +81,8 @@ instructions:
 
   - name: MOV_LOC16_ACC_SHIFT1
     full_name: "Move ACC>>1 to loc16"
+    mnemonic: MOV
+    operand_text: "{0}, ACC << 1"
     format: 16
     opcode: 0xB100
     mask: 0xFF00
@@ -79,6 +93,8 @@ instructions:
 
   - name: MOVH_LOC16_ACC_SHIFT1
     full_name: "Move high ACC>>1 to loc16"
+    mnemonic: MOVH
+    operand_text: "{0}, ACC << 1"
     format: 16
     opcode: 0xB300
     mask: 0xFF00
@@ -89,6 +105,8 @@ instructions:
 
   - name: MOVH_LOC16_P
     full_name: "Move PH to loc16"
+    mnemonic: MOVH
+    operand_text: "{0}, P"
     format: 16
     opcode: 0x5700
     mask: 0xFF00
@@ -99,6 +117,8 @@ instructions:
 
   - name: MOV_LOC16_0
     full_name: "Move zero to loc16"
+    mnemonic: MOV
+    operand_text: "{0}, #0"
     format: 16
     opcode: 0x2B00
     mask: 0xFF00
@@ -110,6 +130,8 @@ instructions:
   # --- DP moves ---
   - name: MOV_DP_CONST10
     full_name: "Move 10-bit constant to DP"
+    mnemonic: MOV
+    operand_text: "DP, {0}"
     format: 16
     opcode: 0xF800
     mask: 0xFC00
@@ -120,6 +142,8 @@ instructions:
 
   - name: MOVZ_DP_CONST10
     full_name: "Move 10-bit constant to DP, zero-extended (clears DP[15:10])"
+    mnemonic: MOVZ
+    operand_text: "DP, {0}"
     format: 16
     opcode: 0xB800
     mask: 0xFC00
@@ -130,6 +154,8 @@ instructions:
 
   - name: MOVW_DP_CONST16
     full_name: "Move 16-bit constant to DP"
+    mnemonic: MOVW
+    operand_text: "DP, {0}"
     format: 32
     opcode: 0x761F0000
     mask: 0xFFFF0000
@@ -141,6 +167,8 @@ instructions:
   # --- MOVB (byte) ---
   - name: MOVB_AX_CONST8
     full_name: "Move 8-bit constant to AX"
+    mnemonic: MOVB
+    operand_text: "{0}, {1}"
     format: 16
     opcode: 0x9A00
     mask: 0xFE00
@@ -152,6 +180,8 @@ instructions:
 
   - name: MOVB_ACC_CONST8
     full_name: "Move 8-bit constant to ACC"
+    mnemonic: MOVB
+    operand_text: "ACC, {0:d}"
     format: 16
     opcode: 0x0200
     mask: 0xFF00
@@ -162,6 +192,8 @@ instructions:
 
   - name: MOVB_XAR0_CONST8
     full_name: "Move 8-bit constant to XAR0"
+    mnemonic: MOVB
+    operand_text: "XAR0, {0}"
     format: 16
     opcode: 0xD000
     mask: 0xFF00
@@ -171,6 +203,8 @@ instructions:
 
   - name: MOVB_XAR1_CONST8
     full_name: "Move 8-bit constant to XAR1"
+    mnemonic: MOVB
+    operand_text: "XAR1, {0}"
     format: 16
     opcode: 0xD100
     mask: 0xFF00
@@ -180,6 +214,8 @@ instructions:
 
   - name: MOVB_XAR2_CONST8
     full_name: "Move 8-bit constant to XAR2"
+    mnemonic: MOVB
+    operand_text: "XAR2, {0}"
     format: 16
     opcode: 0xD200
     mask: 0xFF00
@@ -189,6 +225,8 @@ instructions:
 
   - name: MOVB_XAR3_CONST8
     full_name: "Move 8-bit constant to XAR3"
+    mnemonic: MOVB
+    operand_text: "XAR3, {0}"
     format: 16
     opcode: 0xD300
     mask: 0xFF00
@@ -198,6 +236,8 @@ instructions:
 
   - name: MOVB_XAR4_CONST8
     full_name: "Move 8-bit constant to XAR4"
+    mnemonic: MOVB
+    operand_text: "XAR4, {0}"
     format: 16
     opcode: 0xD400
     mask: 0xFF00
@@ -207,6 +247,8 @@ instructions:
 
   - name: MOVB_XAR5_CONST8
     full_name: "Move 8-bit constant to XAR5"
+    mnemonic: MOVB
+    operand_text: "XAR5, {0}"
     format: 16
     opcode: 0xD500
     mask: 0xFF00
@@ -216,6 +258,8 @@ instructions:
 
   - name: MOVB_XAR6_CONST8
     full_name: "Move 8-bit constant to XAR6"
+    mnemonic: MOVB
+    operand_text: "XAR6, {0:02x}"
     format: 16
     opcode: 0xBE00
     mask: 0xFF00
@@ -225,6 +269,8 @@ instructions:
 
   - name: MOVB_XAR7_CONST8
     full_name: "Move 8-bit constant to XAR7"
+    mnemonic: MOVB
+    operand_text: "XAR7, {0:02x}"
     format: 16
     opcode: 0xB600
     mask: 0xFF00
@@ -234,6 +280,8 @@ instructions:
 
   - name: MOVB_AR6_CONST8
     full_name: "Move 8-bit constant to AR6"
+    mnemonic: MOVB
+    operand_text: "AR6, {0}"
     format: 16
     opcode: 0xD600
     mask: 0xFF00
@@ -243,6 +291,8 @@ instructions:
 
   - name: MOVB_AR7_CONST8
     full_name: "Move 8-bit constant to AR7"
+    mnemonic: MOVB
+    operand_text: "AR7, {0}"
     format: 16
     opcode: 0xD700
     mask: 0xFF00
@@ -252,6 +302,8 @@ instructions:
 
   - name: MOVB_AXLSB_LOC16
     full_name: "Move low byte of loc16 to AX LSB"
+    mnemonic: MOVB
+    operand_text: "{0}.LSB, {1}"
     format: 16
     opcode: 0xC600
     mask: 0xFE00
@@ -263,6 +315,8 @@ instructions:
 
   - name: MOVB_AXMSB_LOC16
     full_name: "Move low byte of loc16 to AX MSB"
+    mnemonic: MOVB
+    operand_text: "{0}.MSB, {1}"
     format: 16
     opcode: 0x3800
     mask: 0xFE00
@@ -274,6 +328,8 @@ instructions:
 
   - name: MOVB_LOC16_AXLSB
     full_name: "Move AX LSB to loc16"
+    mnemonic: MOVB
+    operand_text: "{0}, {1}.LSB"
     format: 16
     opcode: 0x3C00
     mask: 0xFE00
@@ -285,6 +341,8 @@ instructions:
 
   - name: MOVB_LOC16_AXMSB
     full_name: "Move AX MSB to loc16"
+    mnemonic: MOVB
+    operand_text: "{0}, {1}.MSB"
     format: 16
     opcode: 0xC800
     mask: 0xFE00
@@ -297,6 +355,8 @@ instructions:
   # --- MOVL (32-bit) ---
   - name: MOVL_ACC_LOC32
     full_name: "Move loc32 to ACC"
+    mnemonic: MOVL
+    operand_text: "ACC, {0}"
     format: 16
     opcode: 0x0600
     mask: 0xFF00
@@ -307,6 +367,8 @@ instructions:
 
   - name: MOVL_LOC32_ACC
     full_name: "Move ACC to loc32"
+    mnemonic: MOVL
+    operand_text: "{0}, ACC"
     format: 16
     opcode: 0x1E00
     mask: 0xFF00
@@ -317,6 +379,8 @@ instructions:
 
   - name: MOVL_XAR0_CONST22
     full_name: "Move 22-bit constant to XAR0"
+    mnemonic: MOVL
+    operand_text: "XAR0, {0:06x}"
     format: 32
     opcode: 0x8D000000
     mask: 0xFFC00000
@@ -325,6 +389,8 @@ instructions:
 
   - name: MOVL_XAR1_CONST22
     full_name: "Move 22-bit constant to XAR1"
+    mnemonic: MOVL
+    operand_text: "XAR1, {0:06x}"
     format: 32
     opcode: 0x8D400000
     mask: 0xFFC00000
@@ -333,6 +399,8 @@ instructions:
 
   - name: MOVL_XAR2_CONST22
     full_name: "Move 22-bit constant to XAR2"
+    mnemonic: MOVL
+    operand_text: "XAR2, {0:06x}"
     format: 32
     opcode: 0x8D800000
     mask: 0xFFC00000
@@ -341,6 +409,8 @@ instructions:
 
   - name: MOVL_XAR3_CONST22
     full_name: "Move 22-bit constant to XAR3"
+    mnemonic: MOVL
+    operand_text: "XAR3, {0:06x}"
     format: 32
     opcode: 0x8DC00000
     mask: 0xFFC00000
@@ -349,6 +419,8 @@ instructions:
 
   - name: MOVL_XAR4_CONST22
     full_name: "Move 22-bit constant to XAR4"
+    mnemonic: MOVL
+    operand_text: "XAR4, {0:06x}"
     format: 32
     opcode: 0x8F000000
     mask: 0xFFC00000
@@ -357,6 +429,8 @@ instructions:
 
   - name: MOVL_XAR5_CONST22
     full_name: "Move 22-bit constant to XAR5"
+    mnemonic: MOVL
+    operand_text: "XAR5, {0:06x}"
     format: 32
     opcode: 0x8F400000
     mask: 0xFFC00000
@@ -365,6 +439,8 @@ instructions:
 
   - name: MOVL_XAR6_CONST22
     full_name: "Move 22-bit constant to XAR6"
+    mnemonic: MOVL
+    operand_text: "XAR6, {0:06x}"
     format: 32
     opcode: 0x76800000
     mask: 0xFFC00000
@@ -373,6 +449,8 @@ instructions:
 
   - name: MOVL_XAR7_CONST22
     full_name: "Move 22-bit constant to XAR7"
+    mnemonic: MOVL
+    operand_text: "XAR7, {0:06x}"
     format: 32
     opcode: 0x76C00000
     mask: 0xFFC00000
@@ -381,6 +459,8 @@ instructions:
 
   - name: MOVL_XAR0_LOC32
     full_name: "Move loc32 to XAR0"
+    mnemonic: MOVL
+    operand_text: "XAR0, {0}"
     format: 16
     opcode: 0x8E00
     mask: 0xFF00
@@ -389,6 +469,8 @@ instructions:
 
   - name: MOVL_XAR1_LOC32
     full_name: "Move loc32 to XAR1"
+    mnemonic: MOVL
+    operand_text: "XAR1, {0}"
     format: 16
     opcode: 0x8B00
     mask: 0xFF00
@@ -397,6 +479,8 @@ instructions:
 
   - name: MOVL_XAR2_LOC32
     full_name: "Move loc32 to XAR2"
+    mnemonic: MOVL
+    operand_text: "XAR2, {0}"
     format: 16
     opcode: 0x8600
     mask: 0xFF00
@@ -405,6 +489,8 @@ instructions:
 
   - name: MOVL_XAR3_LOC32
     full_name: "Move loc32 to XAR3"
+    mnemonic: MOVL
+    operand_text: "XAR3, {0}"
     format: 16
     opcode: 0x8200
     mask: 0xFF00
@@ -413,6 +499,8 @@ instructions:
 
   - name: MOVL_XAR4_LOC32
     full_name: "Move loc32 to XAR4"
+    mnemonic: MOVL
+    operand_text: "XAR4, {0}"
     format: 16
     opcode: 0x8A00
     mask: 0xFF00
@@ -421,6 +509,8 @@ instructions:
 
   - name: MOVL_XAR5_LOC32
     full_name: "Move loc32 to XAR5"
+    mnemonic: MOVL
+    operand_text: "XAR5, {0}"
     format: 16
     opcode: 0x8300
     mask: 0xFF00
@@ -429,6 +519,8 @@ instructions:
 
   - name: MOVL_XAR6_LOC32
     full_name: "Move loc32 to XAR6"
+    mnemonic: MOVL
+    operand_text: "XAR6, {0:@XAR6|XAR7}"
     format: 16
     opcode: 0xC400
     mask: 0xFF00
@@ -437,6 +529,8 @@ instructions:
 
   - name: MOVL_XAR7_LOC32
     full_name: "Move loc32 to XAR7"
+    mnemonic: MOVL
+    operand_text: "XAR7, {0:@XAR6|XAR7}"
     format: 16
     opcode: 0xC500
     mask: 0xFF00
@@ -445,6 +539,8 @@ instructions:
 
   - name: MOVL_LOC32_XAR0
     full_name: "Move XAR0 to loc32"
+    mnemonic: MOVL
+    operand_text: "{0}, XAR0"
     format: 16
     opcode: 0x3A00
     mask: 0xFF00
@@ -453,6 +549,8 @@ instructions:
 
   - name: MOVL_LOC32_XAR1
     full_name: "Move XAR1 to loc32"
+    mnemonic: MOVL
+    operand_text: "{0}, XAR1"
     format: 16
     opcode: 0xB200
     mask: 0xFF00
@@ -461,6 +559,8 @@ instructions:
 
   - name: MOVL_LOC32_XAR2
     full_name: "Move XAR2 to loc32"
+    mnemonic: MOVL
+    operand_text: "{0}, XAR2"
     format: 16
     opcode: 0xAA00
     mask: 0xFF00
@@ -469,6 +569,8 @@ instructions:
 
   - name: MOVL_LOC32_XAR3
     full_name: "Move XAR3 to loc32"
+    mnemonic: MOVL
+    operand_text: "{0}, XAR3"
     format: 16
     opcode: 0xA200
     mask: 0xFF00
@@ -477,6 +579,8 @@ instructions:
 
   - name: MOVL_LOC32_XAR4
     full_name: "Move XAR4 to loc32"
+    mnemonic: MOVL
+    operand_text: "{0}, XAR4"
     format: 16
     opcode: 0xA800
     mask: 0xFF00
@@ -485,6 +589,8 @@ instructions:
 
   - name: MOVL_LOC32_XAR5
     full_name: "Move XAR5 to loc32"
+    mnemonic: MOVL
+    operand_text: "{0}, XAR5"
     format: 16
     opcode: 0xA000
     mask: 0xFF00
@@ -493,6 +599,8 @@ instructions:
 
   - name: MOVL_LOC32_XAR6
     full_name: "Move XAR6 to loc32"
+    mnemonic: MOVL
+    operand_text: "{0}, XAR6"
     format: 16
     opcode: 0xC200
     mask: 0xFF00
@@ -501,6 +609,8 @@ instructions:
 
   - name: MOVL_LOC32_XAR7
     full_name: "Move XAR7 to loc32"
+    mnemonic: MOVL
+    operand_text: "{0}, XAR7"
     format: 16
     opcode: 0xC300
     mask: 0xFF00
@@ -509,30 +619,41 @@ instructions:
 
   - name: MOVL_LOC32_P
     full_name: "Move P to loc32"
+    mnemonic: MOVL
+    operand_text: "{0}, P"
     format: 16
     opcode: 0xA900
     mask: 0xFF00
     operands: [{ name: loc32, type: loc32, bits: [7, 0] }]
+    lift: { dst: { opnd: 0 }, src: { reg: P }, width: 4 }
     semantics: { type: mov, src: P }
 
   - name: MOVL_LOC32_XT
     full_name: "Move XT to loc32"
+    mnemonic: MOVL
+    operand_text: "{0}, XT"
     format: 16
     opcode: 0xAB00
     mask: 0xFF00
     operands: [{ name: loc32, type: loc32, bits: [7, 0] }]
+    lift: { dst: { opnd: 0 }, src: { reg: XT }, width: 4 }
     semantics: { type: mov, src: XT }
 
   - name: MOVL_P_LOC32
     full_name: "Move loc32 to P"
+    mnemonic: MOVL
+    operand_text: "P, {0}"
     format: 16
     opcode: 0xA300
     mask: 0xFF00
     operands: [{ name: loc32, type: loc32, bits: [7, 0] }]
+    lift: { dst: { reg: P }, src: { opnd: 0 }, width: 4 }
     semantics: { type: mov, dest: P }
 
   - name: MOVL_P_ACC
     full_name: "Move ACC to P"
+    mnemonic: MOVL
+    operand_text: "P, ACC"
     format: 16
     opcode: 0xFF5A
     mask: 0xFFFF
@@ -540,15 +661,20 @@ instructions:
 
   - name: MOVL_XT_LOC32
     full_name: "Move loc32 to XT"
+    mnemonic: MOVL
+    operand_text: "XT, {0}"
     format: 16
     opcode: 0x8700
     mask: 0xFF00
     operands: [{ name: loc32, type: loc32, bits: [7, 0] }]
+    lift: { dst: { reg: XT }, src: { opnd: 0 }, width: 4 }
     semantics: { type: mov, dest: XT }
 
   # --- MOVZ (zero-extend to ARn) ---
   - name: MOVZ_AR0_LOC16
     full_name: "Move loc16 zero-extended to AR0"
+    mnemonic: MOVZ
+    operand_text: "AR0, {0:@AR0|AR1|AR2|AR3|AR4|AR5}"
     format: 16
     opcode: 0x5800
     mask: 0xFF00
@@ -557,6 +683,8 @@ instructions:
 
   - name: MOVZ_AR1_LOC16
     full_name: "Move loc16 zero-extended to AR1"
+    mnemonic: MOVZ
+    operand_text: "AR1, {0:@AR0|AR1|AR2|AR3|AR4|AR5}"
     format: 16
     opcode: 0x5900
     mask: 0xFF00
@@ -565,6 +693,8 @@ instructions:
 
   - name: MOVZ_AR2_LOC16
     full_name: "Move loc16 zero-extended to AR2"
+    mnemonic: MOVZ
+    operand_text: "AR2, {0:@AR0|AR1|AR2|AR3|AR4|AR5}"
     format: 16
     opcode: 0x5A00
     mask: 0xFF00
@@ -573,6 +703,8 @@ instructions:
 
   - name: MOVZ_AR3_LOC16
     full_name: "Move loc16 zero-extended to AR3"
+    mnemonic: MOVZ
+    operand_text: "AR3, {0:@AR0|AR1|AR2|AR3|AR4|AR5}"
     format: 16
     opcode: 0x5B00
     mask: 0xFF00
@@ -581,6 +713,8 @@ instructions:
 
   - name: MOVZ_AR4_LOC16
     full_name: "Move loc16 zero-extended to AR4"
+    mnemonic: MOVZ
+    operand_text: "AR4, {0:@AR0|AR1|AR2|AR3|AR4|AR5}"
     format: 16
     opcode: 0x5C00
     mask: 0xFF00
@@ -589,6 +723,8 @@ instructions:
 
   - name: MOVZ_AR5_LOC16
     full_name: "Move loc16 zero-extended to AR5"
+    mnemonic: MOVZ
+    operand_text: "AR5, {0:@AR0|AR1|AR2|AR3|AR4|AR5}"
     format: 16
     opcode: 0x5D00
     mask: 0xFF00
@@ -597,6 +733,8 @@ instructions:
 
   - name: MOVZ_AR6_LOC16
     full_name: "Move loc16 zero-extended to AR6"
+    mnemonic: MOVZ
+    operand_text: "AR6, {0}"
     format: 16
     opcode: 0x8800
     mask: 0xFF00
@@ -605,6 +743,8 @@ instructions:
 
   - name: MOVZ_AR7_LOC16
     full_name: "Move loc16 zero-extended to AR7"
+    mnemonic: MOVZ
+    operand_text: "AR7, {0}"
     format: 16
     opcode: 0x8000
     mask: 0xFF00
@@ -614,38 +754,52 @@ instructions:
   # --- System register moves ---
   - name: MOV_T_LOC16
     full_name: "Move loc16 to T register"
+    mnemonic: MOV
+    operand_text: "T, {0:@T}"
     format: 16
     opcode: 0x2D00
     mask: 0xFF00
     operands: [{ name: loc16, type: loc16, bits: [7, 0] }]
+    lift: { dst: { reg: T }, src: { opnd: 0 }, width: 2 }
     semantics: { type: mov, dest: T }
 
   - name: MOV_LOC16_T
     full_name: "Move T register to loc16"
+    mnemonic: MOV
+    operand_text: "{0}, T"
     format: 16
     opcode: 0x2100
     mask: 0xFF00
     operands: [{ name: loc16, type: loc16, bits: [7, 0] }]
+    lift: { dst: { opnd: 0 }, src: { reg: T }, width: 2 }
     semantics: { type: mov, src: T }
 
   - name: MOV_PH_LOC16
     full_name: "Move loc16 to PH"
+    mnemonic: MOV
+    operand_text: "PH, {0}"
     format: 16
     opcode: 0x2F00
     mask: 0xFF00
     operands: [{ name: loc16, type: loc16, bits: [7, 0] }]
+    lift: { dst: { reg: PH }, src: { opnd: 0 }, width: 2 }
     semantics: { type: mov, dest: PH }
 
   - name: MOV_PL_LOC16
     full_name: "Move loc16 to PL"
+    mnemonic: MOV
+    operand_text: "PL, {0}"
     format: 16
     opcode: 0x2700
     mask: 0xFF00
     operands: [{ name: loc16, type: loc16, bits: [7, 0] }]
+    lift: { dst: { reg: PL }, src: { opnd: 0 }, width: 2 }
     semantics: { type: mov, dest: PL }
 
   - name: MOV_LOC16_P
     full_name: "Move PL to loc16"
+    mnemonic: MOV
+    operand_text: "{0}, P"
     format: 16
     opcode: 0x3F00
     mask: 0xFF00
@@ -654,48 +808,64 @@ instructions:
 
   - name: MOV_IER_LOC16
     full_name: "Move loc16 to IER"
+    mnemonic: MOV
+    operand_text: "IER, {0}"
     format: 16
     opcode: 0x2300
     mask: 0xFF00
     operands: [{ name: loc16, type: loc16, bits: [7, 0] }]
+    lift: { dst: { reg: IER }, src: { opnd: 0 }, width: 2 }
     semantics: { type: mov, dest: IER }
 
   - name: MOV_LOC16_IER
     full_name: "Move IER to loc16"
+    mnemonic: MOV
+    operand_text: "{0}, IER"
     format: 16
     opcode: 0x2000
     mask: 0xFF00
     operands: [{ name: loc16, type: loc16, bits: [7, 0] }]
+    lift: { dst: { opnd: 0 }, src: { reg: IER }, width: 2 }
     semantics: { type: mov, src: IER }
 
   - name: MOV_AR6_LOC16
     full_name: "Move loc16 to AR6"
+    mnemonic: MOV
+    operand_text: "AR6, {0:@AR0|AR1|AR2|AR3|AR4|AR5}"
     format: 16
     opcode: 0x5E00
     mask: 0xFF00
     operands: [{ name: loc16, type: loc16, bits: [7, 0] }]
+    lift: { dst: { reg: AR6 }, src: { opnd: 0 }, width: 2 }
     semantics: { type: mov, dest: AR6 }
 
   - name: MOV_AR7_LOC16
     full_name: "Move loc16 to AR7"
+    mnemonic: MOV
+    operand_text: "AR7, {0:@AR0|AR1|AR2|AR3|AR4|AR5}"
     format: 16
     opcode: 0x5F00
     mask: 0xFF00
     operands: [{ name: loc16, type: loc16, bits: [7, 0] }]
+    lift: { dst: { reg: AR7 }, src: { opnd: 0 }, width: 2 }
     semantics: { type: mov, dest: AR7 }
 
   - name: MOV_LOC16_ARN
     full_name: "Move ARn to loc16"
+    mnemonic: MOV
+    operand_text: "{0}, {1}"
     format: 16
     opcode: 0x7800
     mask: 0xF800
     operands:
       - { name: loc16, type: loc16, bits: [7, 0] }
-      - { name: n, type: reg3, bits: [10, 8] }
+      - { name: n, type: arn, bits: [10, 8] }
     semantics: { type: mov }
 
   - name: MOV_TL_0
     full_name: "Clear TL register"
+    mnemonic: MOV
+    operand_text: "TL, #0"
     format: 16
     opcode: 0x5656
     mask: 0xFFFF
@@ -703,6 +873,8 @@ instructions:
 
   - name: MOV_XARN_PC
     full_name: "Move PC to XARn"
+    mnemonic: MOV
+    operand_text: "{0}, PC"
     format: 16
     opcode: 0x3E58
     mask: 0xFFF8
@@ -712,6 +884,8 @@ instructions:
 
   - name: MOV_PM_AX
     full_name: "Move AX to PM field"
+    mnemonic: MOV
+    operand_text: "PM, {0}"
     format: 16
     opcode: 0x5638
     mask: 0xFFFE
@@ -721,6 +895,8 @@ instructions:
 
   - name: MOVU_ACC_LOC16
     full_name: "Move loc16 to ACC (zero-extended)"
+    mnemonic: MOVU
+    operand_text: "ACC, {0}"
     format: 16
     opcode: 0x0E00
     mask: 0xFF00
@@ -731,6 +907,8 @@ instructions:
 
   - name: MOVA_T_LOC16
     full_name: "Move loc16 to T and add prev product"
+    mnemonic: MOVA
+    operand_text: "T, {0}"
     format: 16
     opcode: 0x1000
     mask: 0xFF00
@@ -739,6 +917,8 @@ instructions:
 
   - name: MOVS_T_LOC16
     full_name: "Move loc16 to T and subtract prev product"
+    mnemonic: MOVS
+    operand_text: "T, {0}"
     format: 16
     opcode: 0x1100
     mask: 0xFF00
@@ -747,6 +927,8 @@ instructions:
 
   - name: MOVP_T_LOC16
     full_name: "Move loc16 to T and store P"
+    mnemonic: MOVP
+    operand_text: "T, {0}"
     format: 16
     opcode: 0x1600
     mask: 0xFF00
@@ -755,6 +937,8 @@ instructions:
 
   - name: MOVAD_T_LOC16
     full_name: "Move loc16 to T, add prev product and DMOV"
+    mnemonic: MOVAD
+    operand_text: "T, {0:@T}"
     format: 16
     opcode: 0xA700
     mask: 0xFF00
@@ -763,6 +947,8 @@ instructions:
 
   - name: MOVDL_XT_LOC32
     full_name: "Move loc32 to XT with data move"
+    mnemonic: MOVDL
+    operand_text: "XT, {0}"
     format: 16
     opcode: 0xA600
     mask: 0xFF00
@@ -771,6 +957,8 @@ instructions:
 
   - name: DMOV_LOC16
     full_name: "Data move loc16"
+    mnemonic: DMOV
+    operand_text: "{0}"
     format: 16
     opcode: 0xA500
     mask: 0xFF00
@@ -780,6 +968,8 @@ instructions:
   # --- PUSH / POP ---
   - name: PUSH_LOC16
     full_name: "Push loc16 to stack"
+    mnemonic: PUSH
+    operand_text: "{0}"
     format: 16
     opcode: 0x2200
     mask: 0xFF00
@@ -789,6 +979,8 @@ instructions:
 
   - name: POP_LOC16
     full_name: "Pop from stack to loc16"
+    mnemonic: POP
+    operand_text: "{0}"
     format: 16
     opcode: 0x2A00
     mask: 0xFF00
@@ -798,6 +990,8 @@ instructions:
 
   - name: PUSH_AR1_AR0
     full_name: "Push AR1:AR0"
+    mnemonic: PUSH
+    operand_text: "AR1:AR0"
     format: 16
     opcode: 0x760D
     mask: 0xFFFF
@@ -805,6 +999,8 @@ instructions:
 
   - name: PUSH_AR3_AR2
     full_name: "Push AR3:AR2"
+    mnemonic: PUSH
+    operand_text: "AR3:AR2"
     format: 16
     opcode: 0x760F
     mask: 0xFFFF
@@ -812,6 +1008,8 @@ instructions:
 
   - name: PUSH_AR5_AR4
     full_name: "Push AR5:AR4"
+    mnemonic: PUSH
+    operand_text: "AR5:AR4"
     format: 16
     opcode: 0x760C
     mask: 0xFFFF
@@ -819,6 +1017,8 @@ instructions:
 
   - name: PUSH_AR1H_AR0H
     full_name: "Push AR1H:AR0H"
+    mnemonic: PUSH
+    operand_text: "AR1H:AR0H"
     format: 16
     opcode: 0x0005
     mask: 0xFFFF
@@ -826,6 +1026,8 @@ instructions:
 
   - name: PUSH_DP
     full_name: "Push DP"
+    mnemonic: PUSH
+    operand_text: "DP"
     format: 16
     opcode: 0x760B
     mask: 0xFFFF
@@ -833,6 +1035,8 @@ instructions:
 
   - name: PUSH_DP_ST1
     full_name: "Push DP:ST1"
+    mnemonic: PUSH
+    operand_text: "DP:ST1"
     format: 16
     opcode: 0x7609
     mask: 0xFFFF
@@ -840,6 +1044,8 @@ instructions:
 
   - name: PUSH_IFR
     full_name: "Push IFR"
+    mnemonic: PUSH
+    operand_text: "IFR"
     format: 16
     opcode: 0x760A
     mask: 0xFFFF
@@ -847,6 +1053,8 @@ instructions:
 
   - name: PUSH_P
     full_name: "Push P"
+    mnemonic: PUSH
+    operand_text: "P"
     format: 16
     opcode: 0x761D
     mask: 0xFFFF
@@ -854,6 +1062,8 @@ instructions:
 
   - name: PUSH_RPC
     full_name: "Push RPC"
+    mnemonic: PUSH
+    operand_text: "RPC"
     format: 16
     opcode: 0x0004
     mask: 0xFFFF
@@ -861,6 +1071,8 @@ instructions:
 
   - name: PUSH_ST0
     full_name: "Push ST0"
+    mnemonic: PUSH
+    operand_text: "ST0"
     format: 16
     opcode: 0x7618
     mask: 0xFFFF
@@ -868,6 +1080,8 @@ instructions:
 
   - name: PUSH_ST1
     full_name: "Push ST1"
+    mnemonic: PUSH
+    operand_text: "ST1"
     format: 16
     opcode: 0x7608
     mask: 0xFFFF
@@ -875,6 +1089,8 @@ instructions:
 
   - name: PUSH_T_ST0
     full_name: "Push T:ST0"
+    mnemonic: PUSH
+    operand_text: "T:ST0"
     format: 16
     opcode: 0x7619
     mask: 0xFFFF
@@ -882,6 +1098,8 @@ instructions:
 
   - name: PUSH_XT
     full_name: "Push XT"
+    mnemonic: MOVL
+    operand_text: "*SP++, XT"
     format: 16
     opcode: 0xABBD
     mask: 0xFFFF
@@ -889,6 +1107,8 @@ instructions:
 
   - name: PUSH_DBGIER
     full_name: "Push DBGIER"
+    mnemonic: PUSH
+    operand_text: "DBGIER"
     format: 16
     opcode: 0x760E
     mask: 0xFFFF
@@ -896,6 +1116,8 @@ instructions:
 
   - name: POP_AR1_AR0
     full_name: "Pop AR1:AR0"
+    mnemonic: POP
+    operand_text: "AR1:AR0"
     format: 16
     opcode: 0x7607
     mask: 0xFFFF
@@ -903,6 +1125,8 @@ instructions:
 
   - name: POP_AR3_AR2
     full_name: "Pop AR3:AR2"
+    mnemonic: POP
+    operand_text: "AR3:AR2"
     format: 16
     opcode: 0x7605
     mask: 0xFFFF
@@ -910,6 +1134,8 @@ instructions:
 
   - name: POP_AR5_AR4
     full_name: "Pop AR5:AR4"
+    mnemonic: POP
+    operand_text: "AR5:AR4"
     format: 16
     opcode: 0x7606
     mask: 0xFFFF
@@ -917,6 +1143,8 @@ instructions:
 
   - name: POP_AR1H_AR0H
     full_name: "Pop AR1H:AR0H"
+    mnemonic: POP
+    operand_text: "AR1H:AR0H"
     format: 16
     opcode: 0x0003
     mask: 0xFFFF
@@ -924,6 +1152,8 @@ instructions:
 
   - name: POP_DP
     full_name: "Pop DP"
+    mnemonic: POP
+    operand_text: "DP"
     format: 16
     opcode: 0x7603
     mask: 0xFFFF
@@ -931,6 +1161,8 @@ instructions:
 
   - name: POP_DP_ST1
     full_name: "Pop DP:ST1"
+    mnemonic: POP
+    operand_text: "DP:ST1"
     format: 16
     opcode: 0x7601
     mask: 0xFFFF
@@ -938,6 +1170,8 @@ instructions:
 
   - name: POP_IFR
     full_name: "Pop IFR"
+    mnemonic: POP
+    operand_text: "IFR"
     format: 16
     opcode: 0x0002
     mask: 0xFFFF
@@ -945,6 +1179,8 @@ instructions:
 
   - name: POP_P
     full_name: "Pop P"
+    mnemonic: POP
+    operand_text: "P"
     format: 16
     opcode: 0x7611
     mask: 0xFFFF
@@ -952,6 +1188,8 @@ instructions:
 
   - name: POP_RPC
     full_name: "Pop RPC"
+    mnemonic: POP
+    operand_text: "RPC"
     format: 16
     opcode: 0x0007
     mask: 0xFFFF
@@ -959,6 +1197,8 @@ instructions:
 
   - name: POP_ST0
     full_name: "Pop ST0"
+    mnemonic: POP
+    operand_text: "ST0"
     format: 16
     opcode: 0x7613
     mask: 0xFFFF
@@ -966,6 +1206,8 @@ instructions:
 
   - name: POP_ST1
     full_name: "Pop ST1"
+    mnemonic: POP
+    operand_text: "ST1"
     format: 16
     opcode: 0x7600
     mask: 0xFFFF
@@ -973,6 +1215,8 @@ instructions:
 
   - name: POP_T_ST0
     full_name: "Pop T:ST0"
+    mnemonic: POP
+    operand_text: "T:ST0"
     format: 16
     opcode: 0x7615
     mask: 0xFFFF
@@ -980,6 +1224,8 @@ instructions:
 
   - name: POP_XT
     full_name: "Pop XT"
+    mnemonic: MOVL
+    operand_text: "XT, *--SP"
     format: 16
     opcode: 0x87BE
     mask: 0xFFFF
@@ -987,6 +1233,8 @@ instructions:
 
   - name: POP_DBGIER
     full_name: "Pop DBGIER"
+    mnemonic: POP
+    operand_text: "DBGIER"
     format: 16
     opcode: 0x7612
     mask: 0xFFFF
@@ -994,25 +1242,31 @@ instructions:
 
   - name: ZALR_ACC_LOC16
     full_name: "Zero ACC low, load ACC high, round"
+    mnemonic: ZALR
+    operand_text: "ACC, {0}"
     format: 32
     opcode: 0x56130000
-    mask: 0xFFFF0000
+    mask: 0xFFFFFF00
     operands: [{ name: loc16, type: loc16, bits: [7, 0] }]
     semantics: { type: mov, dest: ACC }
 
   - name: MOVX_TL_LOC16
     full_name: "Move loc16 sign-extended to TL"
+    mnemonic: MOVX
+    operand_text: "TL, {0}"
     format: 32
     opcode: 0x56210000
-    mask: 0xFFFF0000
+    mask: 0xFFFFFF00
     operands: [{ name: loc16, type: loc16, bits: [7, 0] }]
     semantics: { type: mov, dest: TL }
 
   - name: MOV_ACC_LOC16_SHIFT1_15_OBJMODE1
     full_name: "Move loc16 shifted 1-15 to ACC"
+    mnemonic: MOV
+    operand_text: "ACC, {0} << {1:b} | ACC, {0}"
     format: 32
     opcode: 0x56030000
-    mask: 0xFFFF0000
+    mask: 0xFFFFF000
     objmode: 1
     operands:
       - { name: loc16, type: loc16, bits: [7, 0] }
@@ -1021,9 +1275,11 @@ instructions:
 
   - name: MOV_ACC_LOC16_SHIFT_T
     full_name: "Move loc16 shifted by T to ACC"
+    mnemonic: MOV
+    operand_text: "ACC, {0} << T"
     format: 32
     opcode: 0x56060000
-    mask: 0xFFFF0000
+    mask: 0xFFFFFF00
     objmode: 1
     operands:
       - { name: loc16, type: loc16, bits: [7, 0] }
@@ -1031,9 +1287,11 @@ instructions:
 
   - name: MOV_LOC16_ACC_SHIFT2_8_OBJMODE_1
     full_name: "Move ACC shifted right 2-8 to loc16"
+    mnemonic: MOV
+    operand_text: "{0}, ACC << {1:b}"
     format: 32
     opcode: 0x562D0000
-    mask: 0xFFFF0000
+    mask: 0xFFFFF000
     objmode: 1
     operands:
       - { name: loc16, type: loc16, bits: [7, 0] }
@@ -1042,9 +1300,11 @@ instructions:
 
   - name: MOVH_LOC16_ACC_SHIFT2_8_OBJMODE_1
     full_name: "Move high ACC shifted right 2-8 to loc16"
+    mnemonic: MOVH
+    operand_text: "{0}, ACC << {1:b}"
     format: 32
     opcode: 0x562F0000
-    mask: 0xFFFF0000
+    mask: 0xFFFFF000
     objmode: 1
     operands:
       - { name: loc16, type: loc16, bits: [7, 0] }
@@ -1053,36 +1313,44 @@ instructions:
 
   - name: MOVU_LOC16_OVC
     full_name: "Move OVC to loc16 unsigned"
+    mnemonic: MOVU
+    operand_text: "{0}, OVC"
     format: 32
     opcode: 0x56280000
-    mask: 0xFFFF0000
+    mask: 0xFFFFFF00
     operands:
       - { name: loc16, type: loc16, bits: [7, 0] }
     semantics: { type: mov }
 
   - name: MOV_OVC_LOC16
     full_name: "Move loc16 to OVC"
+    mnemonic: MOV
+    operand_text: "OVC, {0}"
     format: 32
     opcode: 0x56020000
-    mask: 0xFFFF0000
+    mask: 0xFFFFFF00
     operands:
       - { name: loc16, type: loc16, bits: [7, 0] }
     semantics: { type: mov }
 
   - name: MOV_LOC16_OVC
     full_name: "Move OVC to loc16"
+    mnemonic: MOV
+    operand_text: "{0}, OVC"
     format: 32
     opcode: 0x56290000
-    mask: 0xFFFF0000
+    mask: 0xFFFFFF00
     operands:
       - { name: loc16, type: loc16, bits: [7, 0] }
     semantics: { type: mov }
 
   - name: MOV_LOC16_AX_COND
     full_name: "Conditional move AX to loc16"
+    mnemonic: MOV
+    operand_text: "{0}, {1}, {2}"
     format: 32
     opcode: 0x562A0000
-    mask: 0xFFFE0000
+    mask: 0xFFFEF000
     operands:
       - { name: loc16, type: loc16, bits: [7, 0] }
       - { name: ax, type: ax, bits: [16, 16] }
@@ -1091,6 +1359,8 @@ instructions:
 
   - name: MOVB_LOC16_CONST8_COND
     full_name: "Conditional move 8-bit const to loc16"
+    mnemonic: MOVB
+    operand_text: "{0}, {1:02x}, {2}"
     format: 32
     opcode: 0x56B00000
     mask: 0xFFF00000
@@ -1102,12 +1372,14 @@ instructions:
 
   - name: MOVL_LOC32_ACC_COND
     full_name: "Conditional move ACC to loc32"
+    mnemonic: MOVL
+    operand_text: "{0}, ACC, {1}"
     format: 32
     opcode: 0x56480000
-    mask: 0xFFF00000
+    mask: 0xFFFFF000
     operands:
       - { name: loc32, type: loc32, bits: [7, 0] }
-      - { name: cond, type: cond4, bits: [19, 16] }
+      - { name: cond, type: cond4, bits: [11, 8] }
     semantics: { type: mov }
 
   # MOV with absolute 16-bit addressing is MOV_LOC16_MEM16 / MOV_MEM16_LOC16
@@ -1115,6 +1387,8 @@ instructions:
 
   - name: PUSH_RB
     full_name: "Push RB (repeat block register)"
+    mnemonic: PUSH
+    operand_text: "RB"
     format: 16
     opcode: 0xFFF0
     mask: 0xFFFF
@@ -1122,6 +1396,8 @@ instructions:
 
   - name: POP_RB
     full_name: "Pop RB (repeat block register)"
+    mnemonic: POP
+    operand_text: "RB"
     format: 16
     opcode: 0xFFF1
     mask: 0xFFFF

@@ -1,0 +1,26 @@
+# Encoding bits that are neither fixed by `mask` nor bound to an operand.
+#
+# Each one is information the decoder silently discards. This file is a RATCHET:
+# tests/test_isa_gaps.py fails if the total grows or a new name appears, so the
+# number can only come down. Entries are removed as the fields are recovered
+# from isa/reference/, never added without a reason.
+#
+# The two rows left are deferred on purpose, not unexplained:
+#
+#   NOP  bits[7:0] are the `{*ind}{ARPn}` field -- dis2000 reads 0x7712 as
+#        `NOP @0x12`. Binding it would print `NOP @0x0` on all 75 corpus NOPs
+#        (every one has the field zero) and recover nothing until the display
+#        layer can suppress it. Phase B6.
+#   SBF  bits[9:8] are the condition: 00 EQ, 01 NEQ, 10 TC, 11 NTC (asm2000).
+#        This is not the 4-bit cond4 encoding, so it needs its own operand
+#        type rather than a bit range. Phase B5.
+#
+# Regenerate deliberately (only after reducing the count):
+#   nix develop -c python3 scripts/gen_known_gaps.py
+
+total_bits: 10
+total_rows: 2
+
+unmodeled_bits:
+  - { name: NOP, file: system.yaml, bits: 8, free_mask: 0x000000FF }
+  - { name: SBF, file: branch.yaml, bits: 2, free_mask: 0x00000300 }

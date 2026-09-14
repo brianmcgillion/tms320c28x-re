@@ -5,6 +5,8 @@ instructions:
   # AND
   - name: AND_ACC_LOC16
     full_name: "AND ACC with loc16"
+    mnemonic: AND
+    operand_text: "ACC, {0}"
     format: 16
     opcode: 0x8900
     mask: 0xFF00
@@ -15,6 +17,8 @@ instructions:
 
   - name: AND_AX_LOC16
     full_name: "AND AX with loc16"
+    mnemonic: AND
+    operand_text: "{0}, {1:@AH|AL}"
     format: 16
     opcode: 0xCE00
     mask: 0xFE00
@@ -26,6 +30,8 @@ instructions:
 
   - name: AND_LOC16_AX
     full_name: "AND loc16 with AX"
+    mnemonic: AND
+    operand_text: "{0}, {1}"
     format: 16
     opcode: 0xC000
     mask: 0xFE00
@@ -37,6 +43,8 @@ instructions:
 
   - name: AND_ACC_CONST16_SHIFT0_15
     full_name: "AND ACC with shifted 16-bit constant"
+    mnemonic: AND
+    operand_text: "ACC, {0} << {1:b} | ACC, {0}"
     format: 32
     opcode: 0x3E000000
     mask: 0xFFF00000
@@ -48,6 +56,8 @@ instructions:
 
   - name: AND_LOC16_CONST16
     full_name: "AND loc16 with 16-bit constant"
+    mnemonic: AND
+    operand_text: "{0}, {1:04x}"
     format: 32
     opcode: 0x18000000
     mask: 0xFF000000
@@ -59,6 +69,8 @@ instructions:
 
   - name: ANDB_AX_CONST8
     full_name: "AND AX with 8-bit constant"
+    mnemonic: ANDB
+    operand_text: "{0}, {1}"
     format: 16
     opcode: 0x9000
     mask: 0xFE00
@@ -71,6 +83,8 @@ instructions:
   # OR
   - name: OR_ACC_LOC16
     full_name: "OR ACC with loc16"
+    mnemonic: OR
+    operand_text: "ACC, {0}"
     format: 16
     opcode: 0xAF00
     mask: 0xFF00
@@ -81,6 +95,8 @@ instructions:
 
   - name: OR_AX_LOC16
     full_name: "OR AX with loc16"
+    mnemonic: OR
+    operand_text: "{0}, {1:@AH|AL}"
     format: 16
     opcode: 0xCA00
     mask: 0xFE00
@@ -92,6 +108,8 @@ instructions:
 
   - name: OR_LOC16_AX
     full_name: "OR loc16 with AX"
+    mnemonic: OR
+    operand_text: "{0}, {1}"
     format: 16
     opcode: 0x9800
     mask: 0xFE00
@@ -103,6 +121,8 @@ instructions:
 
   - name: OR_ACC_CONST16_SHIFT0_15
     full_name: "OR ACC with shifted 16-bit constant"
+    mnemonic: OR
+    operand_text: "ACC, {0} << {1:b} | ACC, {0}"
     format: 32
     opcode: 0x3E100000
     mask: 0xFFF00000
@@ -114,6 +134,8 @@ instructions:
 
   - name: OR_LOC16_CONST16
     full_name: "OR loc16 with 16-bit constant"
+    mnemonic: OR
+    operand_text: "{0}, {1:04x}"
     format: 32
     opcode: 0x1A000000
     mask: 0xFF000000
@@ -125,6 +147,8 @@ instructions:
 
   - name: ORB_AX_CONST8
     full_name: "OR AX with 8-bit constant"
+    mnemonic: ORB
+    operand_text: "{0}, {1}"
     format: 16
     opcode: 0x5000
     mask: 0xFE00
@@ -137,6 +161,8 @@ instructions:
   # XOR
   - name: XOR_ACC_LOC16
     full_name: "XOR ACC with loc16"
+    mnemonic: XOR
+    operand_text: "ACC, {0}"
     format: 16
     opcode: 0xB700
     mask: 0xFF00
@@ -147,6 +173,8 @@ instructions:
 
   - name: XOR_AX_LOC16
     full_name: "XOR AX with loc16"
+    mnemonic: XOR
+    operand_text: "{0}, {1:@AH|AL}"
     format: 16
     opcode: 0x7000
     mask: 0xFE00
@@ -158,6 +186,8 @@ instructions:
 
   - name: XOR_LOC16_AX
     full_name: "XOR loc16 with AX"
+    mnemonic: XOR
+    operand_text: "{0}, {1}"
     format: 16
     opcode: 0xF200
     mask: 0xFE00
@@ -169,6 +199,8 @@ instructions:
 
   - name: XOR_ACC_CONST16_SHIFT0_15
     full_name: "XOR ACC with shifted 16-bit constant"
+    mnemonic: XOR
+    operand_text: "ACC, {0} << {1:b} | ACC, {0}"
     format: 32
     opcode: 0x3E200000
     mask: 0xFFF00000
@@ -180,6 +212,8 @@ instructions:
 
   - name: XOR_LOC16_CONST16
     full_name: "XOR loc16 with 16-bit constant"
+    mnemonic: XOR
+    operand_text: "{0}, {1:04x}"
     format: 32
     opcode: 0x1C000000
     mask: 0xFF000000
@@ -191,6 +225,8 @@ instructions:
 
   - name: XORB_AX_CONST8
     full_name: "XOR AX with 8-bit constant"
+    mnemonic: XORB
+    operand_text: "{0}, {1}"
     format: 16
     opcode: 0xF000
     mask: 0xFE00
@@ -203,6 +239,8 @@ instructions:
   # NOT
   - name: NOT_ACC
     full_name: "Bitwise NOT of ACC"
+    mnemonic: NOT
+    operand_text: "ACC"
     format: 16
     opcode: 0xFF55
     mask: 0xFFFF
@@ -210,6 +248,8 @@ instructions:
 
   - name: NOT_AX
     full_name: "Bitwise NOT of AX"
+    mnemonic: NOT
+    operand_text: "{0}"
     format: 16
     opcode: 0xFF5E
     mask: 0xFFFE
@@ -219,6 +259,8 @@ instructions:
 
   - name: AND_AX_LOC16_CONST16
     full_name: "AND AX with loc16 masked by const16"
+    mnemonic: AND
+    operand_text: "{0}, {1}, {2}"
     format: 32
     opcode: 0xCC000000
     mask: 0xFE000000

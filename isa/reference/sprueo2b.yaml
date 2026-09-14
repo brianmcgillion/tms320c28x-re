@@ -1,0 +1,572 @@
+# TMS320C28x Floating Point Unit and Instruction Set (Rev. B)
+#
+# Transcribed from the TI manual by scripts/spec_transcribe.py.
+# Digits in the printed opcode are fixed bits; letters are operand fields,
+# which is the part asm2000 and dis2000 cannot tell us.
+# NOTE: a field printed as a word (COND) appears as one entry per letter;
+# the bit span is still correct. See _fields() in the script.
+# Regenerate with: nix develop -c python3 scripts/spec_transcribe.py
+
+instructions:
+  - syntax: '32-bit Floating-Point Absolute Value'
+    format: 32
+    opcode: 0xE6950000
+    mask: 0xFFFFFFC0
+    bit_pattern: ['1110011010010101', '0000000000bbbaaa']
+    fields:
+      a: { bits: [2, 0] }
+      b: { bits: [5, 3] }
+  - syntax: 'ADDF32 RaH, #16FHi, RbH 32-bit Floating-Point Addition'
+    format: 32
+    opcode: 0xE8800000
+    mask: 0xFFC00000
+    bit_pattern: ['1110100010IIIIII', 'IIIIIIIIIIbbbaaa']
+    fields:
+      I: { bits: [21, 6] }
+      a: { bits: [2, 0] }
+      b: { bits: [5, 3] }
+  - syntax: 'ADDF32 RaH, RbH, RcH 32-bit Floating-Point Addition'
+    format: 32
+    opcode: 0xE7100000
+    mask: 0xFFFFFE00
+    bit_pattern: ['1110011100010000', '0000000cccbbbaaa']
+    fields:
+      a: { bits: [2, 0] }
+      b: { bits: [5, 3] }
+      c: { bits: [8, 6] }
+  - syntax: 'ADDF32 RdH, ReH, RfH || MOV32 mem32, RaH 32-bit Floating-Point Addition with Parallel Move'
+    format: 32
+    opcode: 0xE0100000
+    mask: 0xFFF00000
+    bit_pattern: ['111000000001fffe', 'eedddaaamem32']
+    fields:
+      a: { bits: [10, 8] }
+      d: { bits: [13, 11] }
+      e: { bits: [16, 14] }
+      f: { bits: [19, 17] }
+      mem32: { bits: [7, 0] }
+  - syntax: 'ADDF32 RdH, ReH, RfH || MOV32 RaH, mem32 32-bit Floating-Point Addition with Parallel Move'
+    format: 32
+    opcode: 0xE3100000
+    mask: 0xFFF00000
+    bit_pattern: ['111000110001fffe', 'eedddaaamem32']
+    fields:
+      a: { bits: [10, 8] }
+      d: { bits: [13, 11] }
+      e: { bits: [16, 14] }
+      f: { bits: [19, 17] }
+      mem32: { bits: [7, 0] }
+  - syntax: 'CMPF32 RaH, RbH 32-bit Floating-Point Compare for Equal, Less Than or Greater Than'
+    format: 32
+    opcode: 0xE6940000
+    mask: 0xFFFFFFC0
+    bit_pattern: ['1110011010010100', '0000000000bbbaaa']
+    fields:
+      a: { bits: [2, 0] }
+      b: { bits: [5, 3] }
+  - syntax: 'CMPF32 RaH, #16FHi 32-bit Floating-Point Compare for Equal, Less Than or Greater Than'
+    format: 32
+    opcode: 0xE8100000
+    mask: 0xFFF80000
+    bit_pattern: ['1110100000010III', 'IIIIIIIIIIIIIaaa']
+    fields:
+      I: { bits: [18, 3] }
+      a: { bits: [2, 0] }
+  - syntax: '32-bit Floating-Point Compare for Equal, Less Than or Greater Than'
+    format: 16
+    opcode: 0xE5A0
+    mask: 0xFFF8
+    bit_pattern: ['1110010110100aaa']
+    fields:
+      a: { bits: [2, 0] }
+  - syntax: 'EINVF32 RaH, RbH 32-bit Floating-Point Reciprocal Approximation'
+    format: 32
+    opcode: 0xE6930000
+    mask: 0xFFFFFFC0
+    bit_pattern: ['1110011010010011', '0000000000bbbaaa']
+    fields:
+      a: { bits: [2, 0] }
+      b: { bits: [5, 3] }
+  - syntax: 'EISQRTF32 RaH, RbH 32-bit Floating-Point Square-Root Reciprocal Approximation'
+    format: 32
+    opcode: 0xE6920000
+    mask: 0xFFFFFFC0
+    bit_pattern: ['1110011010010010', '0000000000bbbaaa']
+    fields:
+      a: { bits: [2, 0] }
+      b: { bits: [5, 3] }
+  - syntax: 'F32TOI16 RaH, RbH Convert 32-bit Floating-Point Value to 16-bit Integer'
+    format: 32
+    opcode: 0xE68C0000
+    mask: 0xFFFFFFC0
+    bit_pattern: ['1110011010001100', '0000000000bbbaaa']
+    fields:
+      a: { bits: [2, 0] }
+      b: { bits: [5, 3] }
+  - syntax: 'F32TOI16R RaH, RbH Convert 32-bit Floating-Point Value to 16-bit Integer and Round'
+    format: 32
+    opcode: 0xE68C8000
+    mask: 0xFFFFFFC0
+    bit_pattern: ['1110011010001100', '1000000000bbbaaa']
+    fields:
+      a: { bits: [2, 0] }
+      b: { bits: [5, 3] }
+  - syntax: 'F32TOI32 RaH, RbH Convert 32-bit Floating-Point Value to 32-bit Integer'
+    format: 32
+    opcode: 0xE6880000
+    mask: 0xFFFFFFC0
+    bit_pattern: ['1110011010001000', '0000000000bbbaaa']
+    fields:
+      a: { bits: [2, 0] }
+      b: { bits: [5, 3] }
+  - syntax: 'F32TOUI16 RaH, RbH Convert 32-bit Floating-Point Value to 16-bit Unsigned Integer'
+    format: 32
+    opcode: 0xE68E0000
+    mask: 0xFFFFFFC0
+    bit_pattern: ['1110011010001110', '0000000000bbbaaa']
+    fields:
+      a: { bits: [2, 0] }
+      b: { bits: [5, 3] }
+  - syntax: 'F32TOUI16R RaH, RbH Convert 32-bit Floating-Point Value to 16-bit Unsigned Integer and Round'
+    format: 32
+    opcode: 0xE68E8000
+    mask: 0xFFFFFFC0
+    bit_pattern: ['1110011010001110', '1000000000bbbaaa']
+    fields:
+      a: { bits: [2, 0] }
+      b: { bits: [5, 3] }
+  - syntax: 'F32TOUI32 RaH, RbH Convert 32-bit Floating-Point Value to 16-bit Unsigned Integer'
+    format: 32
+    opcode: 0xE68A0000
+    mask: 0xFFFFFFC0
+    bit_pattern: ['1110011010001010', '0000000000bbbaaa']
+    fields:
+      a: { bits: [2, 0] }
+      b: { bits: [5, 3] }
+  - syntax: 'FRACF32 RaH, RbH Fractional Portion of a 32-bit Floating-Point Value'
+    format: 32
+    opcode: 0xE6F10000
+    mask: 0xFFFFFFC0
+    bit_pattern: ['1110011011110001', '0000000000bbbaaa']
+    fields:
+      a: { bits: [2, 0] }
+      b: { bits: [5, 3] }
+  - syntax: 'I16TOF32 RaH, RbH Convert 16-bit Integer to 32-bit Floating-Point Value'
+    format: 32
+    opcode: 0xE68D0000
+    mask: 0xFFFFFFC0
+    bit_pattern: ['1110011010001101', '0000000000bbbaaa']
+    fields:
+      a: { bits: [2, 0] }
+      b: { bits: [5, 3] }
+  - syntax: 'I16TOF32 RaH, mem16 Convert 16-bit Integer to 32-bit Floating-Point Value'
+    format: 32
+    opcode: 0xE2C80000
+    mask: 0xFFFFF800
+    bit_pattern: ['1110001011001000', '00000aaamem16']
+    fields:
+      a: { bits: [10, 8] }
+      mem16: { bits: [7, 0] }
+  - syntax: 'I32TOF32 RaH, mem32 Convert 32-bit Integer to 32-bit Floating-Point Value'
+    format: 32
+    opcode: 0xE2880000
+    mask: 0xFFFFF800
+    bit_pattern: ['1110001010001000', '00000aaamem32']
+    fields:
+      a: { bits: [10, 8] }
+      mem32: { bits: [7, 0] }
+  - syntax: 'I32TOF32 RaH, RbH Convert 32-bit Integer to 32-bit Floating-Point Value'
+    format: 32
+    opcode: 0xE6890000
+    mask: 0xFFFFFFC0
+    bit_pattern: ['1110011010001001', '0000000000bbbaaa']
+    fields:
+      a: { bits: [2, 0] }
+      b: { bits: [5, 3] }
+  - syntax: 'translated by the assembler such that the instruction becomes:'
+    format: 32
+    opcode: 0xE7400000
+    mask: 0xFFFC0000
+    bit_pattern: ['11100111010000ff', 'feeedddcccbbbaaa']
+    fields:
+      a: { bits: [2, 0] }
+      b: { bits: [5, 3] }
+      c: { bits: [8, 6] }
+      d: { bits: [11, 9] }
+      e: { bits: [14, 12] }
+      f: { bits: [17, 15] }
+  - syntax: 'Accumulate with Parallel Move'
+    format: 32
+    opcode: 0xE3300000
+    mask: 0xFFF00000
+    bit_pattern: ['111000110011fffe', 'eedddaaamem32']
+    fields:
+      a: { bits: [10, 8] }
+      d: { bits: [13, 11] }
+      e: { bits: [16, 14] }
+      f: { bits: [19, 17] }
+      mem32: { bits: [7, 0] }
+  - syntax: 'MACF32 R7H, R3H, mem32, *XAR7++ 32-bit Floating-Point Multiply and Accumulate'
+    format: 32
+    opcode: 0xE2501F00
+    mask: 0xFFFFFF00
+    bit_pattern: ['1110001001010000', '00011111mem32']
+    fields:
+      mem32: { bits: [7, 0] }
+  - syntax: 'Accumulate with Parallel Move'
+    format: 32
+    opcode: 0xE3C00000
+    mask: 0xFFF00000
+    bit_pattern: ['111000111100fffe', 'eedddaaamem32']
+    fields:
+      a: { bits: [10, 8] }
+      d: { bits: [13, 11] }
+      e: { bits: [16, 14] }
+      f: { bits: [19, 17] }
+      mem32: { bits: [7, 0] }
+  - syntax: 'MAXF32 RaH, RbH 32-bit Floating-Point Maximum'
+    format: 32
+    opcode: 0xE6960000
+    mask: 0xFFFFFFC0
+    bit_pattern: ['1110011010010110', '0000000000bbbaaa']
+    fields:
+      a: { bits: [2, 0] }
+      b: { bits: [5, 3] }
+  - syntax: 'MAXF32 RaH, #16FHi 32-bit Floating-Point Maximum'
+    format: 32
+    opcode: 0xE8200000
+    mask: 0xFFF80000
+    bit_pattern: ['1110100000100III', 'IIIIIIIIIIIIIaaa']
+    fields:
+      I: { bits: [18, 3] }
+      a: { bits: [2, 0] }
+  - syntax: 'MAXF32 RaH, RbH || MOV32 RcH, RdH 32-bit Floating-Point Maximum with Parallel Move'
+    format: 32
+    opcode: 0xE69C0000
+    mask: 0xFFFFF000
+    bit_pattern: ['1110011010011100', '0000dddcccbbbaaa']
+    fields:
+      a: { bits: [2, 0] }
+      b: { bits: [5, 3] }
+      c: { bits: [8, 6] }
+      d: { bits: [11, 9] }
+  - syntax: '32-bit Floating-Point Minimum'
+    format: 32
+    opcode: 0xE6970000
+    mask: 0xFFFFFFC0
+    bit_pattern: ['1110011010010111', '0000000000bbbaaa']
+    fields:
+      a: { bits: [2, 0] }
+      b: { bits: [5, 3] }
+  - syntax: 'MINF32 RaH, #16FHi 32-bit Floating-Point Minimum'
+    format: 32
+    opcode: 0xE8300000
+    mask: 0xFFF80000
+    bit_pattern: ['1110100000110III', 'IIIIIIIIIIIIIaaa']
+    fields:
+      I: { bits: [18, 3] }
+      a: { bits: [2, 0] }
+  - syntax: 'MINF32 RaH, RbH || MOV32 RcH, RdH 32-bit Floating-Point Minimum with Parallel Move'
+    format: 32
+    opcode: 0xE69D0000
+    mask: 0xFFFFF000
+    bit_pattern: ['1110011010011101', '0000dddcccbbbaaa']
+    fields:
+      a: { bits: [2, 0] }
+      b: { bits: [5, 3] }
+      c: { bits: [8, 6] }
+      d: { bits: [11, 9] }
+  - syntax: 'MOV16 mem16, RaH Move 16-bit Floating-Point Register Contents to Memory'
+    format: 32
+    opcode: 0xE2130000
+    mask: 0xFFFFF800
+    bit_pattern: ['1110001000010011', '00000aaamem16']
+    fields:
+      a: { bits: [10, 8] }
+      mem16: { bits: [7, 0] }
+  - syntax: 'MOV32 mem32, RaH Move 32-bit Floating-Point Register Contents to Memory'
+    format: 32
+    opcode: 0xE2030000
+    mask: 0xFFFFF800
+    bit_pattern: ['1110001000000011', '00000aaamem32']
+    fields:
+      a: { bits: [10, 8] }
+      mem32: { bits: [7, 0] }
+  - syntax: 'MOV32 mem32, STF Move 32-bit STF Register to Memory'
+    format: 32
+    opcode: 0xE2000000
+    mask: 0xFFFFFF00
+    bit_pattern: ['1110001000000000', '00000000mem32']
+    fields:
+      mem32: { bits: [7, 0] }
+  - syntax: 'MOV32 RaH, mem32 {, CNDF} Conditional 32-bit Move'
+    format: 32
+    opcode: 0xE2A00000
+    mask: 0xFFF0F800
+    bit_pattern: ['111000101010CNDF', '00000aaamem32']
+    fields:
+      C: { bits: [19, 19] }
+      D: { bits: [17, 17] }
+      F: { bits: [16, 16] }
+      N: { bits: [18, 18] }
+      a: { bits: [10, 8] }
+      mem32: { bits: [7, 0] }
+  - syntax: 'MOV32 RaH, RbH {, CNDF} Conditional 32-bit Move'
+    format: 32
+    opcode: 0xE6C00000
+    mask: 0xFFF0FFC0
+    bit_pattern: ['111001101100CNDF', '0000000000bbbaaa']
+    fields:
+      C: { bits: [19, 19] }
+      D: { bits: [17, 17] }
+      F: { bits: [16, 16] }
+      N: { bits: [18, 18] }
+      a: { bits: [2, 0] }
+      b: { bits: [5, 3] }
+  - syntax: 'MOV32 STF, mem32 Move 32-bit Value from Memory to the STF Register'
+    format: 32
+    opcode: 0xE2800000
+    mask: 0xFFFFFF00
+    bit_pattern: ['1110001010000000', '00000000mem32']
+    fields:
+      mem32: { bits: [7, 0] }
+  - syntax: 'MOVD32 RaH, mem32 Move 32-bit Value from Memory with Data Copy'
+    format: 32
+    opcode: 0xE2230000
+    mask: 0xFFFFF800
+    bit_pattern: ['1110001000100011', '00000aaamem32']
+    fields:
+      a: { bits: [10, 8] }
+      mem32: { bits: [7, 0] }
+  - syntax: 'MOVIZ RaH, #16FHiHex Load the Upper 16-bits of a 32-bit Floating-Point Register'
+    format: 32
+    opcode: 0xE8000000
+    mask: 0xFFF80000
+    bit_pattern: ['1110100000000III', 'IIIIIIIIIIIIIaaa']
+    fields:
+      I: { bits: [18, 3] }
+      a: { bits: [2, 0] }
+  - syntax: 'Load Selected STF Flags into ST0'
+    format: 16
+    opcode: 0xAD00
+    mask: 0xFF00
+    bit_pattern: ['10101101FFFFFFFF']
+    fields:
+      F: { bits: [7, 0] }
+  - syntax: 'MOVXI RaH, #16FLoHex Move Immediate to the Low 16-bits of a Floating-Point Register'
+    format: 32
+    opcode: 0xE8080000
+    mask: 0xFFF80000
+    bit_pattern: ['1110100000001III', 'IIIIIIIIIIIIIaaa']
+    fields:
+      I: { bits: [18, 3] }
+      a: { bits: [2, 0] }
+  - syntax: 'MPYF32 RaH, RbH, RcH 32-bit Floating-Point Multiply'
+    format: 32
+    opcode: 0xE7000000
+    mask: 0xFFFFFE00
+    bit_pattern: ['1110011100000000', '0000000cccbbbaaa']
+    fields:
+      a: { bits: [2, 0] }
+      b: { bits: [5, 3] }
+      c: { bits: [8, 6] }
+  - syntax: 'MPYF32 RaH, #16FHi, RbH 32-bit Floating-Point Multiply'
+    format: 32
+    opcode: 0xE8400000
+    mask: 0xFFC00000
+    bit_pattern: ['1110100001IIIIII', 'IIIIIIIIIIbbbaaa']
+    fields:
+      I: { bits: [21, 6] }
+      a: { bits: [2, 0] }
+      b: { bits: [5, 3] }
+  - syntax: 'MPYF32 RdH, ReH, RfH || MOV32 RaH, mem32 32-bit Floating-Point Multiply with Parallel Move'
+    format: 32
+    opcode: 0xE3000000
+    mask: 0xFFF00000
+    bit_pattern: ['111000110000fffe', 'eedddaaamem32']
+    fields:
+      a: { bits: [10, 8] }
+      d: { bits: [13, 11] }
+      e: { bits: [16, 14] }
+      f: { bits: [19, 17] }
+      mem32: { bits: [7, 0] }
+  - syntax: 'MPYF32 RdH, ReH, RfH || MOV32 mem32, RaH 32-bit Floating-Point Multiply with Parallel Move'
+    format: 32
+    opcode: 0xE0000000
+    mask: 0xFFF00000
+    bit_pattern: ['111000000000fffe', 'eedddaaamem32']
+    fields:
+      a: { bits: [10, 8] }
+      d: { bits: [13, 11] }
+      e: { bits: [16, 14] }
+      f: { bits: [19, 17] }
+      mem32: { bits: [7, 0] }
+  - syntax: 'Subtract'
+    format: 32
+    opcode: 0xE7500000
+    mask: 0xFFFC0000
+    bit_pattern: ['11100111010100ff', 'feeedddcccbbbaaa']
+    fields:
+      a: { bits: [2, 0] }
+      b: { bits: [5, 3] }
+      c: { bits: [8, 6] }
+      d: { bits: [11, 9] }
+      e: { bits: [14, 12] }
+      f: { bits: [17, 15] }
+  - syntax: 'NEGF32 RaH, RbH{, CNDF} Conditional Negation'
+    format: 32
+    opcode: 0xE6A00000
+    mask: 0xFFF0FFC0
+    bit_pattern: ['111001101010CNDF', '0000000000bbbaaa']
+    fields:
+      C: { bits: [19, 19] }
+      D: { bits: [17, 17] }
+      F: { bits: [16, 16] }
+      N: { bits: [18, 18] }
+      a: { bits: [2, 0] }
+      b: { bits: [5, 3] }
+  - syntax: 'Pop the RB Register from the Stack'
+    format: 16
+    opcode: 0xFFF1
+    mask: 0xFFFF
+    bit_pattern: ['1111111111110001']
+  - syntax: 'Push the RB Register onto the Stack'
+    format: 16
+    opcode: 0xFFF0
+    mask: 0xFFFF
+    bit_pattern: ['1111111111110000']
+  - syntax: 'Restore the Floating-Point Registers'
+    format: 16
+    opcode: 0xE562
+    mask: 0xFFFF
+    bit_pattern: ['1110010101100010']
+  - syntax: 'Repeat A Block of Code'
+    format: 32
+    opcode: 0xB5000000
+    mask: 0xFF80FF00
+    bit_pattern: ['101101010bbbbbbb', '00000000loc16']
+    fields:
+      b: { bits: [22, 16] }
+      loc16: { bits: [7, 0] }
+  - syntax: 'Repeat a Block of Code'
+    format: 32
+    opcode: 0xB5800000
+    mask: 0xFF800000
+    bit_pattern: ['101101011bbbbbbb', 'cccccccccccccccc']
+    fields:
+      b: { bits: [22, 16] }
+      c: { bits: [15, 0] }
+  - syntax: 'SAVE FLAG, VALUE Save Register Set to Shadow Registers and Execute SETFLG'
+    format: 32
+    opcode: 0xE6400000
+    mask: 0xFFC00000
+    bit_pattern: ['1110011001FFFFFF', 'FFFFFVVVVVVVVVVV']
+    fields:
+      F: { bits: [21, 11] }
+      V: { bits: [10, 0] }
+  - syntax: 'SETFLG FLAG, VALUE Set or clear selected floating-point status flags'
+    format: 32
+    opcode: 0xE6000000
+    mask: 0xFFC00000
+    bit_pattern: ['1110011000FFFFFF', 'FFFFFVVVVVVVVVVV']
+    fields:
+      F: { bits: [21, 11] }
+      V: { bits: [10, 0] }
+  - syntax: 'SUBF32 RaH, RbH, RcH 32-bit Floating-Point Subtraction'
+    format: 32
+    opcode: 0xE7200000
+    mask: 0xFFFFFE00
+    bit_pattern: ['1110011100100000', '0000000cccbbbaaa']
+    fields:
+      a: { bits: [2, 0] }
+      b: { bits: [5, 3] }
+      c: { bits: [8, 6] }
+  - syntax: 'SUBF32 RaH, #16FHi, RbH 32-bit Floating Point Subtraction'
+    format: 32
+    opcode: 0xE8C00000
+    mask: 0xFFC00000
+    bit_pattern: ['1110100011IIIIII', 'IIIIIIIIIIbbbaaa']
+    fields:
+      I: { bits: [21, 6] }
+      a: { bits: [2, 0] }
+      b: { bits: [5, 3] }
+  - syntax: 'SUBF32 RdH, ReH, RfH || MOV32 RaH, mem32 32-bit Floating-Point Subtraction with Parallel Move'
+    format: 32
+    opcode: 0xE3200000
+    mask: 0xFFF00000
+    bit_pattern: ['111000110010fffe', 'eedddaaamem32']
+    fields:
+      a: { bits: [10, 8] }
+      d: { bits: [13, 11] }
+      e: { bits: [16, 14] }
+      f: { bits: [19, 17] }
+      mem32: { bits: [7, 0] }
+  - syntax: 'SUBF32 RdH, ReH, RfH || MOV32 mem32, RaH 32-bit Floating-Point Subtraction with Parallel Move'
+    format: 32
+    opcode: 0xE0200000
+    mask: 0xFFF00000
+    bit_pattern: ['111000000010fffe', 'eedddaaamem32']
+    fields:
+      a: { bits: [10, 8] }
+      d: { bits: [13, 11] }
+      e: { bits: [16, 14] }
+      f: { bits: [19, 17] }
+      mem32: { bits: [7, 0] }
+  - syntax: 'SWAPF RaH, RbH{, CNDF} Conditional Swap'
+    format: 32
+    opcode: 0xE6E00000
+    mask: 0xFFF0FFC0
+    bit_pattern: ['111001101110CNDF', '0000000000bbbaaa']
+    fields:
+      C: { bits: [19, 19] }
+      D: { bits: [17, 17] }
+      F: { bits: [16, 16] }
+      N: { bits: [18, 18] }
+      a: { bits: [2, 0] }
+      b: { bits: [5, 3] }
+  - syntax: 'Test STF Register Flag Condition'
+    format: 16
+    opcode: 0xE580
+    mask: 0xFFF0
+    bit_pattern: ['111001011000CNDF']
+    fields:
+      C: { bits: [3, 3] }
+      D: { bits: [1, 1] }
+      F: { bits: [0, 0] }
+      N: { bits: [2, 2] }
+  - syntax: 'UI16TOF32 RaH, RbH Convert unsigned 16-bit integer to 32-bit floating-point value'
+    format: 32
+    opcode: 0xE68F0000
+    mask: 0xFFFFFFC0
+    bit_pattern: ['1110011010001111', '0000000000bbbaaa']
+    fields:
+      a: { bits: [2, 0] }
+      b: { bits: [5, 3] }
+  - syntax: 'UI32TOF32 RaH, mem32 Convert Unsigned 32-bit Integer to 32-bit Floating-Point Value'
+    format: 32
+    opcode: 0xE2840000
+    mask: 0xFFFFF800
+    bit_pattern: ['1110001010000100', '00000aaamem32']
+    fields:
+      a: { bits: [10, 8] }
+      mem32: { bits: [7, 0] }
+  - syntax: 'UI32TOF32 RaH, RbH Convert Unsigned 32-bit Integer to 32-bit Floating-Point Value'
+    format: 32
+    opcode: 0xE68B0000
+    mask: 0xFFFFFFC0
+    bit_pattern: ['1110011010001011', '0000000000bbbaaa']
+    fields:
+      a: { bits: [2, 0] }
+      b: { bits: [5, 3] }
+  - syntax: 'Zero the Floating-Point Register RaH'
+    format: 16
+    opcode: 0xE590
+    mask: 0xFFF8
+    bit_pattern: ['1110010110010aaa']
+    fields:
+      a: { bits: [2, 0] }
+  - syntax: 'Zero All Floating-Point Registers'
+    format: 16
+    opcode: 0xE563
+    mask: 0xFFFF
+    bit_pattern: ['1110010101100011']

@@ -4,9 +4,11 @@
 instructions:
   - name: ABSF32_RAH_RBH
     full_name: "Absolute value of float32"
+    mnemonic: ABSF32
+    operand_text: "{0}, {1}"
     format: 32
     opcode: 0xE6950000
-    mask: 0xFFFF0000
+    mask: 0xFFFFFFC0
     operands:
       - { name: rah, type: fpu_reg, bits: [2, 0] }
       - { name: rbh, type: fpu_reg, bits: [5, 3] }
@@ -14,9 +16,11 @@ instructions:
 
   - name: ADDF32_RAH_RBH_RCH
     full_name: "Add two float32 values"
+    mnemonic: ADDF32
+    operand_text: "{0}, {1}, {2}"
     format: 32
     opcode: 0xE7100000
-    mask: 0xFFF00000
+    mask: 0xFFFFFE00
     operands:
       - { name: rah, type: fpu_reg, bits: [2, 0] }
       - { name: rbh, type: fpu_reg, bits: [5, 3] }
@@ -25,9 +29,11 @@ instructions:
 
   - name: CMPF32_RAH_RBH
     full_name: "Compare two float32 values"
+    mnemonic: CMPF32
+    operand_text: "{0}, {1}"
     format: 32
     opcode: 0xE6940000
-    mask: 0xFFFF0000
+    mask: 0xFFFFFFC0
     operands:
       - { name: rah, type: fpu_reg, bits: [2, 0] }
       - { name: rbh, type: fpu_reg, bits: [5, 3] }
@@ -35,6 +41,8 @@ instructions:
 
   - name: CMPF32_RAH_0
     full_name: "Compare float32 with zero"
+    mnemonic: CMPF32
+    operand_text: "{0}, #0.0"
     format: 16
     opcode: 0xE5A0
     mask: 0xFFF8
@@ -44,9 +52,11 @@ instructions:
 
   - name: EINVF32_RAH_RBH
     full_name: "Estimate inverse of float32"
+    mnemonic: EINVF32
+    operand_text: "{0}, {1}"
     format: 32
     opcode: 0xE6930000
-    mask: 0xFFFF0000
+    mask: 0xFFFFFFC0
     operands:
       - { name: rah, type: fpu_reg, bits: [2, 0] }
       - { name: rbh, type: fpu_reg, bits: [5, 3] }
@@ -54,9 +64,11 @@ instructions:
 
   - name: EISQRTF32_RAH_RBH
     full_name: "Estimate inverse square root of float32"
+    mnemonic: EISQRTF32
+    operand_text: "{0}, {1}"
     format: 32
     opcode: 0xE6920000
-    mask: 0xFFFF0000
+    mask: 0xFFFFFFC0
     operands:
       - { name: rah, type: fpu_reg, bits: [2, 0] }
       - { name: rbh, type: fpu_reg, bits: [5, 3] }
@@ -64,9 +76,11 @@ instructions:
 
   - name: F32TOI16_RAH_RBH
     full_name: "Convert float32 to signed int16"
+    mnemonic: F32TOI16
+    operand_text: "{0}, {1}"
     format: 32
     opcode: 0xE68C0000
-    mask: 0xFFFF8000
+    mask: 0xFFFFFFC0
     operands:
       - { name: rah, type: fpu_reg, bits: [2, 0] }
       - { name: rbh, type: fpu_reg, bits: [5, 3] }
@@ -74,9 +88,11 @@ instructions:
 
   - name: F32TOI16R_RAH_RBH
     full_name: "Convert float32 to signed int16 with rounding"
+    mnemonic: F32TOI16R
+    operand_text: "{0}, {1}"
     format: 32
     opcode: 0xE68C8000
-    mask: 0xFFFF8000
+    mask: 0xFFFFFFC0
     operands:
       - { name: rah, type: fpu_reg, bits: [2, 0] }
       - { name: rbh, type: fpu_reg, bits: [5, 3] }
@@ -84,9 +100,11 @@ instructions:
 
   - name: F32TOI32_RAH_RBH
     full_name: "Convert float32 to signed int32"
+    mnemonic: F32TOI32
+    operand_text: "{0}, {1}"
     format: 32
     opcode: 0xE6880000
-    mask: 0xFFFF0000
+    mask: 0xFFFFFFC0
     operands:
       - { name: rah, type: fpu_reg, bits: [2, 0] }
       - { name: rbh, type: fpu_reg, bits: [5, 3] }
@@ -94,9 +112,11 @@ instructions:
 
   - name: F32TOUI16_RAH_RBH
     full_name: "Convert float32 to unsigned int16"
+    mnemonic: F32TOUI16
+    operand_text: "{0}, {1}"
     format: 32
     opcode: 0xE68E0000
-    mask: 0xFFFF8000
+    mask: 0xFFFFFFC0
     operands:
       - { name: rah, type: fpu_reg, bits: [2, 0] }
       - { name: rbh, type: fpu_reg, bits: [5, 3] }
@@ -104,9 +124,11 @@ instructions:
 
   - name: F32TOUI16R_RAH_RBH
     full_name: "Convert float32 to unsigned int16 with rounding"
+    mnemonic: F32TOUI16R
+    operand_text: "{0}, {1}"
     format: 32
     opcode: 0xE68E8000
-    mask: 0xFFFF8000
+    mask: 0xFFFFFFC0
     operands:
       - { name: rah, type: fpu_reg, bits: [2, 0] }
       - { name: rbh, type: fpu_reg, bits: [5, 3] }
@@ -114,9 +136,11 @@ instructions:
 
   - name: F32TOUI32_RAH_RBH
     full_name: "Convert float32 to unsigned int32"
+    mnemonic: F32TOUI32
+    operand_text: "{0}, {1}"
     format: 32
     opcode: 0xE68A0000
-    mask: 0xFFFF0000
+    mask: 0xFFFFFFC0
     operands:
       - { name: rah, type: fpu_reg, bits: [2, 0] }
       - { name: rbh, type: fpu_reg, bits: [5, 3] }
@@ -124,9 +148,11 @@ instructions:
 
   - name: FRACF32_RAH_RBH
     full_name: "Fractional part of float32"
+    mnemonic: FRACF32
+    operand_text: "{0}, {1}"
     format: 32
     opcode: 0xE6F10000
-    mask: 0xFFFF0000
+    mask: 0xFFFFFFC0
     operands:
       - { name: rah, type: fpu_reg, bits: [2, 0] }
       - { name: rbh, type: fpu_reg, bits: [5, 3] }
@@ -134,9 +160,11 @@ instructions:
 
   - name: I16TOF32_RAH_RBH
     full_name: "Convert signed int16 to float32"
+    mnemonic: I16TOF32
+    operand_text: "{0}, {1}"
     format: 32
     opcode: 0xE68D0000
-    mask: 0xFFFF0000
+    mask: 0xFFFFFFC0
     operands:
       - { name: rah, type: fpu_reg, bits: [2, 0] }
       - { name: rbh, type: fpu_reg, bits: [5, 3] }
@@ -144,21 +172,25 @@ instructions:
 
   - name: I16TOF32_RAH_MEM16
     full_name: "Convert signed int16 from memory to float32"
+    mnemonic: I16TOF32
+    operand_text: "{0}, {1}"
     format: 32
     opcode: 0xE2C80000
-    mask: 0xFFF80000
+    mask: 0xFFFFF800
     operands:
-      - { name: rah, type: fpu_reg, bits: [18, 16] }
+      - { name: rah, type: fpu_reg, bits: [10, 8] }
       - { name: mem16, type: loc16, bits: [7, 0] }
     semantics: { type: fpu }
 
   - name: UI16TOF32_RAH_MEM16
     full_name: "Convert unsigned int16 from memory to float32"
+    mnemonic: UI16TOF32
+    operand_text: "{0}, {1}"
     format: 32
-    opcode: 0xE2C00000
-    mask: 0xFFF80000
+    opcode: 0xE2C40000
+    mask: 0xFFFFF800
     operands:
-      - { name: rah, type: fpu_reg, bits: [18, 16] }
+      - { name: rah, type: fpu_reg, bits: [10, 8] }
       - { name: mem16, type: loc16, bits: [7, 0] }
     semantics: { type: fpu }
 
@@ -167,9 +199,11 @@ instructions:
 
   - name: I32TOF32_RAH_RBH
     full_name: "Convert signed int32 to float32"
+    mnemonic: I32TOF32
+    operand_text: "{0}, {1}"
     format: 32
     opcode: 0xE6890000
-    mask: 0xFFFF0000
+    mask: 0xFFFFFFC0
     operands:
       - { name: rah, type: fpu_reg, bits: [2, 0] }
       - { name: rbh, type: fpu_reg, bits: [5, 3] }
@@ -177,11 +211,13 @@ instructions:
 
   - name: I32TOF32_RAH_MEM32
     full_name: "Convert signed int32 from memory to float32"
+    mnemonic: I32TOF32
+    operand_text: "{0}, {1}"
     format: 32
     opcode: 0xE2880000
-    mask: 0xFFF80000
+    mask: 0xFFFFF800
     operands:
-      - { name: rah, type: fpu_reg, bits: [18, 16] }
+      - { name: rah, type: fpu_reg, bits: [10, 8] }
       - { name: mem32, type: loc32, bits: [7, 0] }
     semantics: { type: fpu }
 
@@ -189,19 +225,23 @@ instructions:
   # 0xE280/0xFFF8 F32TOUI32 range; this full-word pattern (popcount 16) wins.
   - name: UI32TOF32_RAH_MEM32
     full_name: "Convert unsigned int32 from memory to float32"
+    mnemonic: UI32TOF32
+    operand_text: "{0}, {1}"
     format: 32
     opcode: 0xE2840000
-    mask: 0xFFFF0000
+    mask: 0xFFFFF800
     operands:
-      - { name: rah, type: fpu_reg, bits: [18, 16] }
+      - { name: rah, type: fpu_reg, bits: [10, 8] }
       - { name: mem32, type: loc32, bits: [7, 0] }
     semantics: { type: fpu }
 
   - name: UI32TOF32_RAH_RBH
     full_name: "Convert unsigned int32 to float32"
+    mnemonic: UI32TOF32
+    operand_text: "{0}, {1}"
     format: 32
     opcode: 0xE68B0000
-    mask: 0xFFFF0000
+    mask: 0xFFFFFFC0
     operands:
       - { name: rah, type: fpu_reg, bits: [2, 0] }
       - { name: rbh, type: fpu_reg, bits: [5, 3] }
@@ -209,9 +249,11 @@ instructions:
 
   - name: UI16TOF32_RAH_RBH
     full_name: "Convert unsigned int16 to float32"
+    mnemonic: UI16TOF32
+    operand_text: "{0}, {1}"
     format: 32
     opcode: 0xE68F0000
-    mask: 0xFFFF0000
+    mask: 0xFFFFFFC0
     operands:
       - { name: rah, type: fpu_reg, bits: [2, 0] }
       - { name: rbh, type: fpu_reg, bits: [5, 3] }
@@ -219,9 +261,11 @@ instructions:
 
   - name: MAXF32_RAH_RBH
     full_name: "Maximum of two float32 values"
+    mnemonic: MAXF32
+    operand_text: "{0}, {1}"
     format: 32
     opcode: 0xE6960000
-    mask: 0xFFFF0000
+    mask: 0xFFFFFFC0
     operands:
       - { name: rah, type: fpu_reg, bits: [2, 0] }
       - { name: rbh, type: fpu_reg, bits: [5, 3] }
@@ -229,9 +273,11 @@ instructions:
 
   - name: MINF32_RAH_RBH
     full_name: "Minimum of two float32 values"
+    mnemonic: MINF32
+    operand_text: "{0}, {1}"
     format: 32
     opcode: 0xE6970000
-    mask: 0xFFFF0000
+    mask: 0xFFFFFFC0
     operands:
       - { name: rah, type: fpu_reg, bits: [2, 0] }
       - { name: rbh, type: fpu_reg, bits: [5, 3] }
@@ -240,9 +286,11 @@ instructions:
   # --- FPU arithmetic (3-register) ---
   - name: MPYF32_RAH_RBH_RCH
     full_name: "Multiply two float32 values"
+    mnemonic: MPYF32
+    operand_text: "{0}, {1}, {2}"
     format: 32
     opcode: 0xE7000000
-    mask: 0xFFF00000
+    mask: 0xFFFFFE00
     operands:
       - { name: rah, type: fpu_reg, bits: [2, 0] }
       - { name: rbh, type: fpu_reg, bits: [5, 3] }
@@ -251,9 +299,11 @@ instructions:
 
   - name: SUBF32_RAH_RBH_RCH
     full_name: "Subtract two float32 values"
+    mnemonic: SUBF32
+    operand_text: "{0}, {1}, {2}"
     format: 32
     opcode: 0xE7200000
-    mask: 0xFFF00000
+    mask: 0xFFFFFE00
     operands:
       - { name: rah, type: fpu_reg, bits: [2, 0] }
       - { name: rbh, type: fpu_reg, bits: [5, 3] }
@@ -262,60 +312,82 @@ instructions:
 
   - name: MPYF32_ADDF32_PAR
     full_name: "Multiply and add float32 in parallel"
+    mnemonic: MPYF32
+    operand_text: "{0}, {1}, {2}"
     format: 32
     opcode: 0xE7400000
-    mask: 0xFFF00000
+    mask: 0xFFFC0000
     operands:
       - { name: rah, type: fpu_reg, bits: [2, 0] }
       - { name: rbh, type: fpu_reg, bits: [5, 3] }
       - { name: rch, type: fpu_reg, bits: [8, 6] }
+      - { name: rdh, type: fpu_reg, bits: [11, 9] }
+      - { name: reh, type: fpu_reg, bits: [14, 12] }
+      - { name: rfh, type: fpu_reg, bits: [17, 15] }
     semantics: { type: fpu_parallel }
 
   - name: MACF32_RAH_RBH_RCH
     full_name: "Multiply accumulate float32"
+    mnemonic: MPYF32
+    operand_text: "{0}, {1}, {2}"
     format: 32
     opcode: 0xE7500000
-    mask: 0xFFF00000
+    mask: 0xFFFC0000
     operands:
       - { name: rah, type: fpu_reg, bits: [2, 0] }
       - { name: rbh, type: fpu_reg, bits: [5, 3] }
       - { name: rch, type: fpu_reg, bits: [8, 6] }
+      - { name: rdh, type: fpu_reg, bits: [11, 9] }
+      - { name: reh, type: fpu_reg, bits: [14, 12] }
+      - { name: rfh, type: fpu_reg, bits: [17, 15] }
     semantics: { type: fpu }
 
   - name: MOV32_RAH_RBH
     full_name: "Move FPU register to register (conditional)"
+    mnemonic: MOV32
+    operand_text: "{0}, {1}, {2}"
     format: 32
     opcode: 0xE6C00000
     mask: 0xFFF0FFC0
     operands:
       - { name: rah, type: fpu_reg, bits: [2, 0] }
       - { name: rbh, type: fpu_reg, bits: [5, 3] }
-      - { name: cndf, type: cond4, bits: [19, 16] }
+      - { name: cndf, type: cndf, bits: [19, 16] }
     semantics: { type: fpu }
 
-  # MOV32 between FPU register and CPU register / ACC / P (leading word
-  # 0xBDAx = load to FPU reg, 0xBFAx = store from FPU reg; dis2000).  selector
-  # x picks XAR0-7 (0-7), ACC (9) or P (b).
-  - name: MOV32_RAH_CPUREG
-    full_name: "Move CPU register/ACC/P to FPU register"
+  # SPRUEO2B prints one opcode block for all of `MOV32 RaH, ACC`,
+  # `MOV32 ACC, RaH`, `MOV32 XT, RaH`, `MOV32 RaH, P` and friends: they are
+  # assembler spellings of a 32-bit move between loc32 and an absolute
+  # address, and RaH is the *address* (R0H..R7H are 0x0F12 + 4n), not a
+  # register field.  asm2000: `MOV32 ACC, R2H` = BFA9 0F1A.
+  - name: MOV32_ADDR16_LOC32
+    full_name: "Move loc32 to a 16-bit absolute address"
+    mnemonic: MOV32
+    operand_text: "{0:m32}, {1}"
     format: 32
-    opcode: 0xBDA00000
-    mask: 0xFFF00000
+    opcode: 0xBD000000
+    mask: 0xFF000000
     operands:
-      - { name: rah, type: fpu_reg, bits: [6, 4] }
+      - { name: addr16, type: imm16, bits: [15, 0] }
+      - { name: loc32, type: loc32, bits: [23, 16] }
     semantics: { type: fpu }
 
-  - name: MOV32_CPUREG_RAH
-    full_name: "Move FPU register to CPU register/ACC/P"
+  - name: MOV32_LOC32_ADDR16
+    full_name: "Move a 16-bit absolute address to loc32"
+    mnemonic: MOV32
+    operand_text: "{0}, {1:m32}"
     format: 32
-    opcode: 0xBFA00000
-    mask: 0xFFF00000
+    opcode: 0xBF000000
+    mask: 0xFF000000
     operands:
-      - { name: rah, type: fpu_reg, bits: [6, 4] }
+      - { name: loc32, type: loc32, bits: [23, 16] }
+      - { name: addr16, type: imm16, bits: [15, 0] }
     semantics: { type: fpu }
 
   - name: ZERO
     full_name: "Zero float32 register"
+    mnemonic: ZERO
+    operand_text: "{0}"
     format: 16
     opcode: 0xE590
     mask: 0xFFF8
@@ -328,77 +400,92 @@ instructions:
   # Sub-op by word1 low nibble-high:  x0-x0F MPYF32, x10-x1F ADDF32, x20-x2F SUBF32.
   - name: MPYF32_MOV32_LOAD
     full_name: "Multiply float32 || Move memory to FPU register"
+    mnemonic: MPYF32
+    operand_text: "{0}, {1}, {2}"
     format: 32
     opcode: 0xE3000000
     mask: 0xFFF00000
     operands:
-      - { name: rah, type: fpu_reg, bits: [2, 0] }
-      - { name: rbh, type: fpu_reg, bits: [5, 3] }
-      - { name: rch, type: fpu_reg, bits: [8, 6] }
+      - { name: rdh, type: fpu_reg, bits: [13, 11] }
+      - { name: reh, type: fpu_reg, bits: [16, 14] }
+      - { name: rfh, type: fpu_reg, bits: [19, 17] }
+      - { name: rah, type: fpu_reg, bits: [10, 8] }
+      - { name: mem32, type: loc32, bits: [7, 0] }
     semantics: { type: fpu_parallel }
 
   - name: ADDF32_MOV32_LOAD
     full_name: "Add float32 || Move memory to FPU register"
+    mnemonic: ADDF32
+    operand_text: "{0}, {1}, {2}"
     format: 32
     opcode: 0xE3100000
     mask: 0xFFF00000
     operands:
-      - { name: rah, type: fpu_reg, bits: [2, 0] }
-      - { name: rbh, type: fpu_reg, bits: [5, 3] }
-      - { name: rch, type: fpu_reg, bits: [8, 6] }
+      - { name: rdh, type: fpu_reg, bits: [13, 11] }
+      - { name: reh, type: fpu_reg, bits: [16, 14] }
+      - { name: rfh, type: fpu_reg, bits: [19, 17] }
+      - { name: rah, type: fpu_reg, bits: [10, 8] }
+      - { name: mem32, type: loc32, bits: [7, 0] }
     semantics: { type: fpu_parallel }
 
   - name: SUBF32_MOV32_LOAD
     full_name: "Subtract float32 || Move memory to FPU register"
+    mnemonic: SUBF32
+    operand_text: "{0}, {1}, {2}"
     format: 32
     opcode: 0xE3200000
     mask: 0xFFF00000
     operands:
-      - { name: rah, type: fpu_reg, bits: [2, 0] }
-      - { name: rbh, type: fpu_reg, bits: [5, 3] }
-      - { name: rch, type: fpu_reg, bits: [8, 6] }
+      - { name: rdh, type: fpu_reg, bits: [13, 11] }
+      - { name: reh, type: fpu_reg, bits: [16, 14] }
+      - { name: rfh, type: fpu_reg, bits: [19, 17] }
+      - { name: rah, type: fpu_reg, bits: [10, 8] }
+      - { name: mem32, type: loc32, bits: [7, 0] }
     semantics: { type: fpu_parallel }
 
   - name: MPYF32_MOV32_STORE
     full_name: "Multiply float32 || Store FPU register to memory"
+    mnemonic: MPYF32
+    operand_text: "{0}, {1}, {2}"
     format: 32
     opcode: 0xE0000000
     mask: 0xFFF00000
     operands:
-      - { name: rah, type: fpu_reg, bits: [2, 0] }
-      - { name: rbh, type: fpu_reg, bits: [5, 3] }
-      - { name: rch, type: fpu_reg, bits: [8, 6] }
+      - { name: rdh, type: fpu_reg, bits: [13, 11] }
+      - { name: reh, type: fpu_reg, bits: [16, 14] }
+      - { name: rfh, type: fpu_reg, bits: [19, 17] }
+      - { name: mem32, type: loc32, bits: [7, 0] }
+      - { name: rah, type: fpu_reg, bits: [10, 8] }
     semantics: { type: fpu_parallel }
 
   - name: ADDF32_MOV32_STORE
     full_name: "Add float32 || Store FPU register to memory"
+    mnemonic: ADDF32
+    operand_text: "{0}, {1}, {2}"
     format: 32
     opcode: 0xE0100000
     mask: 0xFFF00000
     operands:
-      - { name: rah, type: fpu_reg, bits: [2, 0] }
-      - { name: rbh, type: fpu_reg, bits: [5, 3] }
-      - { name: rch, type: fpu_reg, bits: [8, 6] }
+      - { name: rdh, type: fpu_reg, bits: [13, 11] }
+      - { name: reh, type: fpu_reg, bits: [16, 14] }
+      - { name: rfh, type: fpu_reg, bits: [19, 17] }
+      - { name: mem32, type: loc32, bits: [7, 0] }
+      - { name: rah, type: fpu_reg, bits: [10, 8] }
     semantics: { type: fpu_parallel }
 
   - name: SUBF32_MOV32_STORE
     full_name: "Subtract float32 || Store FPU register to memory"
+    mnemonic: SUBF32
+    operand_text: "{0}, {1}, {2}"
     format: 32
     opcode: 0xE0200000
     mask: 0xFFF00000
     operands:
-      - { name: rah, type: fpu_reg, bits: [2, 0] }
-      - { name: rbh, type: fpu_reg, bits: [5, 3] }
-      - { name: rch, type: fpu_reg, bits: [8, 6] }
-    semantics: { type: fpu_parallel }
-
-  - name: ADDF32_MOV32_PAR
-    full_name: "Add float32 || Move memory to/from FPU register"
-    format: 16
-    opcode: 0xE100
-    mask: 0xFF00
-    operands:
-      - { name: mode, type: imm8, bits: [7, 0] }
+      - { name: rdh, type: fpu_reg, bits: [13, 11] }
+      - { name: reh, type: fpu_reg, bits: [16, 14] }
+      - { name: rfh, type: fpu_reg, bits: [19, 17] }
+      - { name: mem32, type: loc32, bits: [7, 0] }
+      - { name: rah, type: fpu_reg, bits: [10, 8] }
     semantics: { type: fpu_parallel }
 
   # NOTE: 0xB800-0xBBFF is NOT SUBF32 — dis2000 decodes this entire range as
@@ -413,36 +500,28 @@ instructions:
   # 0xE400/0xFF00 16-bit entry only mis-decoded e4xx .word data.
   - name: NEGF32_RAH_RBH
     full_name: "Negate float32 register (conditional)"
+    mnemonic: NEGF32
+    operand_text: "{0}, {1}, {2}"
     format: 32
     opcode: 0xE6A00000
-    mask: 0xFFF00000
+    mask: 0xFFF0FFC0
     operands:
       - { name: rah, type: fpu_reg, bits: [2, 0] }
       - { name: rbh, type: fpu_reg, bits: [5, 3] }
-      - { name: cndf, type: cond4, bits: [19, 16] }
-    semantics: { type: fpu }
-
-  - name: FPU_E9_OP
-    full_name: "FPU extended operation"
-    format: 16
-    opcode: 0xE900
-    mask: 0xFF00
-    operands:
-      - { name: mode, type: imm8, bits: [7, 0] }
-    semantics: { type: fpu }
-
-  - name: MOVST0_FLAG
-    full_name: "Move FPU status flags to CPU ST0"
-    format: 16
-    opcode: 0xE6B0
-    mask: 0xFFFF
+      - { name: cndf, type: cndf, bits: [19, 16] }
     semantics: { type: fpu }
 
   - name: SWAPF_RAH_RBH
-    full_name: "Swap two FPU registers"
-    format: 16
-    opcode: 0xE641
-    mask: 0xFFFF
+    full_name: "Conditional swap of two float32 registers"
+    mnemonic: SWAPF
+    operand_text: "{0:R}, {1:R}, {2}"
+    format: 32
+    opcode: 0xE6E00000
+    mask: 0xFFF0FFC0
+    operands:
+      - { name: rah, type: fpu_reg, bits: [2, 0] }
+      - { name: rbh, type: fpu_reg, bits: [5, 3] }
+      - { name: cndf, type: cndf, bits: [19, 16] }
     semantics: { type: fpu }
 
   # --- FPU 32-bit ops with #16FHi immediate (leading word 0xE8xx) ---
@@ -454,98 +533,109 @@ instructions:
   #   E840-E87F MPYF32  E880-E8BF ADDF32  E8C0-E8FF SUBF32
   - name: MOVIZ
     full_name: "Load high 16 bits of FPU register with immediate"
+    mnemonic: MOVIZ
+    operand_text: "{0:R}, {1}"
     format: 32
     opcode: 0xE8000000
     mask: 0xFFF80000
     operands:
       - { name: rah, type: fpu_reg, bits: [2, 0] }
-      - { name: imm, type: imm16, bits: [18, 6] }
+      - { name: imm, type: imm16, bits: [18, 3] }
     semantics: { type: fpu }
 
   - name: MOVXI
     full_name: "Load low 16 bits of FPU register with immediate"
+    mnemonic: MOVXI
+    operand_text: "{0}, {1}"
     format: 32
     opcode: 0xE8080000
     mask: 0xFFF80000
     operands:
       - { name: rah, type: fpu_reg, bits: [2, 0] }
-      - { name: imm, type: imm16, bits: [18, 6] }
+      - { name: imm, type: imm16, bits: [18, 3] }
     semantics: { type: fpu }
 
   - name: CMPF32_RAH_16FHI
     full_name: "Compare FPU register with 16-bit float immediate"
+    mnemonic: CMPF32
+    operand_text: "{0}, {1}"
     format: 32
     opcode: 0xE8100000
     mask: 0xFFF80000
     operands:
-      - { name: rah, type: fpu_reg, bits: [18, 16] }
-      - { name: imm, type: imm16, bits: [15, 0] }
+      - { name: rah, type: fpu_reg, bits: [2, 0] }
+      - { name: imm, type: imm16, bits: [18, 3] }
     semantics: { type: fpu }
 
   - name: MAXF32_RAH_16FHI
     full_name: "Maximum of FPU register and 16-bit float immediate"
+    mnemonic: MAXF32
+    operand_text: "{0}, {1}"
     format: 32
     opcode: 0xE8200000
     mask: 0xFFF80000
     operands:
-      - { name: rah, type: fpu_reg, bits: [18, 16] }
-      - { name: imm, type: imm16, bits: [15, 0] }
+      - { name: rah, type: fpu_reg, bits: [2, 0] }
+      - { name: imm, type: imm16, bits: [18, 3] }
     semantics: { type: fpu }
 
   - name: MPYF32_RAH_16FHI_RBH
     full_name: "Multiply FPU register by 16-bit float immediate"
+    mnemonic: MPYF32
+    operand_text: "{0}, {2}, {1}"
     format: 32
     opcode: 0xE8400000
     mask: 0xFFC00000
     operands:
       - { name: rah, type: fpu_reg, bits: [2, 0] }
       - { name: rbh, type: fpu_reg, bits: [5, 3] }
-      - { name: imm, type: imm16, bits: [15, 6] }
+      - { name: imm, type: imm16, bits: [21, 6] }
     semantics: { type: fpu }
 
   - name: ADDF32_RAH_16FHI_RBH
     full_name: "Add FPU register and 16-bit float immediate"
+    mnemonic: ADDF32
+    operand_text: "{0}, {2}, {1}"
     format: 32
     opcode: 0xE8800000
     mask: 0xFFC00000
     operands:
       - { name: rah, type: fpu_reg, bits: [2, 0] }
       - { name: rbh, type: fpu_reg, bits: [5, 3] }
-      - { name: imm, type: imm16, bits: [15, 6] }
+      - { name: imm, type: imm16, bits: [21, 6] }
     semantics: { type: fpu }
 
   - name: SUBF32_RAH_16FHI_RBH
     full_name: "Subtract 16-bit float immediate from FPU register"
+    mnemonic: SUBF32
+    operand_text: "{0}, {2}, {1}"
     format: 32
     opcode: 0xE8C00000
     mask: 0xFFC00000
     operands:
       - { name: rah, type: fpu_reg, bits: [2, 0] }
       - { name: rbh, type: fpu_reg, bits: [5, 3] }
-      - { name: imm, type: imm16, bits: [15, 6] }
-    semantics: { type: fpu }
-
-  - name: F32_CONV_MEM_DA
-    full_name: "FPU memory conversion"
-    format: 16
-    opcode: 0xE2DA
-    mask: 0xFFFF
+      - { name: imm, type: imm16, bits: [21, 6] }
     semantics: { type: fpu }
 
   # --- FPU MOV32 memory load/store ---
   - name: MOV32_RAH_MEM32
     full_name: "Move 32-bit memory to FPU register (conditional)"
+    mnemonic: MOV32
+    operand_text: "{0}, {1}, {2}"
     format: 32
     opcode: 0xE2A00000
     mask: 0xFFF0F800
     operands:
       - { name: rah, type: fpu_reg, bits: [10, 8] }
       - { name: mem32, type: loc32, bits: [7, 0] }
-      - { name: cndf, type: cond4, bits: [19, 16] }
+      - { name: cndf, type: cndf, bits: [19, 16] }
     semantics: { type: fpu }
 
   - name: MOV32_MEM32_RAH
     full_name: "Move FPU register to 32-bit memory"
+    mnemonic: MOV32
+    operand_text: "{0}, {1}"
     format: 32
     opcode: 0xE2030000
     mask: 0xFFFFF800
@@ -562,24 +652,30 @@ instructions:
   # (#16FHi FPU ops) and 0xE5xx (ZERO/CMPF32/V-ops) ranges as 1-word MOV32.
   - name: MOV32_MEM32_STF
     full_name: "Move FPU status flags to memory"
+    mnemonic: MOV32
+    operand_text: "{0}, STF"
     format: 32
     opcode: 0xE2000000
-    mask: 0xFFFF0000
+    mask: 0xFFFFFF00
     operands:
       - { name: mem32, type: loc32, bits: [7, 0] }
     semantics: { type: fpu }
 
   - name: MOV32_STF_MEM32
     full_name: "Move memory to FPU status flags"
+    mnemonic: MOV32
+    operand_text: "STF, {0}"
     format: 32
     opcode: 0xE2800000
-    mask: 0xFFFF0000
+    mask: 0xFFFFFF00
     operands:
       - { name: mem32, type: loc32, bits: [7, 0] }
     semantics: { type: fpu }
 
   - name: SETFLG
     full_name: "Set/clear selected FPU status flags"
+    mnemonic: SETFLG
+    operand_text: ""
     format: 32
     opcode: 0xE6000000
     mask: 0xFFC00000
@@ -589,6 +685,8 @@ instructions:
 
   - name: MOVST0
     full_name: "Load ST0 flags from 8-bit mask (NF ZF NI ZI ...)"
+    mnemonic: MOVST0
+    operand_text: "{0}"
     format: 16
     opcode: 0xAD00
     mask: 0xFF00

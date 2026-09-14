@@ -4,6 +4,8 @@
 instructions:
   - name: B
     full_name: "Branch conditionally"
+    mnemonic: B
+    operand_text: "{0:b}, {1}"
     format: 32
     # TI SPRU430F encoding: bits [31:20] = 0xFFE (12 bits, not 11).
     # Mask was previously 0xFFE00000, which accidentally matched
@@ -21,6 +23,8 @@ instructions:
 
   - name: SB
     full_name: "Short branch conditionally"
+    mnemonic: SB
+    operand_text: "{0:b}, {1}"
     format: 16
     opcode: 0x6000
     mask: 0xF000
@@ -34,6 +38,8 @@ instructions:
 
   - name: BF
     full_name: "Branch fast conditionally"
+    mnemonic: BF
+    operand_text: "{0:b}, {1}"
     format: 32
     # TI SPRU430F + INL bn-tic28x-arch reference: bits [31:20] = 0x56C
     # (12-bit opcode). Mask was 0xFFC00000 (10 bits) leaving bits [21:20]
@@ -53,6 +59,8 @@ instructions:
 
   - name: SBF
     full_name: "Short branch fast if equal"
+    mnemonic: SBF
+    operand_text: "{0:b}, EQ"
     format: 16
     opcode: 0xEC00
     mask: 0xFC00
@@ -70,6 +78,8 @@ instructions:
 
   - name: LB
     full_name: "Long branch (absolute)"
+    mnemonic: LB
+    operand_text: "{0}"
     format: 32
     opcode: 0x00400000
     mask: 0xFFC00000
@@ -82,6 +92,8 @@ instructions:
 
   - name: LB_XAR7
     full_name: "Long branch indirect via XAR7"
+    mnemonic: LB
+    operand_text: "*XAR7"
     format: 16
     opcode: 0x7620
     mask: 0xFFFF
@@ -92,6 +104,8 @@ instructions:
 
   - name: LC
     full_name: "Long call (absolute)"
+    mnemonic: LC
+    operand_text: "{0}"
     format: 32
     opcode: 0x00800000
     mask: 0xFFC00000
@@ -105,6 +119,8 @@ instructions:
 
   - name: LC_XAR7
     full_name: "Long call indirect via XAR7"
+    mnemonic: LC
+    operand_text: "*XAR7"
     format: 16
     opcode: 0x7604
     mask: 0xFFFF
@@ -116,6 +132,8 @@ instructions:
 
   - name: LCR
     full_name: "Long call with return address push"
+    mnemonic: LCR
+    operand_text: "{0}"
     format: 32
     opcode: 0x76400000
     mask: 0xFFC00000
@@ -129,6 +147,8 @@ instructions:
 
   - name: LCR_XARN
     full_name: "Long call with return via XARn"
+    mnemonic: LCR
+    operand_text: "*{0}"
     format: 16
     opcode: 0x3E60
     mask: 0xFFF8
@@ -142,6 +162,8 @@ instructions:
 
   - name: LRET
     full_name: "Long return"
+    mnemonic: LRET
+    operand_text: ""
     format: 16
     opcode: 0x7614
     mask: 0xFFFF
@@ -152,6 +174,8 @@ instructions:
 
   - name: LRETE
     full_name: "Long return and enable interrupts"
+    mnemonic: LRETE
+    operand_text: ""
     format: 16
     opcode: 0x7610
     mask: 0xFFFF
@@ -163,6 +187,8 @@ instructions:
 
   - name: LRETR
     full_name: "Long return via RPC"
+    mnemonic: LRETR
+    operand_text: ""
     format: 16
     opcode: 0x0006
     mask: 0xFFFF
@@ -174,6 +200,8 @@ instructions:
 
   - name: IRET
     full_name: "Interrupt return"
+    mnemonic: IRET
+    operand_text: ""
     format: 16
     opcode: 0x7602
     mask: 0xFFFF
@@ -184,6 +212,8 @@ instructions:
 
   - name: FFC
     full_name: "Fast function call"
+    mnemonic: FFC
+    operand_text: "XAR7, {0}"
     format: 32
     opcode: 0x00C00000
     mask: 0xFFC00000
@@ -197,13 +227,15 @@ instructions:
 
   - name: BANZ
     full_name: "Branch if ARn not zero"
+    mnemonic: BANZ
+    operand_text: "{0}"
     format: 32
     opcode: 0x00080000
     mask: 0xFFF80000
     objmode: 1
     operands:
       - { name: offset, type: imm16, bits: [15, 0], signed: true }
-      - { name: n, type: reg3, bits: [18, 16] }
+      - { name: n, type: arn, bits: [18, 16] }
     semantics:
       type: cond_branch
       condition: "AR{n} != 0"
@@ -212,13 +244,15 @@ instructions:
 
   - name: BAR_OFF16_ARN_ARM_EQ
     full_name: "Branch if ARn == ARm"
+    mnemonic: BAR
+    operand_text: "{0:b}, {2}, {1}, EQ"
     format: 32
     opcode: 0x8F800000
     mask: 0xFFC00000
     operands:
       - { name: offset, type: imm16, bits: [15, 0], signed: true }
-      - { name: arn, type: reg3, bits: [18, 16] }
-      - { name: arm, type: reg3, bits: [21, 19] }
+      - { name: arn, type: arn, bits: [18, 16] }
+      - { name: arm, type: arn, bits: [21, 19] }
     semantics:
       type: cond_branch
       condition: "AR{n} == AR{m}"
@@ -226,13 +260,15 @@ instructions:
 
   - name: BAR_OFF16_ARN_ARM_NEQ
     full_name: "Branch if ARn != ARm"
+    mnemonic: BAR
+    operand_text: "{0:b}, {2}, {1}, NEQ"
     format: 32
     opcode: 0x8FC00000
     mask: 0xFFC00000
     operands:
       - { name: offset, type: imm16, bits: [15, 0], signed: true }
-      - { name: arn, type: reg3, bits: [18, 16] }
-      - { name: arm, type: reg3, bits: [21, 19] }
+      - { name: arn, type: arn, bits: [18, 16] }
+      - { name: arm, type: arn, bits: [21, 19] }
     semantics:
       type: cond_branch
       condition: "AR{n} != AR{m}"
@@ -240,6 +276,8 @@ instructions:
 
   - name: XB_AL
     full_name: "Branch to address in AL"
+    mnemonic: XB
+    operand_text: "*AL"
     format: 16
     opcode: 0x5614
     mask: 0xFFFF
@@ -249,6 +287,8 @@ instructions:
 
   - name: XB_PMA_COND
     full_name: "Branch to program memory address conditionally"
+    mnemonic: XB
+    operand_text: "{0}, {1}"
     format: 32
     opcode: 0x56D00000
     mask: 0xFFF00000
@@ -261,6 +301,8 @@ instructions:
 
   - name: XCALL_AL
     full_name: "Call to address in AL"
+    mnemonic: XCALL
+    operand_text: "*AL"
     format: 16
     opcode: 0x5634
     mask: 0xFFFF
@@ -270,6 +312,8 @@ instructions:
 
   - name: XCALL_PMA_COND
     full_name: "Call to program memory address conditionally"
+    mnemonic: XCALL
+    operand_text: "{0}, {1}"
     format: 32
     opcode: 0x56E00000
     mask: 0xFFF00000
@@ -282,6 +326,8 @@ instructions:
 
   - name: XRETC_COND
     full_name: "Conditional return"
+    mnemonic: XRETC
+    operand_text: "{0}"
     format: 16
     opcode: 0x56F0
     mask: 0xFFF0
@@ -292,6 +338,8 @@ instructions:
 
   - name: LOOPNZ_LOC16_CONST16
     full_name: "Loop while loc16 not zero"
+    mnemonic: LOOPNZ
+    operand_text: "{0}, {1:04x}"
     format: 32
     opcode: 0x2E000000
     mask: 0xFF000000
@@ -299,11 +347,17 @@ instructions:
       - { name: loc16, type: loc16, bits: [23, 16] }
       - { name: const16, type: imm16, bits: [15, 0] }
     semantics:
-      type: cond_branch
-      condition: "loc16 != 0"
+      # SPRU430F: `while([loc16] & 16bit = 0);` -- it spins in place and never
+      # transfers control, and the const16 is a bit mask. As a cond_branch the
+      # decoder read that mask as a word address and handed BN a CFG edge to
+      # `mask * 2`, fragmenting whatever function contained one.
+      type: system
+      side_effects: ["spin until the masked bits match; sets LOOP in ST1"]
 
   - name: LOOPZ_LOC16_CONST16
     full_name: "Loop while loc16 is zero"
+    mnemonic: LOOPZ
+    operand_text: "{0}, {1:04x}"
     format: 32
     opcode: 0x2C000000
     mask: 0xFF000000
@@ -311,5 +365,9 @@ instructions:
       - { name: loc16, type: loc16, bits: [23, 16] }
       - { name: const16, type: imm16, bits: [15, 0] }
     semantics:
-      type: cond_branch
-      condition: "loc16 == 0"
+      # SPRU430F: `while([loc16] & 16bit = 0);` -- it spins in place and never
+      # transfers control, and the const16 is a bit mask. As a cond_branch the
+      # decoder read that mask as a word address and handed BN a CFG edge to
+      # `mask * 2`, fragmenting whatever function contained one.
+      type: system
+      side_effects: ["spin until the masked bits match; sets LOOP in ST1"]

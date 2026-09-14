@@ -4,6 +4,8 @@
 instructions:
   - name: ADD_ACC_LOC16
     full_name: "Add loc16 to ACC"
+    mnemonic: ADD
+    operand_text: "ACC, {0}"
     format: 16
     opcode: 0x8100
     mask: 0xFF00
@@ -19,6 +21,8 @@ instructions:
 
   - name: ADD_AX_LOC16
     full_name: "Add loc16 to AX"
+    mnemonic: ADD
+    operand_text: "{0}, {1:@AH|AL}"
     format: 16
     opcode: 0x9400
     mask: 0xFE00
@@ -35,6 +39,8 @@ instructions:
 
   - name: ADD_ACC_CONST16_SHIFT
     full_name: "Add 16-bit constant shifted to ACC"
+    mnemonic: ADD
+    operand_text: "ACC, {0} << {1:b} | ACC, {0:d}"
     format: 32
     opcode: 0xFF100000
     mask: 0xFFF00000
@@ -51,6 +57,8 @@ instructions:
 
   - name: ADDB_ACC_CONST8
     full_name: "Add 8-bit constant to ACC"
+    mnemonic: ADDB
+    operand_text: "ACC, {0:d}"
     format: 16
     opcode: 0x0900
     mask: 0xFF00
@@ -66,6 +74,8 @@ instructions:
 
   - name: ADDB_SP_CONST7
     full_name: "Add 7-bit constant to SP"
+    mnemonic: ADDB
+    operand_text: "SP, {0:d}"
     format: 16
     opcode: 0xFE00
     mask: 0xFF80
@@ -80,6 +90,8 @@ instructions:
 
   - name: ADDL_ACC_LOC32
     full_name: "Add loc32 to ACC"
+    mnemonic: ADDL
+    operand_text: "ACC, {0}"
     format: 16
     opcode: 0x0700
     mask: 0xFF00
@@ -95,6 +107,8 @@ instructions:
 
   - name: SUB_ACC_LOC16
     full_name: "Subtract loc16 from ACC"
+    mnemonic: SUB
+    operand_text: "ACC, {0}"
     format: 16
     opcode: 0xAE00
     mask: 0xFF00
@@ -110,6 +124,8 @@ instructions:
 
   - name: SUB_AX_LOC16
     full_name: "Subtract loc16 from AX"
+    mnemonic: SUB
+    operand_text: "{0}, {1:@AH|AL}"
     format: 16
     opcode: 0x9E00
     mask: 0xFE00
@@ -126,6 +142,8 @@ instructions:
 
   - name: SUBB_ACC_CONST8
     full_name: "Subtract 8-bit constant from ACC"
+    mnemonic: SUBB
+    operand_text: "ACC, {0:d}"
     format: 16
     opcode: 0x1900
     mask: 0xFF00
@@ -141,6 +159,8 @@ instructions:
 
   - name: SUBB_SP_CONST7
     full_name: "Subtract 7-bit constant from SP"
+    mnemonic: SUBB
+    operand_text: "SP, {0:d}"
     format: 16
     opcode: 0xFE80
     mask: 0xFF80
@@ -155,6 +175,8 @@ instructions:
 
   - name: CMP_AX_LOC16
     full_name: "Compare AX with loc16"
+    mnemonic: CMP
+    operand_text: "{0}, {1:@AH|AL}"
     format: 16
     opcode: 0x5400
     mask: 0xFE00
@@ -170,6 +192,8 @@ instructions:
 
   - name: CMPB_AX_CONST8
     full_name: "Compare AX with 8-bit constant"
+    mnemonic: CMPB
+    operand_text: "{0}, {1}"
     format: 16
     opcode: 0x5200
     mask: 0xFE00
@@ -185,6 +209,8 @@ instructions:
 
   - name: INC_LOC16
     full_name: "Increment loc16"
+    mnemonic: INC
+    operand_text: "{0}"
     format: 16
     opcode: 0x0A00
     mask: 0xFF00
@@ -200,6 +226,8 @@ instructions:
 
   - name: DEC_LOC16
     full_name: "Decrement loc16"
+    mnemonic: DEC
+    operand_text: "{0}"
     format: 16
     opcode: 0x0B00
     mask: 0xFF00
@@ -215,6 +243,8 @@ instructions:
 
   - name: ABS_ACC
     full_name: "Absolute value of ACC"
+    mnemonic: ABS
+    operand_text: "ACC"
     format: 16
     opcode: 0xFF56
     mask: 0xFFFF
@@ -226,6 +256,8 @@ instructions:
 
   - name: NEG_ACC
     full_name: "Negate ACC"
+    mnemonic: NEG
+    operand_text: "ACC"
     format: 16
     opcode: 0xFF54
     mask: 0xFFFF
@@ -237,6 +269,8 @@ instructions:
 
   - name: NEG_AX
     full_name: "Negate AX"
+    mnemonic: NEG
+    operand_text: "{0}"
     format: 16
     opcode: 0xFF5C
     mask: 0xFFFE
@@ -250,6 +284,8 @@ instructions:
 
   - name: ADD_LOC16_AX
     full_name: "Add AX to loc16"
+    mnemonic: ADD
+    operand_text: "{0}, {1}"
     format: 16
     opcode: 0x7200
     mask: 0xFE00
@@ -265,6 +301,8 @@ instructions:
 
   - name: ADD_LOC16_CONST16
     full_name: "Add 16-bit constant to loc16"
+    mnemonic: ADD
+    operand_text: "{0}, {1:d}"
     format: 32
     opcode: 0x08000000
     mask: 0xFF000000
@@ -280,6 +318,8 @@ instructions:
 
   - name: ADD_ACC_LOC16_SHIFT16
     full_name: "Add loc16 shifted left 16 to ACC"
+    mnemonic: ADD
+    operand_text: "ACC, {0} << 16"
     format: 16
     opcode: 0x0500
     mask: 0xFF00
@@ -294,9 +334,11 @@ instructions:
 
   - name: ADDL_LOC32_ACC
     full_name: "Add ACC to loc32"
+    mnemonic: ADDL
+    operand_text: "{0}, ACC"
     format: 32
     opcode: 0x56010000
-    mask: 0xFFFF0000
+    mask: 0xFFFFFF00
     operands:
       - { name: loc32, type: loc32, bits: [7, 0] }
     semantics:
@@ -308,9 +350,11 @@ instructions:
 
   - name: ADDCL_ACC_LOC32
     full_name: "Add loc32 with carry to ACC"
+    mnemonic: ADDCL
+    operand_text: "ACC, {0}"
     format: 32
     opcode: 0x56400000
-    mask: 0xFFFF0000
+    mask: 0xFFFFFF00
     operands:
       - { name: loc32, type: loc32, bits: [7, 0] }
     semantics:
@@ -322,6 +366,8 @@ instructions:
 
   - name: ADDCU_ACC_LOC16
     full_name: "Unsigned add loc16 with carry to ACC"
+    mnemonic: ADDCU
+    operand_text: "ACC, {0}"
     format: 16
     opcode: 0x0C00
     mask: 0xFF00
@@ -336,6 +382,8 @@ instructions:
 
   - name: ADDU_ACC_LOC16
     full_name: "Unsigned add loc16 to ACC"
+    mnemonic: ADDU
+    operand_text: "ACC, {0}"
     format: 16
     opcode: 0x0D00
     mask: 0xFF00
@@ -350,9 +398,11 @@ instructions:
 
   - name: ADDUL_ACC_LOC32
     full_name: "Unsigned add loc32 to ACC"
+    mnemonic: ADDUL
+    operand_text: "ACC, {0}"
     format: 32
     opcode: 0x56530000
-    mask: 0xFFFF0000
+    mask: 0xFFFFFF00
     operands:
       - { name: loc32, type: loc32, bits: [7, 0] }
     semantics:
@@ -364,9 +414,11 @@ instructions:
 
   - name: ADDUL_P_LOC32
     full_name: "Unsigned add loc32 to P"
+    mnemonic: ADDUL
+    operand_text: "P, {0}"
     format: 32
     opcode: 0x56570000
-    mask: 0xFFFF0000
+    mask: 0xFFFFFF00
     operands:
       - { name: loc32, type: loc32, bits: [7, 0] }
     semantics:
@@ -378,6 +430,8 @@ instructions:
 
   - name: ADDB_XARN_CONST7
     full_name: "Add 7-bit constant to XARn"
+    mnemonic: ADDB
+    operand_text: "{0}, {1:d}"
     format: 16
     opcode: 0xD800
     mask: 0xF880
@@ -392,6 +446,8 @@ instructions:
 
   - name: ADRK_IMM8
     full_name: "Add to auxiliary register"
+    mnemonic: ADRK
+    operand_text: "{0:d}"
     format: 16
     opcode: 0xFC00
     mask: 0xFF00
@@ -405,6 +461,8 @@ instructions:
 
   - name: SUB_LOC16_AX
     full_name: "Subtract AX from loc16"
+    mnemonic: SUB
+    operand_text: "{0}, {1}"
     format: 16
     opcode: 0x7400
     mask: 0xFE00
@@ -420,6 +478,8 @@ instructions:
 
   - name: SUB_ACC_LOC16_SHIFT16
     full_name: "Subtract loc16 shifted left 16 from ACC"
+    mnemonic: SUB
+    operand_text: "ACC, {0} << 16"
     format: 16
     opcode: 0x0400
     mask: 0xFF00
@@ -432,37 +492,13 @@ instructions:
       src2: "loc16 << 16"
       flags: [N, Z, C, V]
 
-  - name: SUBRL_LOC32_ACC
-    full_name: "Reverse subtract: loc32 = ACC - loc32"
-    format: 16
-    opcode: 0x1400
-    mask: 0xFF00
-    operands:
-      - { name: loc32, type: loc32, bits: [7, 0] }
-    semantics:
-      type: sub
-      dest: "loc32"
-      src1: ACC
-      src2: "loc32"
-      flags: [N, Z, C, V]
-
-  - name: ADDCL_ACC_LOC32
-    full_name: "Add with carry long: ACC += loc32 + C"
-    format: 16
-    opcode: 0x8400
-    mask: 0xFF00
-    operands:
-      - { name: loc32, type: loc32, bits: [7, 0] }
-    semantics:
-      type: add
-      dest: ACC
-      flags: [N, Z, C, V]
-
   - name: RPTB
     full_name: "Repeat block (RPTB end_addr, loc16/#count)"
+    mnemonic: RPTB
+    operand_text: "{0}, {1}"
     format: 32
     opcode: 0xB5000000
-    mask: 0xFF000000
+    mask: 0xFF80FF00
     operands:
       - { name: offset, type: imm7, bits: [22, 16] }
       - { name: loc16, type: loc16, bits: [7, 0] }
@@ -470,8 +506,24 @@ instructions:
       type: system
       side_effects: ["repeat block until end of loop"]
 
+  - name: RPTB_IMM
+    full_name: "Repeat block (RPTB end_addr, loc16/#count)"
+    mnemonic: RPTB
+    operand_text: "{0}, {1}"
+    format: 32
+    opcode: 0xB5800000
+    mask: 0xFF800000
+    operands:
+      - { name: offset, type: imm7, bits: [22, 16] }
+      - { name: count, type: imm16, bits: [15, 0] }
+    semantics:
+      type: system
+      side_effects: ["repeat block until end of loop"]
+
   - name: SUBL_ACC_LOC32
     full_name: "Subtract loc32 from ACC"
+    mnemonic: SUBL
+    operand_text: "ACC, {0}"
     format: 16
     opcode: 0x0300
     mask: 0xFF00
@@ -486,9 +538,11 @@ instructions:
 
   - name: SUBL_LOC32_ACC
     full_name: "Subtract ACC from loc32"
+    mnemonic: SUBL
+    operand_text: "{0}, ACC"
     format: 32
     opcode: 0x56410000
-    mask: 0xFFFF0000
+    mask: 0xFFFFFF00
     operands:
       - { name: loc32, type: loc32, bits: [7, 0] }
     semantics:
@@ -500,9 +554,11 @@ instructions:
 
   - name: SUBBL_ACC_LOC32
     full_name: "Subtract loc32 with borrow from ACC"
+    mnemonic: SUBBL
+    operand_text: "ACC, {0}"
     format: 32
     opcode: 0x56540000
-    mask: 0xFFFF0000
+    mask: 0xFFFFFF00
     operands:
       - { name: loc32, type: loc32, bits: [7, 0] }
     semantics:
@@ -514,6 +570,8 @@ instructions:
 
   - name: SUBU_ACC_LOC16
     full_name: "Unsigned subtract loc16 from ACC"
+    mnemonic: SUBU
+    operand_text: "ACC, {0}"
     format: 16
     opcode: 0x0100
     mask: 0xFF00
@@ -528,9 +586,11 @@ instructions:
 
   - name: SUBUL_ACC_LOC32
     full_name: "Unsigned subtract loc32 from ACC"
+    mnemonic: SUBUL
+    operand_text: "ACC, {0}"
     format: 32
     opcode: 0x56550000
-    mask: 0xFFFF0000
+    mask: 0xFFFFFF00
     operands:
       - { name: loc32, type: loc32, bits: [7, 0] }
     semantics:
@@ -542,9 +602,11 @@ instructions:
 
   - name: SUBUL_P_LOC32
     full_name: "Unsigned subtract loc32 from P"
+    mnemonic: SUBUL
+    operand_text: "P, {0}"
     format: 32
     opcode: 0x565D0000
-    mask: 0xFFFF0000
+    mask: 0xFFFFFF00
     operands:
       - { name: loc32, type: loc32, bits: [7, 0] }
     semantics:
@@ -556,6 +618,8 @@ instructions:
 
   - name: SUBCU_ACC_LOC16
     full_name: "Conditional subtract for division"
+    mnemonic: SUBCU
+    operand_text: "ACC, {0}"
     format: 16
     opcode: 0x1F00
     mask: 0xFF00
@@ -570,9 +634,11 @@ instructions:
 
   - name: SUBCUL_ACC_LOC32
     full_name: "Conditional subtract long for division"
+    mnemonic: SUBCUL
+    operand_text: "ACC, {0}"
     format: 32
     opcode: 0x56170000
-    mask: 0xFFFF0000
+    mask: 0xFFFFFF00
     operands:
       - { name: loc32, type: loc32, bits: [7, 0] }
     semantics:
@@ -584,6 +650,8 @@ instructions:
 
   - name: SUBR_LOC16_AX
     full_name: "Reverse subtract: AX - loc16 -> loc16"
+    mnemonic: SUBR
+    operand_text: "{0}, {1}"
     format: 16
     opcode: 0xEA00
     mask: 0xFE00
@@ -599,9 +667,11 @@ instructions:
 
   - name: SUBRL_LOC32_ACC
     full_name: "Reverse subtract: ACC - loc32 -> loc32"
+    mnemonic: SUBRL
+    operand_text: "{0}, ACC"
     format: 32
     opcode: 0x56490000
-    mask: 0xFFFF0000
+    mask: 0xFFFFFF00
     operands:
       - { name: loc32, type: loc32, bits: [7, 0] }
     semantics:
@@ -613,6 +683,8 @@ instructions:
 
   - name: SBBU_ACC_LOC16
     full_name: "Subtract with borrow unsigned"
+    mnemonic: SBBU
+    operand_text: "ACC, {0}"
     format: 16
     opcode: 0x1D00
     mask: 0xFF00
@@ -627,6 +699,8 @@ instructions:
 
   - name: SUBB_XARN_CONST7
     full_name: "Subtract 7-bit constant from XARn"
+    mnemonic: SUBB
+    operand_text: "{0}, {1:d}"
     format: 16
     opcode: 0xD880
     mask: 0xF880
@@ -641,6 +715,8 @@ instructions:
 
   - name: SBRK_CONST8
     full_name: "Subtract from auxiliary register"
+    mnemonic: SBRK
+    operand_text: "{0:d}"
     format: 16
     opcode: 0xFD00
     mask: 0xFF00
@@ -654,6 +730,8 @@ instructions:
 
   - name: CMP_LOC16_CONST16
     full_name: "Compare loc16 with 16-bit constant"
+    mnemonic: CMP
+    operand_text: "{0}, {1:d}"
     format: 32
     opcode: 0x1B000000
     mask: 0xFF000000
@@ -668,6 +746,8 @@ instructions:
 
   - name: CMP64_ACC_P
     full_name: "Compare 64-bit ACC:P with zero"
+    mnemonic: CMP64
+    operand_text: "ACC:P"
     format: 16
     opcode: 0x565E
     mask: 0xFFFF
@@ -679,6 +759,8 @@ instructions:
 
   - name: CMPL_ACC_LOC32
     full_name: "Compare ACC with loc32"
+    mnemonic: CMPL
+    operand_text: "ACC, {0}"
     format: 16
     opcode: 0x0F00
     mask: 0xFF00
@@ -692,6 +774,8 @@ instructions:
 
   - name: CMPL_ACC_P_SHIFT_PM
     full_name: "Compare ACC with P shifted by PM"
+    mnemonic: CMPL
+    operand_text: "ACC, P << PM"
     format: 16
     opcode: 0xFF59
     mask: 0xFFFF
@@ -703,6 +787,8 @@ instructions:
 
   - name: CMPR_0
     full_name: "Compare AR0 with AR(ARP), test for equal"
+    mnemonic: CMPR
+    operand_text: "0"
     format: 16
     opcode: 0x561D
     mask: 0xFFFF
@@ -715,6 +801,8 @@ instructions:
 
   - name: CMPR_1
     full_name: "Compare AR0 with AR(ARP), test for greater"
+    mnemonic: CMPR
+    operand_text: "1"
     format: 16
     opcode: 0x5619
     mask: 0xFFFF
@@ -727,6 +815,8 @@ instructions:
 
   - name: CMPR_2
     full_name: "Compare AR0 with AR(ARP), test for less"
+    mnemonic: CMPR
+    operand_text: "2"
     format: 16
     opcode: 0x5618
     mask: 0xFFFF
@@ -739,6 +829,8 @@ instructions:
 
   - name: CMPR_3
     full_name: "Compare AR0 with AR(ARP), test for not equal"
+    mnemonic: CMPR
+    operand_text: "3"
     format: 16
     opcode: 0x561C
     mask: 0xFFFF
@@ -751,6 +843,8 @@ instructions:
 
   - name: NEG64_ACC_P
     full_name: "Negate 64-bit ACC:P"
+    mnemonic: NEG64
+    operand_text: "ACC:P"
     format: 16
     opcode: 0x5658
     mask: 0xFFFF
@@ -762,6 +856,8 @@ instructions:
 
   - name: NEGTC_ACC
     full_name: "Negate ACC conditionally on TC"
+    mnemonic: NEGTC
+    operand_text: "ACC"
     format: 16
     opcode: 0x5632
     mask: 0xFFFF
@@ -774,6 +870,8 @@ instructions:
 
   - name: ABSTC_ACC
     full_name: "Absolute value of ACC conditionally on TC"
+    mnemonic: ABSTC
+    operand_text: "ACC"
     format: 16
     opcode: 0x565F
     mask: 0xFFFF
@@ -786,6 +884,8 @@ instructions:
 
   - name: SAT_ACC
     full_name: "Saturate ACC"
+    mnemonic: SAT
+    operand_text: "ACC"
     format: 16
     opcode: 0xFF57
     mask: 0xFFFF
@@ -796,6 +896,8 @@ instructions:
 
   - name: SAT64_ACC_P
     full_name: "Saturate 64-bit ACC:P"
+    mnemonic: SAT64
+    operand_text: "ACC:P"
     format: 16
     opcode: 0x563E
     mask: 0xFFFF
@@ -806,6 +908,8 @@ instructions:
 
   - name: CSB_ACC
     full_name: "Count sign bits of ACC"
+    mnemonic: CSB
+    operand_text: "ACC"
     format: 16
     opcode: 0x5635
     mask: 0xFFFF
@@ -817,6 +921,8 @@ instructions:
 
   - name: TEST_ACC
     full_name: "Test ACC and set flags"
+    mnemonic: TEST
+    operand_text: "ACC"
     format: 16
     opcode: 0xFF58
     mask: 0xFFFF
@@ -827,9 +933,11 @@ instructions:
 
   - name: ADD_ACC_LOC16_SHIFT1_15
     full_name: "Add loc16 shifted 1-15 to ACC"
+    mnemonic: ADD
+    operand_text: "ACC, {0} << {1:b} | ACC, {0}"
     format: 32
     opcode: 0x56040000
-    mask: 0xFFFC0000
+    mask: 0xFFFFF000
     objmode: 1
     operands:
       - { name: loc16, type: loc16, bits: [7, 0] }
@@ -843,9 +951,11 @@ instructions:
 
   - name: ADD_ACC_LOC16_SHIFT_T
     full_name: "Add loc16 shifted by T to ACC"
+    mnemonic: ADD
+    operand_text: "ACC, {0} << T"
     format: 32
     opcode: 0x56230000
-    mask: 0xFFFF0000
+    mask: 0xFFFFFF00
     objmode: 1
     operands:
       - { name: loc16, type: loc16, bits: [7, 0] }
@@ -858,9 +968,11 @@ instructions:
 
   - name: SUB_ACC_LOC16_SHIFT1_15_OBJMODE1
     full_name: "Subtract loc16 shifted 1-15 from ACC"
+    mnemonic: SUB
+    operand_text: "ACC, {0} << {1:b} | ACC, {0}"
     format: 32
     opcode: 0x56000000
-    mask: 0xFFFF0000
+    mask: 0xFFFFF000
     objmode: 1
     operands:
       - { name: loc16, type: loc16, bits: [7, 0] }
@@ -874,9 +986,11 @@ instructions:
 
   - name: SUB_ACC_LOC16_SHIFT_T
     full_name: "Subtract loc16 shifted by T from ACC"
+    mnemonic: SUB
+    operand_text: "ACC, {0} << T"
     format: 32
     opcode: 0x56270000
-    mask: 0xFFFF0000
+    mask: 0xFFFFFF00
     objmode: 1
     operands:
       - { name: loc16, type: loc16, bits: [7, 0] }
@@ -889,6 +1003,8 @@ instructions:
 
   - name: SUB_ACC_CONST16_SHIFT
     full_name: "Subtract 16-bit constant shifted from ACC"
+    mnemonic: SUB
+    operand_text: "ACC, {0} << {1:b} | ACC, {0:d}"
     format: 32
     opcode: 0xFF000000
     mask: 0xFFF00000
@@ -903,29 +1019,17 @@ instructions:
       src2: "const16 << shift"
       flags: [N, Z, C, V]
 
-  - name: ADD_ACC_LOC16_SHIFT0_15
-    full_name: "Add loc16 with shift 0-15 to ACC"
-    format: 16
-    opcode: 0xA000
-    mask: 0xF000
-    objmode: 1
-    operands:
-      - { name: loc16, type: loc16, bits: [7, 0] }
-      - { name: shift, type: shift4, bits: [11, 8] }
-    semantics:
-      type: add
-      dest: ACC
-      flags: [N, Z, C, V]
-
   - name: ADDB_AX_CONST8
     full_name: "Add 8-bit constant to AX"
+    mnemonic: ADDB
+    operand_text: "{0}, {1:d}"
     format: 16
     opcode: 0x9C00
     mask: 0xFE00
     objmode: 1
     operands:
       - { name: ax, type: ax, bits: [8, 8] }
-      - { name: const8, type: imm8, bits: [7, 0] }
+      - { name: const8, type: imm8, bits: [7, 0], signed: true }
     semantics:
       type: add
       flags: [N, Z, C, V]

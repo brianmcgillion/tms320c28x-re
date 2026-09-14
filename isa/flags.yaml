@@ -74,3 +74,13 @@ st1_flags:
   ARP:
     bits: [15, 13]
     description: "Auxiliary register pointer (3 bits)"
+
+# The 8-bit operand of CLRC/SETC. This is its own map and is NOT the ST0 bit
+# layout above -- bit 4 is INTM here and Z there. Captured by disassembling
+# `CLRC 1 << n` for every n with dis2000.
+mode_bits: [SXM, OVM, TC, C, INTM, DBGM, PAGE0, VMAP]
+
+# SETFLG's 22-bit operand is an 11-bit select in [21:11] and an 11-bit value in
+# [10:0]; TI renders the selected flags as `NAME=value` pairs. Index is the
+# select bit minus 11. Captured the same way.
+setflg_bits: [LVF, LUF, NF, ZF, NI, ZI, TF, RNDQ16, RNDQ32, RNDF32, RNDF64]
