@@ -1,6 +1,7 @@
 {
-  "_comment": "Expected skips per reason. The goal is not zero: it is that no test can go dark without someone editing this number. Regenerate deliberately with `pytest tests/ -q -rs` and read the diff.",
+  "_comment": "Expected skips per reason, recorded for a CLEAN CHECKOUT -- that is what CI sees. A machine that has run the suite has fewer, because tests/build_flash_fixture.py creates tests/fixtures/build/flash_test.bin, which is gitignored. Fewer than baseline passes; more fails. Regenerate deliberately with `pytest tests/ -q -rs` and read the diff.",
   "expected": {
+    "tests/test_binja_pure.py: flash fixture not built": 1,
     "tests/test_firmware_bn.py: Binary Ninja not installed": 8,
     "tests/test_pmsm_bn.py: Binary Ninja not installed": 7,
     "tests/test_pmsm_firmware.py: PMSM firmware absent; run tests/fixtures/pmsm/fetch.sh": 18
