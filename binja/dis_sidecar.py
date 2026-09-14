@@ -26,7 +26,6 @@ Menu: Plugins > TMS320C28x > Import dumped.dis (seed functions + mark data)
 import json
 import os
 
-import binaryninja
 from binaryninja import (
     BackgroundTaskThread,
     PluginCommand,
@@ -83,8 +82,9 @@ def _detect_word_to_byte(bv, sample_words):
     candidates = [0, -FLASH_ORIGIN_WORD * 2, bv.start - FLASH_ORIGIN_WORD * 2]
     best_off, best_hits = 0, -1
     for off in dict.fromkeys(candidates):
-        hits = sum(1 for w in sample_words
-                   if bv.get_segment_at(w * 2 + off) is not None)
+        hits = sum(
+            1 for w in sample_words if bv.get_segment_at(w * 2 + off) is not None
+        )
         if hits > best_hits:
             best_hits, best_off = hits, off
     return best_off, best_hits
@@ -105,9 +105,12 @@ class DisImportTask(BackgroundTaskThread):
         # reanalysis, which may drift the total function count by a few). A
         # second import on an unchanged view must yield funcs_added == 0.
         self.stats = {
-            "funcs_added": 0, "funcs_skipped_existing": 0,
-            "funcs_skipped_named": 0, "funcs_unmapped": 0,
-            "data_words": 0, "funcs_removed": 0,
+            "funcs_added": 0,
+            "funcs_skipped_existing": 0,
+            "funcs_skipped_named": 0,
+            "funcs_unmapped": 0,
+            "data_words": 0,
+            "funcs_removed": 0,
         }
 
     def run(self):
@@ -130,8 +133,10 @@ class DisImportTask(BackgroundTaskThread):
             log_info(f"dis_sidecar: no manifest; parsing {dis_path}")
             functions, data_ranges = _parse_dis(dis_path)
         else:
-            log_warn("dis_sidecar: no dumped.analysis.json or dumped.dis found "
-                     f"near {bv.file.filename}")
+            log_warn(
+                "dis_sidecar: no dumped.analysis.json or dumped.dis found "
+                f"near {bv.file.filename}"
+            )
             return
 
         if not functions and not data_ranges:
@@ -139,14 +144,19 @@ class DisImportTask(BackgroundTaskThread):
             return
 
         # Detect the word->byte mapping from a sample of manifest addresses.
-        sample = [f["entry_word"] for f in functions[:64]] or \
-                 [r["start_word"] for r in data_ranges[:64]]
+        sample = [f["entry_word"] for f in functions[:64]] or [
+            r["start_word"] for r in data_ranges[:64]
+        ]
         offset, hits = _detect_word_to_byte(bv, sample)
-        log_info(f"dis_sidecar: word->byte offset 0x{offset & 0xFFFFFFFF:X} "
-                 f"({hits}/{len(sample)} sample addrs mapped)")
+        log_info(
+            f"dis_sidecar: word->byte offset 0x{offset & 0xFFFFFFFF:X} "
+            f"({hits}/{len(sample)} sample addrs mapped)"
+        )
         if hits == 0:
-            log_warn("dis_sidecar: manifest addresses do not map into this view "
-                     "(wrong dump?) — aborting")
+            log_warn(
+                "dis_sidecar: manifest addresses do not map into this view "
+                "(wrong dump?) — aborting"
+            )
             return
 
         def w2b(word):
@@ -177,18 +187,26 @@ class DisImportTask(BackgroundTaskThread):
                 skipped_unmapped += 1
                 continue
             if bv.get_function_at(byte) is not None:
-                skipped_exist += 1            # already a function -> idempotent
+                skipped_exist += 1  # already a function -> idempotent
                 continue
             if _is_user_named(bv, byte):
-                skipped_named += 1            # analyst put a symbol here -> respect
+                skipped_named += 1  # analyst put a symbol here -> respect
                 continue
             bv.add_function(byte)
             bv.define_auto_symbol(
-                Symbol(SymbolType.FunctionSymbol, byte, f.get("name", f"fn_{f['entry_word']:06X}"))
+                Symbol(
+                    SymbolType.FunctionSymbol,
+                    byte,
+                    f.get("name", f"fn_{f['entry_word']:06X}"),
+                )
             )
             added += 1
-        self.stats.update(funcs_added=added, funcs_skipped_existing=skipped_exist,
-                          funcs_skipped_named=skipped_named, funcs_unmapped=skipped_unmapped)
+        self.stats.update(
+            funcs_added=added,
+            funcs_skipped_existing=skipped_exist,
+            funcs_skipped_named=skipped_named,
+            funcs_unmapped=skipped_unmapped,
+        )
         log_info(
             f"dis_sidecar: functions +{added} "
             f"(skipped {skipped_exist} existing, {skipped_named} analyst-named, "
@@ -270,9 +288,14 @@ def _parse_dis(dis_path):
 
     def flush_garbage():
         if len(garbage_run) >= GARBAGE_MIN:
-            data_ranges.append({"start_word": garbage_run[0],
-                                "end_word": garbage_run[-1] + 1,
-                                "section": ".dis_data", "type": "data"})
+            data_ranges.append(
+                {
+                    "start_word": garbage_run[0],
+                    "end_word": garbage_run[-1] + 1,
+                    "section": ".dis_data",
+                    "type": "data",
+                }
+            )
         garbage_run.clear()
 
     try:
@@ -310,9 +333,14 @@ def _parse_dis(dis_path):
         log_warn(f"dis_sidecar: .dis parse error: {e}")
 
     entries = sorted(call_targets | prologues)
-    functions = [{"name": f"fn_{w:06X}", "entry_word": w,
-                  "source": "call" if w in call_targets else "prologue"}
-                 for w in entries]
+    functions = [
+        {
+            "name": f"fn_{w:06X}",
+            "entry_word": w,
+            "source": "call" if w in call_targets else "prologue",
+        }
+        for w in entries
+    ]
     return functions, data_ranges
 
 

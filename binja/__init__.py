@@ -14,9 +14,9 @@ import ctypes
 
 _plugin_dir = os.path.dirname(os.path.abspath(__file__))
 _native_names = [
-    "libtms320c28x_binja.so",      # Linux
-    "libtms320c28x_binja.dylib",    # macOS
-    "tms320c28x_binja.dll",         # Windows
+    "libtms320c28x_binja.so",  # Linux
+    "libtms320c28x_binja.dylib",  # macOS
+    "tms320c28x_binja.dll",  # Windows
 ]
 
 for _name in _native_names:
@@ -30,23 +30,23 @@ for _name in _native_names:
         except Exception as _e:
             try:
                 from binaryninja import log_warn
+
                 log_warn(f"C28x: failed to load native library {_name}: {_e}")
             except ImportError:
                 pass
 
-# When installed as the packaged `tms320c28x/` plugin folder, Binary Ninja
-# imports only this package's __init__ — it does NOT separately import the
-# sibling modules. Import them here so their BinaryView plugins and
-# PluginCommands register. (The dev layout symlinks each module in as its own
-# top-level plugin file and never loads this __init__, so there is no
-# double-registration.) Each import is guarded so one failure can't suppress
-# the rest.
+# Binary Ninja imports only this package's __init__ for a plugin folder — it
+# does NOT separately import the sibling modules. Import them here so their
+# BinaryView plugins and PluginCommands register. The dev deploy now ships the
+# same folder (scripts/run_all_tests.sh), so this runs there too; it used to
+# copy each module in as its own top-level plugin file, which is why they could
+# not share one. Each import is guarded so one failure can't suppress the rest.
 _command_modules = (
-    "coff_plugin",   # TI COFF BinaryView
-    "elf_plugin",    # C28x ELF BinaryView
-    "flash",         # raw F28335 flash BinaryView
-    "tools",         # Plugins > TMS320C28x > cleanup/memory-map/PIE/inline-data
-    "dis_sidecar",   # Plugins > TMS320C28x > Import dumped.dis (seed funcs + data)
+    "coff_plugin",  # TI COFF BinaryView
+    "elf_plugin",  # C28x ELF BinaryView
+    "flash",  # raw F28335 flash BinaryView
+    "tools",  # Plugins > TMS320C28x > cleanup/memory-map/PIE/inline-data
+    "dis_sidecar",  # Plugins > TMS320C28x > Import dumped.dis (seed funcs + data)
 )
 for _mod in _command_modules:
     try:
@@ -54,6 +54,7 @@ for _mod in _command_modules:
     except Exception as _e:
         try:
             from binaryninja import log_warn
+
             log_warn(f"C28x: failed to load plugin module {_mod}: {_e}")
         except ImportError:
             pass

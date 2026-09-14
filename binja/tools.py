@@ -5,6 +5,8 @@ that identifies and removes function entries created by BN's auto-analysis
 at addresses that are not call targets and lack ADDB_SP prologues.
 """
 
+import bisect as _bisect
+
 import binaryninja
 from binaryninja import (
     BackgroundTaskThread,
@@ -15,8 +17,10 @@ from binaryninja import (
     SymbolType,
     log_info,
     log_warn,
-    interaction,
 )
+
+from .memmap import PERIPHERALS, RAM_REGIONS
+from .patterns import is_function_prologue
 
 
 class CleanupTask(BackgroundTaskThread):
@@ -59,7 +63,10 @@ class CleanupTask(BackgroundTaskThread):
                 addr += 2
                 continue
             for branch in info.branches:
-                if branch.type == binaryninja.BranchType.CallDestination and branch.target:
+                if (
+                    branch.type == binaryninja.BranchType.CallDestination
+                    and branch.target
+                ):
                     call_targets.add(branch.target)
             addr += info.length
 
@@ -71,14 +78,17 @@ class CleanupTask(BackgroundTaskThread):
             data = bv.read(addr, 2)
             if data and len(data) >= 2:
                 op16 = data[0] | (data[1] << 8)
-                if (op16 & 0xFF80) == 0xFE00:
+                if is_function_prologue(op16):
                     prologue_addrs.add(addr)
             addr += 2
 
         # Collect symbol addresses
         symbol_addrs = set()
         for sym in bv.get_symbols():
-            if sym.type in (SymbolType.FunctionSymbol, SymbolType.ImportedFunctionSymbol):
+            if sym.type in (
+                SymbolType.FunctionSymbol,
+                SymbolType.ImportedFunctionSymbol,
+            ):
                 symbol_addrs.add(sym.address)
 
         # Identify false functions
@@ -102,7 +112,11 @@ class CleanupTask(BackgroundTaskThread):
                 continue
             if a == bv.entry_point:
                 continue
-            # ADDB_SP prologue + incoming references = probably real
+            # A prologue alone is not enough: `ADDB SP, #n` is two bytes and
+            # turns up inside data and mid-instruction often enough that
+            # keeping every match defeats the point of the cleanup. Require an
+            # incoming reference too. scripts/cleanup_false_functions.py kept
+            # anything with a prologue; it is deleted, and this is the rule.
             if a in prologue_addrs:
                 if any(True for _ in bv.get_code_refs(a)):
                     continue
@@ -129,7 +143,9 @@ class CleanupTask(BackgroundTaskThread):
             if removed % 100 == 0:
                 self.progress = f"Removed {removed}/{len(false_funcs)}..."
 
-        log_info(f"C28x cleanup: removed {removed} false functions, {len(bv.functions)} remaining")
+        log_info(
+            f"C28x cleanup: removed {removed} false functions, {len(bv.functions)} remaining"
+        )
 
         # Re-analyze then run another pass — BN may recreate some orphans
         self.progress = "Re-analyzing..."
@@ -148,7 +164,9 @@ class CleanupTask(BackgroundTaskThread):
             second_pass.append(func)
 
         if second_pass:
-            self.progress = f"Second pass: removing {len(second_pass)} recreated orphans..."
+            self.progress = (
+                f"Second pass: removing {len(second_pass)} recreated orphans..."
+            )
             for func in second_pass:
                 bv.remove_user_function(func)
             log_info(f"C28x cleanup: second pass removed {len(second_pass)} more")
@@ -168,58 +186,33 @@ PluginCommand.register(
 )
 
 
-# ── Apply F28335 Memory Map ──
+# ── Apply F28335 Memory Map (see binja/memmap.py) ──
+
+
+def covered_predicate(ranges):
+    """`covered(addr)` for a list of (start, end) basic-block ranges.
+
+    The ranges are merged and binary-searched. This used to add every 2-byte
+    address of every basic block to a set -- around 256K integers for a 512KB
+    image -- to answer the same question.
+    """
+    merged = []
+    for start, end in sorted(ranges):
+        if merged and start <= merged[-1][1]:
+            merged[-1] = (merged[-1][0], max(merged[-1][1], end))
+        else:
+            merged.append((start, end))
+    starts = [m[0] for m in merged]
+
+    def covered(addr):
+        i = _bisect.bisect_right(starts, addr) - 1
+        return i >= 0 and addr < merged[i][1]
+
+    return covered
+
 
 def _w2b(word_addr):
     return word_addr * 2
-
-F28335_PERIPHERALS = [
-    ("eCAN_A",       0x006000, 0x100),
-    ("eCAN_B",       0x006200, 0x100),
-    ("ePWM1",        0x006800, 0x040),
-    ("ePWM2",        0x006840, 0x040),
-    ("ePWM3",        0x006880, 0x040),
-    ("ePWM4",        0x0068C0, 0x040),
-    ("ePWM5",        0x006900, 0x040),
-    ("ePWM6",        0x006940, 0x040),
-    ("eCAP1",        0x006A00, 0x020),
-    ("eCAP2",        0x006A20, 0x020),
-    ("eQEP1",        0x006B00, 0x040),
-    ("eQEP2",        0x006B40, 0x040),
-    ("GPIO_CTRL",    0x006F80, 0x040),
-    ("GPIO_DATA",    0x006FC0, 0x020),
-    ("GPIO_INT",     0x007070, 0x010),
-    ("SPI_A",        0x007040, 0x010),
-    ("SCI_A",        0x007050, 0x010),
-    ("ADC",          0x007100, 0x020),
-    ("SCI_B",        0x007750, 0x010),
-    ("SCI_C",        0x007770, 0x010),
-    ("I2C_A",        0x007900, 0x040),
-    ("DMA",          0x001000, 0x200),
-    ("CPU_TIMER0",   0x000C00, 0x008),
-    ("CPU_TIMER1",   0x000C08, 0x008),
-    ("CPU_TIMER2",   0x000C10, 0x008),
-    ("PIE_CTRL",     0x000CE0, 0x020),
-    ("PIE_VECT",     0x000D00, 0x100),
-    ("SYS_CTRL",     0x007010, 0x020),
-    ("FLASH_REGS",   0x000A80, 0x020),
-    ("CSM",          0x000AE0, 0x010),
-    ("McBSP_A",      0x005000, 0x040),
-    ("McBSP_B",      0x005040, 0x040),
-]
-
-F28335_RAM = [
-    ("M0_SARAM", 0x000000, 0x0400),
-    ("M1_SARAM", 0x000400, 0x0400),
-    ("L0_SARAM", 0x008000, 0x1000),
-    ("L1_SARAM", 0x009000, 0x1000),
-    ("L2_SARAM", 0x00A000, 0x1000),
-    ("L3_SARAM", 0x00B000, 0x1000),
-    ("L4_SARAM", 0x00C000, 0x1000),
-    ("L5_SARAM", 0x00D000, 0x1000),
-    ("L6_SARAM", 0x00E000, 0x1000),
-    ("L7_SARAM", 0x00F000, 0x1000),
-]
 
 
 class ApplyMemoryMapTask(BackgroundTaskThread):
@@ -234,23 +227,29 @@ class ApplyMemoryMapTask(BackgroundTaskThread):
         ram_flags = mmio_flags | SegmentFlag.SegmentContainsData
 
         count = 0
-        for name, word_base, word_size in F28335_PERIPHERALS:
+        for name, word_base, word_size in PERIPHERALS:
             byte_addr = _w2b(word_base)
             byte_size = word_size * 2
             bv.add_auto_segment(byte_addr, byte_size, 0, 0, mmio_flags)
-            bv.add_auto_section(name, byte_addr, byte_size,
-                                SectionSemantics.ReadWriteDataSectionSemantics)
-            bv.define_auto_symbol(
-                Symbol(SymbolType.DataSymbol, byte_addr, name)
+            bv.add_auto_section(
+                name,
+                byte_addr,
+                byte_size,
+                SectionSemantics.ReadWriteDataSectionSemantics,
             )
+            bv.define_auto_symbol(Symbol(SymbolType.DataSymbol, byte_addr, name))
             count += 1
 
-        for name, word_base, word_size in F28335_RAM:
+        for name, word_base, word_size in RAM_REGIONS:
             byte_addr = _w2b(word_base)
             byte_size = word_size * 2
             bv.add_auto_segment(byte_addr, byte_size, 0, 0, ram_flags)
-            bv.add_auto_section(name, byte_addr, byte_size,
-                                SectionSemantics.ReadWriteDataSectionSemantics)
+            bv.add_auto_section(
+                name,
+                byte_addr,
+                byte_size,
+                SectionSemantics.ReadWriteDataSectionSemantics,
+            )
             count += 1
 
         log_info(f"C28x: applied F28335 memory map ({count} regions)")
@@ -268,6 +267,7 @@ PluginCommand.register(
 
 
 # ── Find Functions from PIE Vector Table ──
+
 
 class PIEFunctionTask(BackgroundTaskThread):
     def __init__(self, bv):
@@ -306,9 +306,7 @@ class PIEFunctionTask(BackgroundTaskThread):
                 group = (i // 8) + 1
                 vector = (i % 8) + 1
                 name = f"PIE_{group}_{vector}_ISR"
-                bv.define_auto_symbol(
-                    Symbol(SymbolType.FunctionSymbol, isr_byte, name)
-                )
+                bv.define_auto_symbol(Symbol(SymbolType.FunctionSymbol, isr_byte, name))
                 bv.add_function(isr_byte)
                 count += 1
 
@@ -323,6 +321,7 @@ class PIEFunctionTask(BackgroundTaskThread):
     def _scan_pointer_tables(self, bv, code_start, code_end):
         """Scan readable segments for contiguous arrays of flash code pointers."""
         import struct as _struct
+
         count = 0
         for seg in bv.segments:
             if not seg.readable:
@@ -346,11 +345,18 @@ class PIEFunctionTask(BackgroundTaskThread):
                 if run_count >= 4:
                     for i in range(run_count):
                         data = bv.read(run_start + i * 4, 4)
+                        # Same guard as the scan loop above: bv.read returns b""
+                        # past the end of a mapped region.
+                        if not data or len(data) < 4:
+                            break
                         word_addr = _struct.unpack_from("<I", data)[0] & 0x3FFFFF
                         byte_addr = _w2b(word_addr)
-                        # Only create functions in file-backed executable segments
-                        seg = bv.get_segment_at(byte_addr)
-                        if seg and seg.executable:
+                        # Only create functions in file-backed executable segments.
+                        # NB: a separate name from the `seg` being iterated -- rebinding
+                        # it made the enclosing `while offset + 15 < seg.end` read the
+                        # target segment's bound, or raise AttributeError on None.
+                        target_seg = bv.get_segment_at(byte_addr)
+                        if target_seg and target_seg.executable:
                             bv.add_function(byte_addr)
                     count += run_count
                     offset = scan
@@ -374,6 +380,7 @@ PluginCommand.register(
 
 
 # ── Mark Inline Data ──
+
 
 class MarkInlineDataTask(BackgroundTaskThread):
     """Scan gaps between functions in flash and mark undecoded regions as data."""
@@ -406,11 +413,7 @@ class MarkInlineDataTask(BackgroundTaskThread):
                 func_ranges.append((block.start, block.end))
         func_ranges.sort()
 
-        # Find gaps between function blocks
-        covered = set()
-        for start, end in func_ranges:
-            for addr in range(start, end, 2):
-                covered.add(addr)
+        covered = covered_predicate(func_ranges)
 
         # Scan gaps: try to decode each word, if it fails → data
         self.progress = "Scanning for inline data..."
@@ -422,7 +425,7 @@ class MarkInlineDataTask(BackgroundTaskThread):
             if self.cancelled:
                 return
 
-            if addr in covered:
+            if covered(addr):
                 # Inside a known function block
                 if region_start is not None:
                     data_regions.append((region_start, addr - region_start))
@@ -457,7 +460,7 @@ class MarkInlineDataTask(BackgroundTaskThread):
         while addr < code_end - 1:
             if self.cancelled:
                 return
-            if addr in covered:
+            if covered(addr):
                 if ff_run_start is not None and addr - ff_run_start >= 8:
                     data_regions.append((ff_run_start, addr - ff_run_start))
                 ff_run_start = None
@@ -492,9 +495,13 @@ class MarkInlineDataTask(BackgroundTaskThread):
                 if func.start >= start and func.start < start + size:
                     bv.remove_user_function(func)
 
-            # Define as data
-            for offset in range(0, size, 2):
-                bv.define_user_data_var(start + offset, binaryninja.Type.int(2))
+            # One array, not `size // 2` separate calls. dis_sidecar.py already
+            # does this; on a real image it is seconds rather than minutes.
+            words = size // 2
+            if words:
+                bv.define_user_data_var(
+                    start, binaryninja.Type.array(binaryninja.Type.int(2), words)
+                )
             total_bytes += size
 
         log_info(
