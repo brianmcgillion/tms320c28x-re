@@ -5,6 +5,8 @@
 # which is the part asm2000 and dis2000 cannot tell us.
 # NOTE: a field printed as a word (COND) appears as one entry per letter;
 # the bit span is still correct. See _fields() in the script.
+# `operation` is TI's own notation for what the instruction computes, quoted
+# verbatim. It is a reading aid, not a gate: see _operation() for why.
 # Regenerate with: nix develop -c python3 scripts/spec_transcribe.py
 
 instructions:
@@ -25,6 +27,8 @@ instructions:
       I: { bits: [21, 6] }
       a: { bits: [2, 0] }
       b: { bits: [5, 3] }
+    operation:
+      - 'RaH = RbH + #16FHi:0'
   - syntax: 'ADDF32 RaH, RbH, RcH 32-bit Floating-Point Addition'
     format: 32
     opcode: 0xE7100000
@@ -34,6 +38,8 @@ instructions:
       a: { bits: [2, 0] }
       b: { bits: [5, 3] }
       c: { bits: [8, 6] }
+    operation:
+      - 'RaH = RbH + RcH'
   - syntax: 'ADDF32 RdH, ReH, RfH || MOV32 mem32, RaH 32-bit Floating-Point Addition with Parallel Move'
     format: 32
     opcode: 0xE0100000
@@ -45,6 +51,9 @@ instructions:
       e: { bits: [16, 14] }
       f: { bits: [19, 17] }
       mem32: { bits: [7, 0] }
+    operation:
+      - 'RdH = ReH + RfH,'
+      - '[mem32] = RaH'
   - syntax: 'ADDF32 RdH, ReH, RfH || MOV32 RaH, mem32 32-bit Floating-Point Addition with Parallel Move'
     format: 32
     opcode: 0xE3100000
@@ -56,6 +65,9 @@ instructions:
       e: { bits: [16, 14] }
       f: { bits: [19, 17] }
       mem32: { bits: [7, 0] }
+    operation:
+      - 'RdH = ReH + RfH,'
+      - 'RaH = [mem32]'
   - syntax: 'CMPF32 RaH, RbH 32-bit Floating-Point Compare for Equal, Less Than or Greater Than'
     format: 32
     opcode: 0xE6940000
@@ -87,6 +99,11 @@ instructions:
     fields:
       a: { bits: [2, 0] }
       b: { bits: [5, 3] }
+    operation:
+      - 'Ye = Estimate(1/X)'
+      - 'Ye = Ye*(2.0 - Ye*X)'
+      - 'Ye = Ye*(2.0 - Ye*X)'
+      - 'RaH = Estimate of 1/RbH'
   - syntax: 'EISQRTF32 RaH, RbH 32-bit Floating-Point Square-Root Reciprocal Approximation'
     format: 32
     opcode: 0xE6920000
@@ -95,6 +112,11 @@ instructions:
     fields:
       a: { bits: [2, 0] }
       b: { bits: [5, 3] }
+    operation:
+      - 'Ye = Estimate(1/sqrt(X))'
+      - 'Ye = Ye*(1.5 - Ye*Ye*X/2.0)'
+      - 'Ye = Ye*(1.5 - Ye*Ye*X/2.0)'
+      - 'RaH = Estimate of 1/sqrt (RbH)'
   - syntax: 'F32TOI16 RaH, RbH Convert 32-bit Floating-Point Value to 16-bit Integer'
     format: 32
     opcode: 0xE68C0000
@@ -103,6 +125,9 @@ instructions:
     fields:
       a: { bits: [2, 0] }
       b: { bits: [5, 3] }
+    operation:
+      - 'RaH(15:0) = F32TOI16(RbH)'
+      - 'RaH(31:16) = sign extension of RaH(15)'
   - syntax: 'F32TOI16R RaH, RbH Convert 32-bit Floating-Point Value to 16-bit Integer and Round'
     format: 32
     opcode: 0xE68C8000
@@ -111,6 +136,9 @@ instructions:
     fields:
       a: { bits: [2, 0] }
       b: { bits: [5, 3] }
+    operation:
+      - 'RaH(15:0) = F32ToI16round(RbH)'
+      - 'RaH(31:16) = sign extension of RaH(15)'
   - syntax: 'F32TOI32 RaH, RbH Convert 32-bit Floating-Point Value to 32-bit Integer'
     format: 32
     opcode: 0xE6880000
@@ -119,6 +147,8 @@ instructions:
     fields:
       a: { bits: [2, 0] }
       b: { bits: [5, 3] }
+    operation:
+      - 'RaH = F32TOI32(RbH)'
   - syntax: 'F32TOUI16 RaH, RbH Convert 32-bit Floating-Point Value to 16-bit Unsigned Integer'
     format: 32
     opcode: 0xE68E0000
@@ -127,6 +157,9 @@ instructions:
     fields:
       a: { bits: [2, 0] }
       b: { bits: [5, 3] }
+    operation:
+      - 'RaH(15:0) = F32ToUI16(RbH)'
+      - 'RaH(31:16) = 0x0000'
   - syntax: 'F32TOUI16R RaH, RbH Convert 32-bit Floating-Point Value to 16-bit Unsigned Integer and Round'
     format: 32
     opcode: 0xE68E8000
@@ -135,6 +168,9 @@ instructions:
     fields:
       a: { bits: [2, 0] }
       b: { bits: [5, 3] }
+    operation:
+      - 'RaH(15:0) = F32ToUI16round(RbH)'
+      - 'RaH(31:16) = 0x0000'
   - syntax: 'F32TOUI32 RaH, RbH Convert 32-bit Floating-Point Value to 16-bit Unsigned Integer'
     format: 32
     opcode: 0xE68A0000
@@ -143,6 +179,8 @@ instructions:
     fields:
       a: { bits: [2, 0] }
       b: { bits: [5, 3] }
+    operation:
+      - 'RaH = F32ToUI32(RbH)'
   - syntax: 'FRACF32 RaH, RbH Fractional Portion of a 32-bit Floating-Point Value'
     format: 32
     opcode: 0xE6F10000
@@ -159,6 +197,8 @@ instructions:
     fields:
       a: { bits: [2, 0] }
       b: { bits: [5, 3] }
+    operation:
+      - 'RaH = I16ToF32 RbH'
   - syntax: 'I16TOF32 RaH, mem16 Convert 16-bit Integer to 32-bit Floating-Point Value'
     format: 32
     opcode: 0xE2C80000
@@ -167,6 +207,8 @@ instructions:
     fields:
       a: { bits: [10, 8] }
       mem16: { bits: [7, 0] }
+    operation:
+      - 'RaH = I16ToF32[mem16]'
   - syntax: 'I32TOF32 RaH, mem32 Convert 32-bit Integer to 32-bit Floating-Point Value'
     format: 32
     opcode: 0xE2880000
@@ -175,6 +217,8 @@ instructions:
     fields:
       a: { bits: [10, 8] }
       mem32: { bits: [7, 0] }
+    operation:
+      - 'RaH = I32ToF32[mem32]'
   - syntax: 'I32TOF32 RaH, RbH Convert 32-bit Integer to 32-bit Floating-Point Value'
     format: 32
     opcode: 0xE6890000
@@ -183,6 +227,8 @@ instructions:
     fields:
       a: { bits: [2, 0] }
       b: { bits: [5, 3] }
+    operation:
+      - 'RaH = I32ToF32(RbH)'
   - syntax: 'translated by the assembler such that the instruction becomes:'
     format: 32
     opcode: 0xE7400000
@@ -195,6 +241,9 @@ instructions:
       d: { bits: [11, 9] }
       e: { bits: [14, 12] }
       f: { bits: [17, 15] }
+    operation:
+      - 'RdH = ReH * RfH'
+      - 'R3H = R3H + R2H'
   - syntax: 'Accumulate with Parallel Move'
     format: 32
     opcode: 0xE3300000
@@ -206,6 +255,10 @@ instructions:
       e: { bits: [16, 14] }
       f: { bits: [19, 17] }
       mem32: { bits: [7, 0] }
+    operation:
+      - 'R3H = R3H + R2H,'
+      - 'RdH = ReH * RfH,'
+      - 'RaH = [mem32]'
   - syntax: 'MACF32 R7H, R3H, mem32, *XAR7++ 32-bit Floating-Point Multiply and Accumulate'
     format: 32
     opcode: 0xE2501F00
@@ -213,6 +266,12 @@ instructions:
     bit_pattern: ['1110001001010000', '00011111mem32']
     fields:
       mem32: { bits: [7, 0] }
+    operation:
+      - 'Cycle 1: R3H = R3H + R2H, R2H = [mem32] * [XAR7++]'
+      - 'Cycle 1: R3H = R3H + R2H, R2H = [mem32] * [XAR7++]'
+      - 'Cycle 2: R7H = R7H + R6H, R6H = [mem32] * [XAR7++]'
+      - 'Cycle 3: R3H = R3H + R2H, R2H = [mem32] * [XAR7++]'
+      - 'Cycle 4: R7H = R7H + R6H, R6H = [mem32] * [XAR7++]'
   - syntax: 'Accumulate with Parallel Move'
     format: 32
     opcode: 0xE3C00000
@@ -224,6 +283,10 @@ instructions:
       e: { bits: [16, 14] }
       f: { bits: [19, 17] }
       mem32: { bits: [7, 0] }
+    operation:
+      - 'R7H = R7H + R6H'
+      - 'RdH = ReH * RfH,'
+      - 'RaH = [mem32]'
   - syntax: 'MAXF32 RaH, RbH 32-bit Floating-Point Maximum'
     format: 32
     opcode: 0xE6960000
@@ -284,6 +347,8 @@ instructions:
     fields:
       a: { bits: [10, 8] }
       mem16: { bits: [7, 0] }
+    operation:
+      - '[mem16] = RaH[15:0]'
   - syntax: 'MOV32 mem32, RaH Move 32-bit Floating-Point Register Contents to Memory'
     format: 32
     opcode: 0xE2030000
@@ -292,6 +357,8 @@ instructions:
     fields:
       a: { bits: [10, 8] }
       mem32: { bits: [7, 0] }
+    operation:
+      - '[mem32] = RaH'
   - syntax: 'MOV32 mem32, STF Move 32-bit STF Register to Memory'
     format: 32
     opcode: 0xE2000000
@@ -299,6 +366,8 @@ instructions:
     bit_pattern: ['1110001000000000', '00000000mem32']
     fields:
       mem32: { bits: [7, 0] }
+    operation:
+      - '[mem32] = STF'
   - syntax: 'MOV32 RaH, mem32 {, CNDF} Conditional 32-bit Move'
     format: 32
     opcode: 0xE2A00000
@@ -330,6 +399,8 @@ instructions:
     bit_pattern: ['1110001010000000', '00000000mem32']
     fields:
       mem32: { bits: [7, 0] }
+    operation:
+      - 'STF = [mem32]'
   - syntax: 'MOVD32 RaH, mem32 Move 32-bit Value from Memory with Data Copy'
     format: 32
     opcode: 0xE2230000
@@ -338,6 +409,8 @@ instructions:
     fields:
       a: { bits: [10, 8] }
       mem32: { bits: [7, 0] }
+    operation:
+      - 'RaH = [mem32]'
   - syntax: 'MOVIZ RaH, #16FHiHex Load the Upper 16-bits of a 32-bit Floating-Point Register'
     format: 32
     opcode: 0xE8000000
@@ -346,6 +419,9 @@ instructions:
     fields:
       I: { bits: [18, 3] }
       a: { bits: [2, 0] }
+    operation:
+      - 'RaH[31:16] = #16FHiHex'
+      - 'RaH[15:0] = 0'
   - syntax: 'Load Selected STF Flags into ST0'
     format: 16
     opcode: 0xAD00
@@ -361,6 +437,9 @@ instructions:
     fields:
       I: { bits: [18, 3] }
       a: { bits: [2, 0] }
+    operation:
+      - 'RaH[15:0] = #16FLoHex'
+      - 'RaH[31:16] = Unchanged'
   - syntax: 'MPYF32 RaH, RbH, RcH 32-bit Floating-Point Multiply'
     format: 32
     opcode: 0xE7000000
@@ -370,6 +449,8 @@ instructions:
       a: { bits: [2, 0] }
       b: { bits: [5, 3] }
       c: { bits: [8, 6] }
+    operation:
+      - 'RaH = RbH * RcH'
   - syntax: 'MPYF32 RaH, #16FHi, RbH 32-bit Floating-Point Multiply'
     format: 32
     opcode: 0xE8400000
@@ -379,6 +460,8 @@ instructions:
       I: { bits: [21, 6] }
       a: { bits: [2, 0] }
       b: { bits: [5, 3] }
+    operation:
+      - 'RaH = RbH * #16FHi:0'
   - syntax: 'MPYF32 RdH, ReH, RfH || MOV32 RaH, mem32 32-bit Floating-Point Multiply with Parallel Move'
     format: 32
     opcode: 0xE3000000
@@ -390,6 +473,9 @@ instructions:
       e: { bits: [16, 14] }
       f: { bits: [19, 17] }
       mem32: { bits: [7, 0] }
+    operation:
+      - 'RdH = ReH * RfH'
+      - 'RaH = [mem32]'
   - syntax: 'MPYF32 RdH, ReH, RfH || MOV32 mem32, RaH 32-bit Floating-Point Multiply with Parallel Move'
     format: 32
     opcode: 0xE0000000
@@ -401,6 +487,9 @@ instructions:
       e: { bits: [16, 14] }
       f: { bits: [19, 17] }
       mem32: { bits: [7, 0] }
+    operation:
+      - 'RdH = ReH * RfH,'
+      - '[mem32] = RaH'
   - syntax: 'Subtract'
     format: 32
     opcode: 0xE7500000
@@ -413,6 +502,9 @@ instructions:
       d: { bits: [11, 9] }
       e: { bits: [14, 12] }
       f: { bits: [17, 15] }
+    operation:
+      - 'RaH = RbH * RcH,'
+      - 'RdH = ReH - RfH'
   - syntax: 'NEGF32 RaH, RbH{, CNDF} Conditional Negation'
     format: 32
     opcode: 0xE6A00000
@@ -481,6 +573,8 @@ instructions:
       a: { bits: [2, 0] }
       b: { bits: [5, 3] }
       c: { bits: [8, 6] }
+    operation:
+      - 'RaH = RbH - RcH'
   - syntax: 'SUBF32 RaH, #16FHi, RbH 32-bit Floating Point Subtraction'
     format: 32
     opcode: 0xE8C00000
@@ -490,6 +584,8 @@ instructions:
       I: { bits: [21, 6] }
       a: { bits: [2, 0] }
       b: { bits: [5, 3] }
+    operation:
+      - 'RaH = #16FHi:0 - RbH'
   - syntax: 'SUBF32 RdH, ReH, RfH || MOV32 RaH, mem32 32-bit Floating-Point Subtraction with Parallel Move'
     format: 32
     opcode: 0xE3200000
@@ -501,6 +597,9 @@ instructions:
       e: { bits: [16, 14] }
       f: { bits: [19, 17] }
       mem32: { bits: [7, 0] }
+    operation:
+      - 'RdH = ReH - RfH,'
+      - 'RaH = [mem32]'
   - syntax: 'SUBF32 RdH, ReH, RfH || MOV32 mem32, RaH 32-bit Floating-Point Subtraction with Parallel Move'
     format: 32
     opcode: 0xE0200000
@@ -512,6 +611,9 @@ instructions:
       e: { bits: [16, 14] }
       f: { bits: [19, 17] }
       mem32: { bits: [7, 0] }
+    operation:
+      - 'RdH = ReH - RfH,'
+      - '[mem32] = RaH'
   - syntax: 'SWAPF RaH, RbH{, CNDF} Conditional Swap'
     format: 32
     opcode: 0xE6E00000
@@ -534,6 +636,8 @@ instructions:
       D: { bits: [1, 1] }
       F: { bits: [0, 0] }
       N: { bits: [2, 2] }
+    operation:
+      - 'if (CNDF == true) TF = 1; else TF = 0'
   - syntax: 'UI16TOF32 RaH, RbH Convert unsigned 16-bit integer to 32-bit floating-point value'
     format: 32
     opcode: 0xE68F0000
@@ -542,6 +646,8 @@ instructions:
     fields:
       a: { bits: [2, 0] }
       b: { bits: [5, 3] }
+    operation:
+      - 'RaH = UI16ToF32[RbH]'
   - syntax: 'UI32TOF32 RaH, mem32 Convert Unsigned 32-bit Integer to 32-bit Floating-Point Value'
     format: 32
     opcode: 0xE2840000
@@ -550,6 +656,8 @@ instructions:
     fields:
       a: { bits: [10, 8] }
       mem32: { bits: [7, 0] }
+    operation:
+      - 'RaH = UI32ToF32[mem32]'
   - syntax: 'UI32TOF32 RaH, RbH Convert Unsigned 32-bit Integer to 32-bit Floating-Point Value'
     format: 32
     opcode: 0xE68B0000
@@ -558,6 +666,8 @@ instructions:
     fields:
       a: { bits: [2, 0] }
       b: { bits: [5, 3] }
+    operation:
+      - 'RaH = UI32ToF32 [RbH]'
   - syntax: 'Zero the Floating-Point Register RaH'
     format: 16
     opcode: 0xE590
@@ -565,8 +675,19 @@ instructions:
     bit_pattern: ['1110010110010aaa']
     fields:
       a: { bits: [2, 0] }
+    operation:
+      - 'RaH = 0'
   - syntax: 'Zero All Floating-Point Registers'
     format: 16
     opcode: 0xE563
     mask: 0xFFFF
     bit_pattern: ['1110010101100011']
+    operation:
+      - 'R0H = 0'
+      - 'R1H = 0'
+      - 'R2H = 0'
+      - 'R3H = 0'
+      - 'R4H = 0'
+      - 'R5H = 0'
+      - 'R6H = 0'
+      - 'R7H = 0'

@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: MIT
 //! System instruction lifter: NOP, EALLOW, EDIS, ESTOP, SETC, CLRC, etc.
 
-use crate::arch::{Flag, Register};
+use crate::arch::{Flag, FlagWrite, Register};
 use crate::types::*;
 
 use binaryninja::low_level_il::lifting::LowLevelILLabel;
-use binaryninja::low_level_il::LowLevelILMutableFunction;
+use binaryninja::low_level_il::{
+    LowLevelILMutableFunction, LowLevelILRegisterKind, LowLevelILTempRegister,
+};
 
 use super::{op_at, read_op, reg_by_name, write_loc};
 
@@ -22,20 +24,46 @@ pub(crate) enum Keep {
 
 /// `if !keep(reg, src) { reg = src }` — the MAX/MIN shape, written out six
 /// times between this file and fpu.rs before this existed.
-pub(crate) fn emit_select(il: &ILFunc, size: usize, reg: Register, op: &Operand, keep: Keep) {
-    let dst = il.reg(size, reg);
-    let src = read_op(op, il, size);
+pub(crate) fn emit_select(
+    il: &ILFunc,
+    size: usize,
+    reg: Register,
+    op: &Operand,
+    keep: Keep,
+    flags: FlagWrite,
+) {
+    // The operand is read ONCE. This used to call read_op twice -- for the
+    // comparison and again for the assignment -- so `MAXL ACC, *XAR0++` stepped
+    // XAR0 twice, once per read.
+    let tmp = LowLevelILRegisterKind::<Register>::Temp(LowLevelILTempRegister::new(0));
+    il.set_reg(size, tmp, read_op(op, il, size)).append();
+
+    // SPRU430F defines MAX/MIN's flags as those of (reg - operand): Z when the
+    // two are equal, N and V when reg is the smaller, C on borrow. Without the
+    // compare none of them was defined at all.
+    il.sub(size, il.reg(size, reg), il.reg(size, tmp))
+        .with_flag_write(flags)
+        .append();
+
     let cond = match keep {
-        Keep::Sge => il.cmp_sge(size, dst, src).build(),
-        Keep::Sle => il.cmp_sle(size, dst, src).build(),
-        Keep::Uge => il.cmp_uge(size, dst, src).build(),
-        Keep::Ule => il.cmp_ule(size, dst, src).build(),
+        Keep::Sge => il
+            .cmp_sge(size, il.reg(size, reg), il.reg(size, tmp))
+            .build(),
+        Keep::Sle => il
+            .cmp_sle(size, il.reg(size, reg), il.reg(size, tmp))
+            .build(),
+        Keep::Uge => il
+            .cmp_uge(size, il.reg(size, reg), il.reg(size, tmp))
+            .build(),
+        Keep::Ule => il
+            .cmp_ule(size, il.reg(size, reg), il.reg(size, tmp))
+            .build(),
     };
     let mut keep_label = LowLevelILLabel::new();
     let mut replace = LowLevelILLabel::new();
     il.if_expr(cond, &mut keep_label, &mut replace).append();
     il.mark_label(&mut replace);
-    il.set_reg(size, reg, read_op(op, il, size)).append();
+    il.set_reg(size, reg, il.reg(size, tmp)).append();
     il.mark_label(&mut keep_label);
 }
 
@@ -90,36 +118,36 @@ pub fn lift(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
         InsnId::MAX_AX_LOC16 => {
             if insn.operands.len() >= 2 {
                 let reg = reg_by_name(insn.operands[0].display_name());
-                emit_select(il, 2, reg, &insn.operands[1], Keep::Sge);
+                emit_select(il, 2, reg, &insn.operands[1], Keep::Sge, FlagWrite::NZV);
             }
         }
         InsnId::MIN_AX_LOC16 => {
             if insn.operands.len() >= 2 {
                 let reg = reg_by_name(insn.operands[0].display_name());
-                emit_select(il, 2, reg, &insn.operands[1], Keep::Sle);
+                emit_select(il, 2, reg, &insn.operands[1], Keep::Sle, FlagWrite::NZV);
             }
         }
         // MAXL ACC, loc32
         InsnId::MAXL_ACC_LOC32 => {
             if let Some(op) = op_at(insn, 0) {
-                emit_select(il, 4, Register::ACC, op, Keep::Sge);
+                emit_select(il, 4, Register::ACC, op, Keep::Sge, FlagWrite::All);
             }
         }
         // MAXCUL/MINCUL P, loc32 (unsigned)
         InsnId::MAXCUL_P_LOC32 => {
             if let Some(op) = op_at(insn, 0) {
-                emit_select(il, 4, Register::P, op, Keep::Uge);
+                emit_select(il, 4, Register::P, op, Keep::Uge, FlagWrite::NZV);
             }
         }
         InsnId::MINCUL_P_LOC32 => {
             if let Some(op) = op_at(insn, 0) {
-                emit_select(il, 4, Register::P, op, Keep::Ule);
+                emit_select(il, 4, Register::P, op, Keep::Ule, FlagWrite::NZV);
             }
         }
         // MINL ACC, loc32
         InsnId::MINL_ACC_LOC32 => {
             if let Some(op) = op_at(insn, 0) {
-                emit_select(il, 4, Register::ACC, op, Keep::Sle);
+                emit_select(il, 4, Register::ACC, op, Keep::Sle, FlagWrite::All);
             }
         }
 
@@ -148,7 +176,9 @@ pub fn lift(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
         // ── Zero operations ──
         InsnId::ZAPA => {
             // Zero ACC, P, and OVC
-            il.set_reg(4, Register::ACC, il.const_int(4, 0)).append();
+            il.set_reg(4, Register::ACC, il.const_int(4, 0))
+                .with_flag_write(FlagWrite::NZ)
+                .append();
             il.set_reg(4, Register::P, il.const_int(4, 0)).append();
         }
 

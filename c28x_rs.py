@@ -140,10 +140,16 @@ def _refuse_if_stale(binary: str) -> None:
     isa = os.path.join(ROOT, "isa")
     if not os.path.isdir(isa):
         return
+    # isa/reference/ is transcribed FROM the TI manuals, not compiled INTO the
+    # binary -- build.rs reads only isa/instructions/, registers.yaml and
+    # flags.yaml. Counting it made regenerating the transcription look like a
+    # stale table, and cargo had nothing to rebuild, so the two never converged.
+    skip = os.path.join(isa, "reference")
     newest = max(
         (
             os.path.getmtime(os.path.join(d, f))
             for d, _, fs in os.walk(isa)
+            if not d.startswith(skip)
             for f in fs
             if f.endswith((".yaml", ".tsv"))
         ),

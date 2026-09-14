@@ -5,6 +5,8 @@
 # which is the part asm2000 and dis2000 cannot tell us.
 # NOTE: a field printed as a word (COND) appears as one entry per letter;
 # the bit span is still correct. See _fields() in the script.
+# `operation` is TI's own notation for what the instruction computes, quoted
+# verbatim. It is a reading aid, not a gate: see _operation() for why.
 # Regenerate with: nix develop -c python3 scripts/spec_transcribe.py
 
 instructions:
@@ -26,6 +28,11 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z', 'C', 'V', 'OVM']
+    operation:
+      - 'V = 1'
+      - 'ACC = 0x7FFF FFFF'
+      - 'ACC = 0x8000 0000'
+      - 'ACC = −ACC'
   - syntax: 'ABSTC ACC'
     format: 16
     opcode: 0x565F
@@ -35,6 +42,14 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z', 'C', 'V', 'TC', 'OVM']
+    operation:
+      - 'ACC = 0x7FFF FFFF'
+      - 'ACC = 0x8000 0000'
+      - 'V = 1'
+      - 'TC = TC XOR 1'
+      - 'ACC = −ACC'
+      - 'TC = TC XOR 1'
+      - 'C = 0'
   - syntax: 'ADD ACC,#16bit<<#0..15'
     format: 32
     opcode: 0xFF100000
@@ -50,6 +65,9 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['Z', 'N', 'C', 'V', 'OVC', 'SXM', 'OVM']
+    operation:
+      - 'ACC = ACC + S:16bit << shift value'
+      - 'ACC = ACC + 0:16bit << shift value'
   - syntax: 'ADD ACC,loc16 <<T'
     format: 32
     opcode: 0x56230000
@@ -61,6 +79,9 @@ instructions:
     rpt: '–'
     cyc: 'N+1'
     flags: ['Z', 'N', 'C', 'V', 'OVC', 'SXM', 'OVM']
+    operation:
+      - 'ACC = ACC + S:[loc16] << T(3:0)'
+      - 'ACC = ACC + 0:[loc16] << T(3:0)'
   - syntax: 'ADD AX, loc16'
     format: 16
     opcode: 0x9400
@@ -85,6 +106,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z', 'C', 'V']
+    operation:
+      - '[loc16] = [loc16] + AX'
   - syntax: 'ADD loc16,#16bitSigned'
     format: 32
     opcode: 0x08000000
@@ -97,6 +120,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z', 'C', 'V']
+    operation:
+      - '[loc16] = [loc16] + 16bitSigned'
   - syntax: 'ADDB ACC,#8bit'
     format: 16
     opcode: 0x0900
@@ -108,6 +133,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['Z', 'N', 'C', 'V', 'OVC', 'OVM']
+    operation:
+      - 'ACC = ACC + 0:8bit'
   - syntax: 'ADDB AX, #8bitSigned'
     format: 16
     opcode: 0x9C00
@@ -120,6 +147,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z', 'C', 'V']
+    operation:
+      - 'AX = AX + S:8bit'
   - syntax: 'ADDB SP, #7bit'
     format: 16
     opcode: 0xFE00
@@ -130,6 +159,8 @@ instructions:
     objmode: 'X'
     rpt: '–'
     cyc: '1'
+    operation:
+      - 'SP = SP + 0:7bit'
   - syntax: 'ADDB XARn, #7bit'
     format: 16
     opcode: 0xD800
@@ -141,7 +172,8 @@ instructions:
     objmode: 'X'
     rpt: '–'
     cyc: '1'
-    flags: ['Z', 'N', 'C']
+    operation:
+      - 'XARn = XARn + 0:7bit'
   - syntax: 'ADDCL ACC,loc32'
     format: 32
     opcode: 0x56400000
@@ -154,6 +186,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['Z', 'N', 'C', 'V', 'OVC', 'OVM']
+    operation:
+      - 'ACC = ACC + [loc32] + C'
   - syntax: 'ADDCU ACC,loc16'
     format: 16
     opcode: 0x0C00
@@ -165,6 +199,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['Z', 'N', 'C', 'V', 'OVC', 'OVM']
+    operation:
+      - 'ACC = ACC + 0:[loc16] + C'
   - syntax: 'ADDL ACC,loc32'
     format: 16
     opcode: 0x0700
@@ -176,6 +212,8 @@ instructions:
     rpt: 'Y'
     cyc: 'N+1'
     flags: ['N', 'Z', 'C', 'V', 'OVC', 'OVM']
+    operation:
+      - 'ACC = ACC + [loc32]'
   - syntax: 'ADDL ACC,P << PM'
     format: 16
     opcode: 0x10AC
@@ -185,6 +223,8 @@ instructions:
     rpt: 'Y'
     cyc: 'N+1'
     flags: ['Z', 'N', 'C', 'V', 'OVM', 'PM']
+    operation:
+      - 'ACC = ACC + P << PM'
   - syntax: 'ADDL loc32,ACC'
     format: 32
     opcode: 0x56010000
@@ -196,6 +236,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z', 'C', 'V', 'OVM']
+    operation:
+      - '[loc32] = [loc32] + ACC'
   - syntax: 'ADDU ACC,loc16'
     format: 16
     opcode: 0x0D00
@@ -207,6 +249,8 @@ instructions:
     rpt: 'Y'
     cyc: 'N+1'
     flags: ['Z', 'N', 'C', 'V', 'OVC', 'OVM']
+    operation:
+      - 'ACC = ACC + 0:[loc16]'
   - syntax: 'ADDUL P,loc32'
     format: 32
     opcode: 0x56570000
@@ -218,6 +262,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z', 'C', 'V']
+    operation:
+      - 'P = P + [loc32]'
   - syntax: 'ADDUL ACC, loc32'
     format: 32
     opcode: 0x56530000
@@ -230,6 +276,8 @@ instructions:
     rpt: 'Y'
     cyc: 'N+1'
     flags: ['Z', 'N', 'C', 'V']
+    operation:
+      - 'ACC = ACC + [loc32]'
   - syntax: 'ADRK #8bit'
     format: 16
     opcode: 0xFC00
@@ -241,6 +289,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['ARP']
+    operation:
+      - 'XAR(ARP) = XAR(ARP) + 0:8bit'
   - syntax: 'AND ACC, loc16'
     format: 16
     opcode: 0x8900
@@ -252,6 +302,8 @@ instructions:
     rpt: 'Y'
     cyc: 'N+1'
     flags: ['N', 'Z']
+    operation:
+      - 'ACC = ACC AND 0:[loc16]'
   - syntax: 'AND AX, loc16, #16bit'
     format: 32
     opcode: 0xCC000000
@@ -265,6 +317,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z']
+    operation:
+      - 'AX = [loc16] AND 16bit'
   - syntax: 'AND IER,#16bit'
     format: 32
     opcode: 0x76260000
@@ -275,6 +329,8 @@ instructions:
     objmode: 'X'
     rpt: '–'
     cyc: '2'
+    operation:
+      - 'IER = IER AND #16bit'
   - syntax: 'AND IFR,#16bit'
     format: 32
     opcode: 0x762F0000
@@ -285,7 +341,8 @@ instructions:
     objmode: 'X'
     rpt: '–'
     cyc: '2'
-    flags: ['N', 'Z']
+    operation:
+      - 'IFR = IFR AND #16bit'
   - syntax: 'AND loc16, AX'
     format: 16
     opcode: 0xC000
@@ -298,6 +355,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z']
+    operation:
+      - '[loc16] = [loc16] AND AX'
   - syntax: 'AND AX, loc16'
     format: 16
     opcode: 0xCE00
@@ -310,6 +369,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z']
+    operation:
+      - 'AX = AX AND 16bit'
   - syntax: 'AND loc16,#16bitSigned'
     format: 32
     opcode: 0x18000000
@@ -322,6 +383,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z']
+    operation:
+      - '[loc16] = [loc16] AND 16bit'
   - syntax: 'ANDB AX, #8bit'
     format: 16
     opcode: 0x9000
@@ -334,6 +397,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z']
+    operation:
+      - 'AX = AX AND 0:8bit'
   - syntax: 'ASP'
     format: 16
     opcode: 0x761B
@@ -343,6 +408,10 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['SPA']
+    operation:
+      - 'SP = SP + 1'
+      - 'SPA = 1;else'
+      - 'SPA = 0'
   - syntax: 'ASR AX,#1...16'
     format: 16
     opcode: 0xFFA0
@@ -401,6 +470,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['Z', 'N', 'C']
+    operation:
+      - 'During the shift, the value is sign extended. If T specifies a shift of 0, then C is cleared'
   - syntax: 'B 16bitOffset,COND'
     format: 32
     opcode: 0xFFE00000
@@ -425,6 +496,10 @@ instructions:
     objmode: 'X'
     rpt: '–'
     cyc: '4/2'
+    operation:
+      - 'PC = PC + signed 16-bit offset'
+      - 'ARn = ARn - 1'
+      - 'ARnH = unchanged'
   - syntax: 'BF 16bitOffset,COND'
     format: 32
     opcode: 0x56C00000
@@ -510,6 +585,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z', 'C']
+    operation:
+      - 'Set Flags On (AX − [loc16])'
   - syntax: 'CMP loc16,#16bitSigned'
     format: 32
     opcode: 0x1B000000
@@ -522,6 +599,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z', 'C']
+    operation:
+      - 'Modify flags on ([loc16] − 16bitSigned)'
   - syntax: 'CMP64 ACC:P'
     format: 16
     opcode: 0x565E
@@ -531,6 +610,14 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z', 'V']
+    operation:
+      - 'N = 0'
+      - 'N = 1'
+      - 'N = 1'
+      - 'N = 0'
+      - 'Z = 1'
+      - 'Z = 0'
+      - 'V = 0'
   - syntax: 'CMPB AX, #8bit'
     format: 16
     opcode: 0x5200
@@ -543,6 +630,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z', 'C']
+    operation:
+      - 'Set Flags On (AX − 0:8bit)'
   - syntax: 'CMPL ACC,loc32'
     format: 16
     opcode: 0x0F00
@@ -554,6 +643,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z', 'C']
+    operation:
+      - 'Modify flags on (ACC − [loc32])'
   - syntax: 'CMPL ACC,P << PM'
     format: 16
     opcode: 0xFF59
@@ -563,6 +654,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z', 'C', 'PM']
+    operation:
+      - 'Modify flags on (ACC − [P << PM])'
   - syntax: 'CSB ACC'
     format: 16
     opcode: 0x5635
@@ -572,6 +665,10 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z', 'TC']
+    operation:
+      - 'T = 0, 1 sign bit'
+      - 'T = 1, 2 sign bits'
+      - 'T = 31, 32 sign bits'
   - syntax: 'DEC loc16'
     format: 16
     opcode: 0x0B00
@@ -602,7 +699,8 @@ instructions:
     objmode: '1'
     rpt: 'Y'
     cyc: 'N+1'
-    flags: ['EALLOW']
+    operation:
+      - 'loc16 + 1] = [loc16]'
   - syntax: 'EALLOW'
     format: 16
     opcode: 0x7622
@@ -656,7 +754,10 @@ instructions:
     objmode: 'X'
     rpt: '–'
     cyc: '4'
-    flags: ['N', 'Z']
+    operation:
+      - 'XAR7(21:0) = PC + 2'
+      - 'XAR7(31:22) = 0'
+      - 'PC = 22 bit'
   - syntax: 'FLIP AX'
     format: 16
     opcode: 0x5670
@@ -668,6 +769,12 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z']
+    operation:
+      - 'temp = AX'
+      - 'AX(bit 0) = temp(bit 15)'
+      - 'AX(bit 1) = temp(bit 14)'
+      - 'AX(bit 14) = temp(bit 1)'
+      - 'AX(bit 15) = temp(bit 0)'
   - syntax: 'IACK #16bit'
     format: 32
     opcode: 0x763F0000
@@ -678,6 +785,8 @@ instructions:
     objmode: 'X'
     rpt: '–'
     cyc: '1'
+    operation:
+      - 'data_bus(15:0) = 16bit'
   - syntax: 'IDLE'
     format: 16
     opcode: 0x7621
@@ -698,6 +807,18 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['Z', 'N', 'C', 'V', 'PM']
+    operation:
+      - 'ACC = ACC + unsigned P'
+      - 'temp(37:0) = lower_38 bits(signed XT * signed [loc32])'
+      - 'P(31:4) = temp(27:0), P(3:0) = 0'
+      - 'P(31:1) = temp(30:0), P(0) = 0'
+      - 'P(31:0) = temp(31:0)'
+      - 'P(31:0) = temp(32:1)'
+      - 'P(31:0) = temp(33:2)'
+      - 'P(31:0) = temp(34:3)'
+      - 'P(31:0) = temp(35:4)'
+      - 'P(31:0) = temp(36:5)'
+      - 'P(31:0) = temp(37:6)'
   - syntax: 'IMPYL ACC,XT,loc32'
     format: 32
     opcode: 0x56440000
@@ -709,6 +830,8 @@ instructions:
     rpt: '–'
     cyc: '2'
     flags: ['Z', 'N']
+    operation:
+      - 'ACC = signed XT * signed [loc32]'
   - syntax: 'IMPYL P,XT,loc32'
     format: 32
     opcode: 0x56050000
@@ -720,6 +843,17 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['PM']
+    operation:
+      - 'temp(37:0) = lower_38 bits(signed XT * signed [loc32])'
+      - 'P(31:4) = temp(27:0), P(3:0) = 0'
+      - 'P(31:1) = temp(30:0), P(0) = 0'
+      - 'P(31:0) = temp(31:0)'
+      - 'P(31:0) = temp(32:1)'
+      - 'P(31:0) = temp(33:2)'
+      - 'P(31:0) = temp(34:3)'
+      - 'P(31:0) = temp(35:4)'
+      - 'P(31:0) = temp(36:5)'
+      - 'P(31:0) = temp(37:6)'
   - syntax: 'IMPYSL P,XT,loc32'
     format: 32
     opcode: 0x56430000
@@ -731,6 +865,18 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['Z', 'N', 'C', 'V', 'PM']
+    operation:
+      - 'ACC = ACC - unsigned P'
+      - 'temp(37:0) = lower_38 bits(signed XT * signed [loc32])'
+      - 'P(31:4) = temp(27:0), P(3:0) = 0'
+      - 'P(31:1) = temp(30:0), P(0) = 0'
+      - 'P(31:0) = temp(31:0)'
+      - 'P(31:0) = temp(32:1)'
+      - 'P(31:0) = temp(33:2)'
+      - 'P(31:0) = temp(34:3)'
+      - 'P(31:0) = temp(35:4)'
+      - 'P(31:0) = temp(36:5)'
+      - 'P(31:0) = temp(37:6)'
   - syntax: 'IMPYXUL P,XT,loc32'
     format: 32
     opcode: 0x56650000
@@ -742,6 +888,17 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['PM']
+    operation:
+      - 'temp(37:0) = lower_38 bits(signed XT * unsigned [loc32])'
+      - 'P(31:4) = temp(27:0), P(3:0) = 0'
+      - 'P(31:1) = temp(30:0), P(0) = 0'
+      - 'P(31:0) = temp(31:0)'
+      - 'P(31:0) = temp(32:1)'
+      - 'P(31:0) = temp(33:2)'
+      - 'P(31:0) = temp(34:3)'
+      - 'P(31:0) = temp(35:4)'
+      - 'P(31:0) = temp(36:5)'
+      - 'P(31:0) = temp(37:6)'
   - syntax: 'IN loc16,*(PA)'
     format: 32
     opcode: 0xB4000000
@@ -754,6 +911,8 @@ instructions:
     rpt: 'Y'
     cyc: 'N+2'
     flags: ['N', 'Z']
+    operation:
+      - '[loc16] = IOspace[PA]'
   - syntax: 'INC loc16'
     format: 16
     opcode: 0x0A00
@@ -765,6 +924,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z', 'C', 'V']
+    operation:
+      - '[loc16] = [loc16] + 1'
   - syntax: 'IRET'
     format: 16
     opcode: 0x7602
@@ -774,6 +935,22 @@ instructions:
     rpt: '–'
     cyc: '8'
     flags: ['SXM', 'OVM', 'TC', 'C', 'Z', 'PM', 'OVC', 'INTM', 'DBGM', 'VMAP', 'SPA', 'EALLOW', 'XF', 'ARP']
+    operation:
+      - 'SP = SP - 2'
+      - 'PC = [SP]'
+      - 'SP = SP - 2'
+      - 'DBGSTAT:IER = [SP]'
+      - 'SP = SP − 2'
+      - 'DP:ST1 = [SP]'
+      - 'SP = SP - 2'
+      - 'AR1:AR0 = [SP]'
+      - 'SP = SP - 2'
+      - 'PH:PL = [SP]'
+      - 'SP = SP - 2'
+      - 'AH:AL = [SP]'
+      - 'SP = SP - 2'
+      - 'T:ST0 = [SP]'
+      - 'SP = SP - 1'
   - syntax: 'LB *XAR7'
     format: 16
     opcode: 0x7620
@@ -782,6 +959,8 @@ instructions:
     objmode: 'X'
     rpt: '–'
     cyc: '4'
+    operation:
+      - 'PC = XAR7(21:0)'
   - syntax: 'LB 22bit'
     format: 32
     opcode: 0x00400000
@@ -792,6 +971,8 @@ instructions:
     objmode: 'X'
     rpt: '–'
     cyc: '4'
+    operation:
+      - 'PC = 22bit'
   - syntax: 'LC *XAR7'
     format: 16
     opcode: 0x7604
@@ -800,6 +981,13 @@ instructions:
     objmode: 'X'
     rpt: '–'
     cyc: '4'
+    operation:
+      - 'temp(21:0) = PC + 1'
+      - '[SP] = temp(15:0)'
+      - 'SP = SP + 1'
+      - '[SP] = temp(21:16)'
+      - 'SP = SP + 1'
+      - 'PC = XAR7(21:0)'
   - syntax: 'LC 22bit'
     format: 32
     opcode: 0x00800000
@@ -810,6 +998,13 @@ instructions:
     objmode: 'X'
     rpt: '–'
     cyc: '4'
+    operation:
+      - 'temp(21:0) = PC + 2'
+      - '[SP] = temp(15:0)'
+      - 'SP = SP + 1'
+      - '[SP] = temp(21:16)'
+      - 'SP = SP + 1'
+      - 'PC = 22bit'
   - syntax: 'LCR #22bit'
     format: 32
     opcode: 0x76400000
@@ -820,6 +1015,13 @@ instructions:
     objmode: '1'
     rpt: '–'
     cyc: '4'
+    operation:
+      - '[SP] = RPC(15:0)'
+      - 'SP = SP + 1'
+      - '[SP] = RPC(21:16)'
+      - 'SP = SP + 1'
+      - 'RPC = PC + 2'
+      - 'PC = 22bit'
   - syntax: 'LCR *XARn'
     format: 16
     opcode: 0x3E60
@@ -830,6 +1032,13 @@ instructions:
     objmode: '1'
     rpt: '–'
     cyc: '4'
+    operation:
+      - '[SP] = RPC(15:0)'
+      - 'SP = SP + 1'
+      - '[SP] = RPC(21:16)'
+      - 'SP = SP + 1'
+      - 'RPC = PC + 1'
+      - 'PC = XARn(21:0)'
   - syntax: 'LOOPNZ loc16,#16bit'
     format: 32
     opcode: 0x2E000000
@@ -842,6 +1051,8 @@ instructions:
     rpt: '–'
     cyc: '5N+5'
     flags: ['N', 'Z', 'LOOP']
+    operation:
+      - 'while([loc16] & 16bit != 0)'
   - syntax: 'LOOPZ loc16,#16bit'
     format: 32
     opcode: 0x2C000000
@@ -854,6 +1065,8 @@ instructions:
     rpt: '–'
     cyc: '5N+5'
     flags: ['N', 'Z', 'LOOP']
+    operation:
+      - 'while([loc16] & 16bit = 0)'
   - syntax: 'LPADDR'
     format: 16
     opcode: 0x561E
@@ -870,7 +1083,12 @@ instructions:
     objmode: 'X'
     rpt: '–'
     cyc: '8'
-    flags: ['INTM']
+    operation:
+      - 'SP = SP - 1'
+      - 'temp(31:16) = [SP]'
+      - 'SP = SP − 1'
+      - 'temp(15:0) = [SP]'
+      - 'PC = temp(21:0)'
   - syntax: 'LRETE'
     format: 16
     opcode: 0x7610
@@ -880,6 +1098,13 @@ instructions:
     rpt: '–'
     cyc: '8'
     flags: ['INTM']
+    operation:
+      - 'SP = SP – 1'
+      - 'temp(31:16) = [SP]'
+      - 'SP = SP − 1'
+      - 'temp(15:0) = [SP]'
+      - 'PC = temp(21:0)'
+      - 'INTM = 0'
   - syntax: 'LRETR'
     format: 16
     opcode: 0x0006
@@ -888,7 +1113,13 @@ instructions:
     objmode: '1'
     rpt: '–'
     cyc: '4'
-    flags: ['C']
+    operation:
+      - 'PC = RPC'
+      - 'SP = SP - 1'
+      - 'temp(31:16) = [SP]'
+      - 'SP = SP − 1'
+      - 'temp(15:0) = [SP]'
+      - 'RPC = temp(21:0)'
   - syntax: 'LSL ACC,#1..16'
     format: 16
     opcode: 0xFF30
@@ -951,7 +1182,7 @@ instructions:
     objmode: '1'
     rpt: '–'
     cyc: '1'
-    flags: ['Z', 'C']
+    flags: ['N', 'Z', 'C']
   - syntax: 'LSL64 ACC:P,T'
     format: 16
     opcode: 0x5652
@@ -1040,6 +1271,10 @@ instructions:
     rpt: 'Y'
     cyc: 'N+2'
     flags: ['Z', 'N', 'C', 'V', 'OVC', 'OVM', 'PM']
+    operation:
+      - 'ACC = ACC + P << PM'
+      - 'T = [loc16]'
+      - 'P = signed T * signed Prog[0x00:pma]'
   - syntax: 'MAXCUL P,loc32'
     format: 32
     opcode: 0x56510000
@@ -1051,6 +1286,10 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z', 'V']
+    operation:
+      - 'P = [loc32]'
+      - 'V=1, P = [loc32]'
+      - 'P = unchanged'
   - syntax: 'MAXL ACC,loc32'
     format: 32
     opcode: 0x56610000
@@ -1062,6 +1301,9 @@ instructions:
     rpt: 'Y'
     cyc: 'N+1'
     flags: ['Z', 'N', 'C', 'V']
+    operation:
+      - 'if(ACC < [loc32]), ACC = [loc32]'
+      - 'if(ACC >= [loc32]), ACC = unchanged'
   - syntax: 'MIN AX, loc16'
     format: 32
     opcode: 0x56740000
@@ -1074,6 +1316,9 @@ instructions:
     rpt: 'Y'
     cyc: 'N+1'
     flags: ['N', 'Z', 'V']
+    operation:
+      - 'if(AX > [loc16]), AX = [loc16]'
+      - 'if(AX <=[loc16]), AX = unchanged'
   - syntax: 'MINCUL P,loc32'
     format: 32
     opcode: 0x56590000
@@ -1086,6 +1331,10 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z', 'V']
+    operation:
+      - 'P = [loc32]'
+      - 'V=1, P = [loc32]'
+      - 'P = unchanged'
   - syntax: 'MINL ACC,loc32'
     format: 32
     opcode: 0x56500000
@@ -1097,6 +1346,9 @@ instructions:
     rpt: 'Y'
     cyc: 'N+1'
     flags: ['Z', 'N', 'C', 'V']
+    operation:
+      - 'if(ACC <= [loc32]), ACC = unchanged'
+      - 'if(ACC > [loc32]), ACC = [loc32]'
   - syntax: 'MOV *(0:16bit), loc16'
     format: 32
     opcode: 0xF4000000
@@ -1108,7 +1360,8 @@ instructions:
     objmode: 'X'
     rpt: 'Y'
     cyc: 'N+2'
-    flags: ['N', 'Z']
+    operation:
+      - '[0x0000:16bit] = [loc16]'
   - syntax: 'MOV ACC,#16bit<<#0..15'
     format: 32
     opcode: 0xFF200000
@@ -1124,6 +1377,9 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z', 'SXM']
+    operation:
+      - 'ACC = S:16bit << shift value'
+      - 'ACC = 0:16bit << shift value'
   - syntax: 'MOV ACC,loc16<<T'
     format: 32
     opcode: 0x56060000
@@ -1135,6 +1391,9 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z', 'SXM']
+    operation:
+      - 'ACC = S:[loc16] << T(3:0)'
+      - 'ACC = 0:[loc16] << T(3:0)'
   - syntax: 'MOV AX, loc16'
     format: 16
     opcode: 0x9200
@@ -1147,6 +1406,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z']
+    operation:
+      - 'AX = [loc16]'
   - syntax: 'MOV DP, #10bit'
     format: 16
     opcode: 0xF800
@@ -1157,6 +1418,9 @@ instructions:
     objmode: 'X'
     rpt: '–'
     cyc: '1'
+    operation:
+      - 'DP(9:0) = 10bit'
+      - 'DP(15:10) = unchanged'
   - syntax: 'MOV IER,loc16'
     format: 16
     opcode: 0x2300
@@ -1167,7 +1431,8 @@ instructions:
     objmode: 'X'
     rpt: '–'
     cyc: '5'
-    flags: ['N', 'Z']
+    operation:
+      - 'IER = [loc16]'
   - syntax: 'MOV loc16, #16bit'
     format: 32
     opcode: 0x28000000
@@ -1180,6 +1445,8 @@ instructions:
     rpt: 'Y'
     cyc: 'N+1'
     flags: ['N', 'Z']
+    operation:
+      - '[loc16] = 16bit'
   - syntax: 'MOV loc16, *(0:16bit)'
     format: 32
     opcode: 0xF5000000
@@ -1192,6 +1459,8 @@ instructions:
     rpt: 'Y'
     cyc: 'N+2'
     flags: ['N', 'Z']
+    operation:
+      - '[loc16] = [0x0000:16bit]'
   - syntax: 'MOV loc16, #0'
     format: 16
     opcode: 0x2B00
@@ -1203,6 +1472,8 @@ instructions:
     rpt: 'Y'
     cyc: 'N+1'
     flags: ['N', 'Z']
+    operation:
+      - '[loc16] = 0x0000'
   - syntax: 'MOV loc16, ARn'
     format: 16
     opcode: 0x7800
@@ -1215,6 +1486,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z']
+    operation:
+      - '[loc16] = ARn'
   - syntax: 'MOV loc16, AX'
     format: 16
     opcode: 0x9600
@@ -1227,6 +1500,8 @@ instructions:
     rpt: 'Y'
     cyc: 'N+1'
     flags: ['N', 'Z']
+    operation:
+      - '[loc16] = AX'
   - syntax: 'MOV loc16, AX, COND'
     format: 32
     opcode: 0x562A0000
@@ -1253,6 +1528,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z']
+    operation:
+      - '[loc16] = IER'
   - syntax: 'MOV loc16,OVC'
     format: 32
     opcode: 0x56290000
@@ -1264,6 +1541,9 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z']
+    operation:
+      - '[loc16(15:10)] = OVC; [loc16(9:0)]'
+      - '= 0'
   - syntax: 'MOV loc16,P'
     format: 16
     opcode: 0x3F00
@@ -1275,6 +1555,8 @@ instructions:
     rpt: 'Y'
     cyc: 'N+1'
     flags: ['N', 'Z', 'PM']
+    operation:
+      - '[loc16] = P << PM'
   - syntax: 'MOV loc16, T'
     format: 16
     opcode: 0x2100
@@ -1286,6 +1568,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z']
+    operation:
+      - '[loc16] = T'
   - syntax: 'MOV OVC, loc16'
     format: 32
     opcode: 0x56020000
@@ -1297,6 +1581,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['OVC']
+    operation:
+      - 'OVC = [loc16(15:10)]'
   - syntax: 'MOV PH, loc16'
     format: 16
     opcode: 0x2F00
@@ -1307,6 +1593,9 @@ instructions:
     objmode: 'X'
     rpt: '–'
     cyc: '1'
+    operation:
+      - 'PH = [loc16]'
+      - 'PL = unchanged'
   - syntax: 'MOV PL, loc16'
     format: 16
     opcode: 0x2700
@@ -1317,7 +1606,9 @@ instructions:
     objmode: 'X'
     rpt: '–'
     cyc: '1'
-    flags: ['PM']
+    operation:
+      - 'PL = [loc16]'
+      - 'PH = unchanged'
   - syntax: 'MOV PM, AX'
     format: 16
     opcode: 0x5638
@@ -1329,6 +1620,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['PM']
+    operation:
+      - 'PM = AX(2:0)'
   - syntax: 'MOV T, loc16'
     format: 16
     opcode: 0x2D00
@@ -1339,6 +1632,8 @@ instructions:
     objmode: 'X'
     rpt: '–'
     cyc: '1'
+    operation:
+      - 'T = [loc16]'
   - syntax: 'MOV TL, #0'
     format: 16
     opcode: 0x5656
@@ -1347,6 +1642,9 @@ instructions:
     objmode: '1'
     rpt: '–'
     cyc: '1'
+    operation:
+      - 'TL = 0x0000'
+      - 'T = unchanged'
   - syntax: 'MOV XARn, PC'
     format: 16
     opcode: 0x3E58
@@ -1357,7 +1655,8 @@ instructions:
     objmode: '1'
     rpt: '–'
     cyc: '1'
-    flags: ['N', 'Z']
+    operation:
+      - 'XARn = 0:PC'
   - syntax: 'MOVA T,loc16'
     format: 16
     opcode: 0x1000
@@ -1369,6 +1668,9 @@ instructions:
     rpt: 'Y'
     cyc: 'N+1'
     flags: ['N', 'Z', 'C', 'V', 'OVC', 'OVM', 'PM']
+    operation:
+      - 'T = [loc16]'
+      - 'ACC = ACC + P << PM'
   - syntax: 'MOVAD T, loc16'
     format: 16
     opcode: 0xA700
@@ -1380,6 +1682,10 @@ instructions:
     rpt: 'N'
     cyc: '1'
     flags: ['N', 'Z', 'C', 'V', 'OVC', 'OVM', 'PM']
+    operation:
+      - 'T = [loc16]'
+      - '[loc16 + 1] = T'
+      - 'ACC = ACC + P << PM'
   - syntax: 'MOVB ACC,#8bit'
     format: 16
     opcode: 0x0200
@@ -1391,6 +1697,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z']
+    operation:
+      - 'ACC = 0:8bit'
   - syntax: 'MOVB AX, #8bit'
     format: 16
     opcode: 0x9A00
@@ -1403,6 +1711,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z']
+    operation:
+      - 'AX = 0:8bit'
   - syntax: 'MOVB AX.LSB, loc16'
     format: 16
     opcode: 0xC600
@@ -1415,6 +1725,11 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['Z', 'N']
+    operation:
+      - 'AX.LSB = [loc16.LSB]'
+      - 'AX.LSB = [loc16.MSB]'
+      - 'AX.LSB = [loc16.LSB]'
+      - 'AX.MSB = 0x00'
   - syntax: 'MOVB AX.MSB, loc16'
     format: 16
     opcode: 0x3800
@@ -1427,6 +1742,11 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z']
+    operation:
+      - 'AX.MSB = [loc16.LSB]'
+      - 'AX.MSB = [loc16.MSB]'
+      - 'AX.MSB = [loc16.LSB]'
+      - 'AX.LSB = unchanged'
   - syntax: 'MOVB loc16,#8bit,COND'
     format: 32
     opcode: 0x56B00000
@@ -1453,6 +1773,13 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z']
+    operation:
+      - '[loc16.LSB] = AX.LSB'
+      - '[loc16.MSB] = unchanged'
+      - '[loc16.LSB] = unchanged'
+      - '[loc16.MSB] = AX.LSB'
+      - '[loc16.LSB] = AX.LSB'
+      - '[loc16.MSB] = unchanged'
   - syntax: 'MOVB loc16, AX.MSB'
     format: 16
     opcode: 0xC800
@@ -1465,6 +1792,13 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z']
+    operation:
+      - '[loc16.LSB] = AX.MSB'
+      - '[loc16.MSB] = unchanged'
+      - '[loc16.LSB] = unchanged'
+      - '[loc16.MSB] = AX.MSB'
+      - '[loc16.LSB] = AX.MSB'
+      - '[loc16.MSB] = unchanged'
   - syntax: 'MOVDL XT,loc32'
     format: 16
     opcode: 0xA600
@@ -1475,6 +1809,9 @@ instructions:
     objmode: '1'
     rpt: 'Y'
     cyc: 'N+1'
+    operation:
+      - 'XT = [loc32]'
+      - '[loc32 + 2] = XT'
   - syntax: 'MOVH loc16, P'
     format: 16
     opcode: 0x5700
@@ -1486,6 +1823,8 @@ instructions:
     rpt: 'Y'
     cyc: 'N+1'
     flags: ['N', 'Z', 'PM']
+    operation:
+      - '[loc16] = (P << PM) >> 16'
   - syntax: 'MOVL ACC,loc32'
     format: 16
     opcode: 0x0600
@@ -1497,6 +1836,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z']
+    operation:
+      - 'ACC = [loc32]'
   - syntax: 'MOVL ACC,P << PM'
     format: 16
     opcode: 0x16AC
@@ -1506,6 +1847,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z', 'PM']
+    operation:
+      - 'ACC = P << PM'
   - syntax: 'MOVL loc32, ACC'
     format: 16
     opcode: 0x1E00
@@ -1517,6 +1860,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z']
+    operation:
+      - '[loc32] = ACC'
   - syntax: 'MOVL loc32,ACC,COND'
     format: 32
     opcode: 0x56480000
@@ -1542,6 +1887,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z']
+    operation:
+      - '[loc32] = P'
   - syntax: 'MOVL loc32,XT'
     format: 16
     opcode: 0xAB00
@@ -1553,6 +1900,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z']
+    operation:
+      - '[loc32] = XT'
   - syntax: 'MOVL P,ACC'
     format: 16
     opcode: 0xFF5A
@@ -1561,6 +1910,8 @@ instructions:
     objmode: 'X'
     rpt: '–'
     cyc: '1'
+    operation:
+      - 'P = ACC'
   - syntax: 'MOVL P,loc32'
     format: 16
     opcode: 0xA300
@@ -1571,6 +1922,8 @@ instructions:
     objmode: '1'
     rpt: '–'
     cyc: '1'
+    operation:
+      - 'P = [loc32]'
   - syntax: 'MOVL XT,loc32'
     format: 16
     opcode: 0x8700
@@ -1581,6 +1934,8 @@ instructions:
     objmode: '1'
     rpt: '–'
     cyc: '1'
+    operation:
+      - 'XT = [loc32]'
   - syntax: 'MOVP T,loc16'
     format: 16
     opcode: 0x1600
@@ -1592,6 +1947,9 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z', 'PM']
+    operation:
+      - 'T = [loc16]'
+      - 'ACC = P << PM'
   - syntax: 'MOVS T,loc16'
     format: 16
     opcode: 0x1100
@@ -1603,6 +1961,9 @@ instructions:
     rpt: 'Y'
     cyc: 'N+1'
     flags: ['N', 'Z', 'C', 'V', 'OVC', 'OVM', 'PM']
+    operation:
+      - 'T = [loc16]'
+      - 'ACC = ACC − P << PM'
   - syntax: 'MOVU ACC,loc16'
     format: 16
     opcode: 0x0E00
@@ -1614,6 +1975,9 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z']
+    operation:
+      - 'AL = [loc16]'
+      - 'AH = 0x0000'
   - syntax: 'MOVU loc16,OVC'
     format: 32
     opcode: 0x56280000
@@ -1625,6 +1989,9 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z']
+    operation:
+      - '= 0'
+      - '= OVC'
   - syntax: 'MOVU OVC,loc16'
     format: 32
     opcode: 0x56620000
@@ -1636,6 +2003,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['OVC']
+    operation:
+      - 'OVC = [loc16(5:0)]'
   - syntax: 'MOVW DP, #16bit'
     format: 32
     opcode: 0x761F0000
@@ -1646,6 +2015,8 @@ instructions:
     objmode: 'X'
     rpt: '–'
     cyc: '1'
+    operation:
+      - 'DP(15:0) = 16bit'
   - syntax: 'MOVX TL,loc16'
     format: 32
     opcode: 0x56210000
@@ -1657,6 +2028,9 @@ instructions:
     objmode: '1'
     rpt: '–'
     cyc: '1'
+    operation:
+      - 'TL = [loc16]'
+      - 'T = sign extension of TL'
   - syntax: 'MOVZ DP, #10bit'
     format: 16
     opcode: 0xB800
@@ -1667,7 +2041,9 @@ instructions:
     objmode: '1'
     rpt: '–'
     cyc: '1'
-    flags: ['Z', 'N']
+    operation:
+      - 'DP(9:0) = 10bit'
+      - 'DP(15:10) = 0'
   - syntax: 'MPY ACC,loc16, #16bit'
     format: 32
     opcode: 0x34000000
@@ -1680,6 +2056,9 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['Z', 'N']
+    operation:
+      - 'T = [loc16]'
+      - 'ACC = signed T * signed 16bit'
   - syntax: 'MPY ACC, T, loc16'
     format: 16
     opcode: 0x1200
@@ -1691,6 +2070,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['Z', 'N']
+    operation:
+      - 'ACC = signed T * signed [loc16]'
   - syntax: 'MPY P,loc16,#16bit'
     format: 32
     opcode: 0x8C000000
@@ -1702,6 +2083,8 @@ instructions:
     objmode: '1'
     rpt: '–'
     cyc: '1'
+    operation:
+      - 'P = signed [loc16] * signed 16bit'
   - syntax: 'MPY P,T,loc16'
     format: 16
     opcode: 0x3300
@@ -1712,6 +2095,8 @@ instructions:
     objmode: 'X'
     rpt: '–'
     cyc: '1'
+    operation:
+      - 'P = signed T * signed [loc16]'
   - syntax: 'MPYA P,loc16,#16bit'
     format: 32
     opcode: 0x15000000
@@ -1724,6 +2109,10 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['Z', 'N', 'C', 'V', 'OVC', 'OVM', 'PM']
+    operation:
+      - 'ACC = ACC + P << PM'
+      - 'T = [loc16]'
+      - 'P = signed T * signed 16bit'
   - syntax: 'MPYA P,T,loc16'
     format: 16
     opcode: 0x1700
@@ -1735,6 +2124,10 @@ instructions:
     rpt: 'Y'
     cyc: 'N+1'
     flags: ['Z', 'N', 'C', 'V', 'OVC', 'OVM', 'PM']
+    operation:
+      - 'ACC = ACC +'
+      - 'P << PM'
+      - '= signed T * signed [loc16]'
   - syntax: 'MPYB ACC,T,#8bit'
     format: 16
     opcode: 0x3500
@@ -1746,6 +2139,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['Z', 'N']
+    operation:
+      - 'ACC = signed T * 0:8bit'
   - syntax: 'MPYB P,T,#8bit'
     format: 16
     opcode: 0x3100
@@ -1756,7 +2151,8 @@ instructions:
     objmode: 'X'
     rpt: '–'
     cyc: '1'
-    flags: ['Z', 'N', 'C', 'V']
+    operation:
+      - 'P = signed T * 0:8bit'
   - syntax: 'MPYS P,T,loc16'
     format: 16
     opcode: 0x1300
@@ -1768,6 +2164,9 @@ instructions:
     rpt: 'Y'
     cyc: 'N+1'
     flags: ['Z', 'N', 'C', 'V', 'OVC', 'OVM', 'PM']
+    operation:
+      - 'ACC = ACC − P << PM'
+      - 'P = signed T * signed [loc16]'
   - syntax: 'MPYU P,T,loc16'
     format: 16
     opcode: 0x3700
@@ -1778,7 +2177,8 @@ instructions:
     objmode: 'X'
     rpt: '–'
     cyc: '1'
-    flags: ['Z', 'N']
+    operation:
+      - 'P = unsigned T * unsigned [loc16]'
   - syntax: 'MPYU ACC,T,loc16'
     format: 16
     opcode: 0x3600
@@ -1790,6 +2190,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['Z', 'N']
+    operation:
+      - 'ACC = unsigned T * unsigned [loc16]'
   - syntax: 'MPYXU ACC, T, loc16'
     format: 16
     opcode: 0x3000
@@ -1801,6 +2203,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['Z', 'N']
+    operation:
+      - 'ACC = signed T * unsigned [loc16]'
   - syntax: 'MPYXU P,T,loc16'
     format: 16
     opcode: 0x3200
@@ -1811,6 +2215,8 @@ instructions:
     objmode: 'X'
     rpt: '–'
     cyc: '1'
+    operation:
+      - 'P = signed T * unsigned [loc16]'
   - syntax: 'NASP'
     format: 16
     opcode: 0x7617
@@ -1820,6 +2226,9 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['SPA']
+    operation:
+      - 'SP = SP − 1'
+      - 'SPA = 0'
   - syntax: 'NEG ACC'
     format: 16
     opcode: 0xFF54
@@ -1829,6 +2238,13 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z', 'C', 'V', 'OVM']
+    operation:
+      - 'V = 1'
+      - 'ACC = 0x7FFF FFFF'
+      - 'ACC = 0x8000 0000'
+      - 'ACC = −ACC'
+      - 'C = 1'
+      - 'C = 0'
   - syntax: 'NEG AX'
     format: 16
     opcode: 0xFF5C
@@ -1840,6 +2256,12 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z', 'C', 'V']
+    operation:
+      - 'AX = 0x8000'
+      - 'V flag = 1'
+      - 'AX = −AX'
+      - 'C flag = 1'
+      - 'C flag = 0'
   - syntax: 'NEG64 ACC:P'
     format: 16
     opcode: 0x5658
@@ -1849,6 +2271,13 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z', 'C', 'V', 'OVM']
+    operation:
+      - 'V = 1'
+      - 'ACC:P = 0x7FFF FFFF FFFF FFFF'
+      - 'ACC:P = 0x8000 0000 0000 0000'
+      - 'ACC:P = −ACC:P'
+      - 'C = 1'
+      - 'C = 0'
   - syntax: 'NEGTC ACC'
     format: 16
     opcode: 0x5632
@@ -1858,6 +2287,13 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z', 'C', 'V', 'TC', 'OVM']
+    operation:
+      - 'V = 1'
+      - 'ACC = 0x7FFF FFFF'
+      - 'ACC = 0x8000 0000'
+      - 'ACC = −ACC'
+      - 'C = 1'
+      - 'C = 0'
   - syntax: 'NOP {*ind}{ARPn}'
     format: 16
     opcode: 0x7700
@@ -1877,6 +2313,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z']
+    operation:
+      - 'ACC = ACC XOR 0xFFFFFFFF'
   - syntax: 'NOT AX'
     format: 16
     opcode: 0xFF5E
@@ -1888,6 +2326,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z']
+    operation:
+      - 'AX = AX XOR 0xFFFF'
   - syntax: 'OR ACC, loc16'
     format: 16
     opcode: 0xAF00
@@ -1899,6 +2339,8 @@ instructions:
     rpt: 'Y'
     cyc: 'N+1'
     flags: ['N', 'Z']
+    operation:
+      - 'ACC = ACC OR 0:[loc16]'
   - syntax: '1'
     format: 32
     opcode: 0x564A0000
@@ -1907,6 +2349,8 @@ instructions:
     fields:
       C: { bits: [15, 0] }
     flags: ['N', 'Z']
+    operation:
+      - 'ACC = ACC OR (0:16bit << shift value)'
   - syntax: 'OR AX, loc16'
     format: 16
     opcode: 0xCA00
@@ -1919,6 +2363,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z']
+    operation:
+      - 'AX = AX OR [loc16]'
   - syntax: 'OR IER,#16bit'
     format: 32
     opcode: 0x76230000
@@ -1929,6 +2375,8 @@ instructions:
     objmode: 'X'
     rpt: '–'
     cyc: '2'
+    operation:
+      - 'IER = IER OR #16bit'
   - syntax: 'OR IFR,#16bit'
     format: 32
     opcode: 0x76270000
@@ -1939,7 +2387,8 @@ instructions:
     objmode: 'X'
     rpt: '–'
     cyc: '2'
-    flags: ['N', 'Z']
+    operation:
+      - 'IFR = IFR OR #16bit'
   - syntax: 'OR loc16,#16bit'
     format: 32
     opcode: 0x1A000000
@@ -1952,6 +2401,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z']
+    operation:
+      - '[loc16] = [loc16] OR 16bit'
   - syntax: 'OR loc16, AX'
     format: 16
     opcode: 0x9800
@@ -1964,6 +2415,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z']
+    operation:
+      - '[loc16] = [loc16] OR AX'
   - syntax: 'ORB AX,#8bit'
     format: 16
     opcode: 0x5000
@@ -1976,6 +2429,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z']
+    operation:
+      - 'AX = AX OR 0x00:8bit'
   - syntax: 'OUT *(PA),loc16'
     format: 32
     opcode: 0xBC000000
@@ -1987,6 +2442,8 @@ instructions:
     objmode: '1'
     rpt: '–'
     cyc: '4'
+    operation:
+      - 'IOspace[0x0000PA] = [loc16]'
   - syntax: 'POP ACC'
     format: 16
     opcode: 0x06BE
@@ -1996,6 +2453,9 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z']
+    operation:
+      - 'SP −= 2'
+      - 'ACC = [SP]'
   - syntax: 'POP AR1H:AR0H'
     format: 16
     opcode: 0x0003
@@ -2004,6 +2464,9 @@ instructions:
     objmode: 'X'
     rpt: '–'
     cyc: '1'
+    operation:
+      - '[SP+1]'
+      - 'AR1:AR0 = unchanged'
   - syntax: 'POP DBGIER'
     format: 16
     opcode: 0x7612
@@ -2012,6 +2475,9 @@ instructions:
     objmode: 'X'
     rpt: '–'
     cyc: '5'
+    operation:
+      - 'SP −= 1'
+      - 'DBGIER = [SP]'
   - syntax: 'POP DP'
     format: 16
     opcode: 0x7603
@@ -2020,6 +2486,9 @@ instructions:
     objmode: 'X'
     rpt: '–'
     cyc: '1'
+    operation:
+      - 'SP −= 1'
+      - 'DP = [SP]'
   - syntax: 'POP DP:ST1'
     format: 16
     opcode: 0x7601
@@ -2028,6 +2497,10 @@ instructions:
     objmode: 'X'
     rpt: '–'
     cyc: '5'
+    operation:
+      - 'SP −= 2'
+      - 'ST1 = [SP]'
+      - 'DP = [SP+1]'
   - syntax: 'POP IFR'
     format: 16
     opcode: 0x0002
@@ -2036,7 +2509,9 @@ instructions:
     objmode: 'X'
     rpt: '–'
     cyc: '5'
-    flags: ['N', 'Z']
+    operation:
+      - 'SP −= 1'
+      - 'IFR = [SP]'
   - syntax: 'POP loc16'
     format: 16
     opcode: 0x2A00
@@ -2048,6 +2523,9 @@ instructions:
     rpt: '–'
     cyc: '2'
     flags: ['N', 'Z']
+    operation:
+      - 'SP -= 1'
+      - '[loc16] = [SP]'
   - syntax: 'POP P'
     format: 16
     opcode: 0x7611
@@ -2056,6 +2534,9 @@ instructions:
     objmode: 'X'
     rpt: '–'
     cyc: '1'
+    operation:
+      - 'SP −= 2'
+      - 'P = [SP]'
   - syntax: 'POP RPC'
     format: 16
     opcode: 0x0007
@@ -2064,7 +2545,9 @@ instructions:
     objmode: 'X'
     rpt: '–'
     cyc: '3'
-    flags: ['C', 'N', 'V', 'Z', 'TC', 'SXM', 'OVC', 'PM']
+    operation:
+      - 'SP −= 2'
+      - 'RPC = [SP]'
   - syntax: 'POP ST0'
     format: 16
     opcode: 0x7613
@@ -2074,6 +2557,9 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['C', 'N', 'V', 'Z', 'TC', 'SXM', 'OVC', 'PM']
+    operation:
+      - 'SP −= 1'
+      - 'ST0 = [SP]'
   - syntax: 'POP ST1'
     format: 16
     opcode: 0x7600
@@ -2083,6 +2569,9 @@ instructions:
     rpt: '–'
     cyc: '5'
     flags: ['DBGM', 'INTM', 'VMAP', 'SPA', 'PAGE0', 'ARP', 'EALLOW', 'XF']
+    operation:
+      - 'SP −= 1'
+      - 'ST1 = [SP]'
   - syntax: 'POP T:ST0'
     format: 16
     opcode: 0x7615
@@ -2091,6 +2580,11 @@ instructions:
     objmode: 'X'
     rpt: '–'
     cyc: '1'
+    operation:
+      - 'SP −= 2'
+      - 'T = [SP]'
+      - 'ST0 = [SP+1]'
+      - 'TL = unchanged'
   - syntax: 'POP XT'
     format: 16
     opcode: 0x87BE
@@ -2099,7 +2593,9 @@ instructions:
     objmode: 'X'
     rpt: '–'
     cyc: '1'
-    flags: ['N', 'Z']
+    operation:
+      - 'SP −= 2'
+      - 'XT = [SP]'
   - syntax: 'PREAD loc16,*XAR7'
     format: 16
     opcode: 0x2400
@@ -2111,6 +2607,8 @@ instructions:
     rpt: 'Y'
     cyc: 'N+2'
     flags: ['N', 'Z']
+    operation:
+      - '[loc16] = Prog[*XAR7]'
   - syntax: 'PUSH ACC'
     format: 16
     opcode: 0x1EBD
@@ -2119,6 +2617,9 @@ instructions:
     objmode: 'X'
     rpt: '–'
     cyc: '2'
+    operation:
+      - '[SP] = ACC'
+      - 'SP += 2'
   - syntax: 'PUSH AR1H:AR0H'
     format: 16
     opcode: 0x0005
@@ -2127,6 +2628,10 @@ instructions:
     objmode: 'X'
     rpt: '–'
     cyc: '1'
+    operation:
+      - '[SP] = AR0H'
+      - '[SP+1] = AR1H'
+      - 'SP += 2'
   - syntax: 'PUSH DBGIER'
     format: 16
     opcode: 0x760E
@@ -2135,6 +2640,9 @@ instructions:
     objmode: 'X'
     rpt: '–'
     cyc: '1'
+    operation:
+      - '[SP] = DBGIER'
+      - 'SP += 1'
   - syntax: 'PUSH DP'
     format: 16
     opcode: 0x760B
@@ -2143,6 +2651,9 @@ instructions:
     objmode: 'X'
     rpt: '–'
     cyc: '1'
+    operation:
+      - '[SP] = DP'
+      - 'SP += 1'
   - syntax: 'PUSH DP:ST1'
     format: 16
     opcode: 0x7609
@@ -2151,6 +2662,10 @@ instructions:
     objmode: 'X'
     rpt: '–'
     cyc: '1'
+    operation:
+      - '[SP] = ST1'
+      - '[SP+1] = DP'
+      - 'SP += 2'
   - syntax: 'PUSH IFR'
     format: 16
     opcode: 0x760A
@@ -2159,6 +2674,9 @@ instructions:
     objmode: 'X'
     rpt: '–'
     cyc: '1'
+    operation:
+      - '[SP] = IFR'
+      - 'SP += 1'
   - syntax: 'PUSH loc16'
     format: 16
     opcode: 0x2200
@@ -2169,6 +2687,9 @@ instructions:
     objmode: 'X'
     rpt: '–'
     cyc: '2'
+    operation:
+      - '[SP] = [loc16]'
+      - 'SP += 1'
   - syntax: 'PUSH P'
     format: 16
     opcode: 0x761D
@@ -2177,6 +2698,9 @@ instructions:
     objmode: 'X'
     rpt: '–'
     cyc: '1'
+    operation:
+      - '[SP] = P'
+      - 'SP += 2'
   - syntax: 'PUSH RPC'
     format: 16
     opcode: 0x0004
@@ -2185,6 +2709,9 @@ instructions:
     objmode: 'X'
     rpt: '–'
     cyc: '1'
+    operation:
+      - '[SP] = RPC'
+      - 'SP += 2'
   - syntax: 'PUSH ST0'
     format: 16
     opcode: 0x7618
@@ -2193,6 +2720,9 @@ instructions:
     objmode: 'X'
     rpt: '–'
     cyc: '1'
+    operation:
+      - '[SP] = ST0'
+      - 'SP += 1'
   - syntax: 'PUSH ST1'
     format: 16
     opcode: 0x7608
@@ -2201,6 +2731,9 @@ instructions:
     objmode: 'X'
     rpt: '–'
     cyc: '1'
+    operation:
+      - '[SP] = ST1'
+      - 'SP += 1'
   - syntax: 'PUSH T:ST0'
     format: 16
     opcode: 0x7619
@@ -2209,6 +2742,10 @@ instructions:
     objmode: 'X'
     rpt: '–'
     cyc: '1'
+    operation:
+      - '[SP] = ST0'
+      - '[SP+1] = T'
+      - 'SP += 2'
   - syntax: 'PUSH XT'
     format: 16
     opcode: 0xABBD
@@ -2217,6 +2754,9 @@ instructions:
     objmode: 'X'
     rpt: '–'
     cyc: '1'
+    operation:
+      - '[SP] = XT'
+      - 'SP += 2'
   - syntax: 'PWRITE *XAR7,loc16'
     format: 16
     opcode: 0x2600
@@ -2227,6 +2767,8 @@ instructions:
     objmode: 'X'
     rpt: 'Y'
     cyc: 'N+5'
+    operation:
+      - 'Prog[*XAR7] = [loc16]'
   - syntax: 'QMPYAL P,XT,loc32'
     format: 32
     opcode: 0x56460000
@@ -2238,6 +2780,9 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['Z', 'N', 'C', 'V', 'OVC', 'OVM', 'PM']
+    operation:
+      - 'ACC = ACC + P << PM'
+      - 'P = (signed T * signed [loc32]) >> 32'
   - syntax: 'QMPYL P,XT,loc32'
     format: 32
     opcode: 0x56670000
@@ -2248,7 +2793,8 @@ instructions:
     objmode: '1'
     rpt: '–'
     cyc: '1'
-    flags: ['Z', 'N']
+    operation:
+      - 'P = (signed XT * signed [loc32]) >> 32'
   - syntax: 'QMPYL ACC,XT,loc32'
     format: 32
     opcode: 0x56630000
@@ -2260,6 +2806,8 @@ instructions:
     rpt: '–'
     cyc: '2'
     flags: ['Z', 'N']
+    operation:
+      - 'ACC = (signed XT * signed [loc32]) >> 32'
   - syntax: 'QMPYSL P,XT,loc32'
     format: 32
     opcode: 0x56450000
@@ -2271,6 +2819,9 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['Z', 'N', 'C', 'V', 'OVC', 'OVM', 'PM']
+    operation:
+      - 'ACC = ACC − P << PM'
+      - 'P = (signed T * signed [loc32]) >> 32'
   - syntax: 'QMPYUL P,XT,loc32'
     format: 32
     opcode: 0x56470000
@@ -2281,6 +2832,8 @@ instructions:
     objmode: '1'
     rpt: '–'
     cyc: '1'
+    operation:
+      - 'P = (unsigned XT * unsigned [loc32]) >> 32'
   - syntax: 'QMPYXUL P,XT,loc32'
     format: 32
     opcode: 0x56420000
@@ -2291,6 +2844,8 @@ instructions:
     objmode: '1'
     rpt: '–'
     cyc: '1'
+    operation:
+      - 'P = (signed XT * unsigned [loc32]) >> 32'
   - syntax: 'ROL ACC'
     format: 16
     opcode: 0xFF53
@@ -2318,6 +2873,14 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z', 'C', 'V', 'OVC']
+    operation:
+      - 'ACC = 0x7FFF FFFF'
+      - 'V = 1'
+      - 'ACC = 0x8000 0000'
+      - 'V = 1'
+      - 'ACC = unchanged'
+      - 'OVC = 0'
+      - 'V = 0'
   - syntax: 'SAT64 ACC:P'
     format: 16
     opcode: 0x563E
@@ -2327,6 +2890,13 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z', 'C', 'V', 'OVC']
+    operation:
+      - 'ACC:P = 0x7FFF FFFF FFFF FFFF'
+      - 'V=1'
+      - 'ACC:P = 0x8000 0000 0000 0000'
+      - 'V=1'
+      - 'ACC:P = unchaged'
+      - 'OVC = 0'
   - syntax: 'SB 8bitOffset,COND'
     format: 16
     opcode: 0x6000
@@ -2351,6 +2921,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['Z', 'N', 'C', 'V', 'OVC', 'OVM']
+    operation:
+      - 'ACC = ACC − 0:[loc16] − ~C'
   - syntax: 'SBRK #8bit'
     format: 16
     opcode: 0xFD00
@@ -2362,6 +2934,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['ARP']
+    operation:
+      - 'XAR(ARP) = XAR(ARP) − 0:8bit'
   - syntax: 'SETC XF'
     format: 16
     opcode: 0x5626
@@ -2385,6 +2959,9 @@ instructions:
     rpt: 'Y'
     cyc: 'N+1'
     flags: ['Z', 'N', 'C', 'SXM']
+    operation:
+      - 'ACC = S:ACC >> shift value'
+      - 'ACC = 0:ACC >> shift value'
   - syntax: 'SFR ACC,T'
     format: 16
     opcode: 0xFF51
@@ -2394,6 +2971,9 @@ instructions:
     rpt: '–'
     cyc: 'N+1'
     flags: ['Z', 'N', 'C', 'SXM']
+    operation:
+      - 'ACC = S:ACC >> T(3:0)'
+      - 'ACC = 0:ACC >> T(3:0)'
   - syntax: 'SQRA loc16'
     format: 32
     opcode: 0x56150000
@@ -2405,6 +2985,10 @@ instructions:
     rpt: 'Y'
     cyc: 'N+1'
     flags: ['Z', 'N', 'C', 'V', 'OVC', 'OVM', 'PM']
+    operation:
+      - 'ACC = ACC + P << PM'
+      - 'T = [loc16]'
+      - 'P = T * [loc16]'
   - syntax: 'SQRS loc16'
     format: 32
     opcode: 0x56110000
@@ -2417,6 +3001,10 @@ instructions:
     rpt: 'Y'
     cyc: 'N+1'
     flags: ['Z', 'N', 'C', 'V', 'OVC', 'OVM', 'PM']
+    operation:
+      - 'ACC = ACC − P << PM'
+      - 'T = [loc16]'
+      - 'P = T * [loc16]'
   - syntax: 'SUB ACC,loc16 << T'
     format: 32
     opcode: 0x56270000
@@ -2428,6 +3016,9 @@ instructions:
     rpt: 'Y'
     cyc: 'N+1'
     flags: ['Z', 'N', 'C', 'V', 'OVC', 'SXM', 'OVM']
+    operation:
+      - 'ACC = ACC − S:[loc16] << T(3:0)'
+      - 'ACC = ACC − 0:[loc16] << T(3:0)'
   - syntax: 'SUB ACC,#16bit << #0..15'
     format: 32
     opcode: 0xFF000000
@@ -2443,6 +3034,9 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['Z', 'N', 'C', 'V', 'OVC', 'SXM', 'OVM']
+    operation:
+      - 'ACC = ACC − S:16bit << shift value'
+      - 'ACC = ACC − 0:16bit << shift value'
   - syntax: 'SUB AX, loc16'
     format: 16
     opcode: 0x9E00
@@ -2455,6 +3049,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z', 'C', 'V']
+    operation:
+      - 'AX = AX − [loc16]'
   - syntax: 'SUB loc16, AX'
     format: 16
     opcode: 0x7400
@@ -2467,6 +3063,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z', 'C', 'V']
+    operation:
+      - '[loc16] = [loc16] − AX'
   - syntax: 'SUBB ACC,#8bit'
     format: 16
     opcode: 0x1900
@@ -2478,6 +3076,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['Z', 'N', 'C', 'V', 'OVC', 'OVM']
+    operation:
+      - 'ACC = ACC − 0:8bit'
   - syntax: 'SUBB SP,#7bit'
     format: 16
     opcode: 0xFE80
@@ -2488,6 +3088,8 @@ instructions:
     objmode: 'X'
     rpt: '–'
     cyc: '1'
+    operation:
+      - 'SP = SP − 0:7bit'
   - syntax: 'SUBB XARn,#7bit'
     format: 16
     opcode: 0xD880
@@ -2499,7 +3101,8 @@ instructions:
     objmode: 'X'
     rpt: '–'
     cyc: '1'
-    flags: ['Z', 'N', 'C', 'V', 'OVC']
+    operation:
+      - 'XARn = XARn − 0:7bit'
   - syntax: 'SUBBL ACC, loc32'
     format: 32
     opcode: 0x56540000
@@ -2511,6 +3114,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['Z', 'N', 'C', 'V', 'OVC', 'OVM']
+    operation:
+      - 'ACC = ACC − [loc32] − ~C'
   - syntax: 'SUBCU ACC,loc16'
     format: 16
     opcode: 0x1F00
@@ -2522,6 +3127,10 @@ instructions:
     rpt: 'Y'
     cyc: 'N+1'
     flags: ['Z', 'N', 'C']
+    operation:
+      - 'temp(32:0) = ACC << 1 − [loc16] << 16'
+      - 'ACC = temp(31:0) + 1'
+      - 'ACC = ACC << 1'
   - syntax: 'SUBCUL ACC,loc32'
     format: 32
     opcode: 0x56170000
@@ -2533,6 +3142,11 @@ instructions:
     rpt: 'Y'
     cyc: 'N+1'
     flags: ['Z', 'N', 'C']
+    operation:
+      - 'temp(32:0) = ACC << 1 + P(31) − [loc32]'
+      - 'ACC = temp(31:0)'
+      - 'P = (P << 1) + 1'
+      - 'ACC:P = ACC:P << 1'
   - syntax: 'SUBL ACC, loc32'
     format: 16
     opcode: 0x0300
@@ -2544,6 +3158,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['Z', 'N', 'C', 'V', 'OVC', 'OVM']
+    operation:
+      - 'ACC = ACC − [loc32]'
   - syntax: 'SUBL ACC,P << PM'
     format: 16
     opcode: 0x11AC
@@ -2553,6 +3169,8 @@ instructions:
     rpt: 'Y'
     cyc: 'N+1'
     flags: ['Z', 'N', 'C', 'V', 'OVC', 'OVM', 'PM']
+    operation:
+      - 'ACC = ACC − P << PM'
   - syntax: 'SUBL loc32, ACC'
     format: 32
     opcode: 0x56410000
@@ -2564,6 +3182,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['Z', 'N', 'C', 'V', 'OVC', 'OVM']
+    operation:
+      - '[loc32] = [loc32] − ACC'
   - syntax: 'SUBR loc16,AX'
     format: 16
     opcode: 0xEA00
@@ -2576,6 +3196,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z', 'C', 'V']
+    operation:
+      - '[loc16] = AX − [loc16]'
   - syntax: 'SUBRL loc32, ACC'
     format: 32
     opcode: 0x56490000
@@ -2587,6 +3209,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['Z', 'N', 'C', 'V', 'OVC', 'OVM']
+    operation:
+      - '[loc32] = ACC − [loc32]'
   - syntax: 'SUBU ACC, loc16'
     format: 16
     opcode: 0x0100
@@ -2598,6 +3222,8 @@ instructions:
     rpt: 'Y'
     cyc: 'N+1'
     flags: ['Z', 'N', 'C', 'V', 'OVC', 'OVM']
+    operation:
+      - 'ACC = ACC − 0:[loc16]'
   - syntax: 'SUBUL ACC, loc32'
     format: 32
     opcode: 0x56550000
@@ -2609,6 +3235,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['Z', 'N', 'C', 'V']
+    operation:
+      - 'ACC = ACC − [loc32]'
   - syntax: 'SUBUL P,loc32'
     format: 32
     opcode: 0x565D0000
@@ -2620,6 +3248,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['Z', 'N', 'C', 'V']
+    operation:
+      - 'P = P − [loc32]'
   - syntax: 'TBIT loc16,#bit'
     format: 16
     opcode: 0x4000
@@ -2632,6 +3262,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['TC']
+    operation:
+      - 'TC = [loc16(bit)]'
   - syntax: 'TBIT loc16,T'
     format: 32
     opcode: 0x56250000
@@ -2643,6 +3275,9 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['TC']
+    operation:
+      - 'bit = 15 − T(3:0)'
+      - 'TC = [loc16(bit)]'
   - syntax: 'TCLR loc16,#bit'
     format: 32
     opcode: 0x56090000
@@ -2655,6 +3290,9 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z', 'TC']
+    operation:
+      - 'TC = [loc16(bit)]'
+      - '[loc16(bit)] = 0'
   - syntax: 'TEST ACC'
     format: 16
     opcode: 0xFF58
@@ -2664,6 +3302,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z']
+    operation:
+      - 'Modify flags on (ACC − 0x00000000)'
   - syntax: 'TRAP #VectorNumber'
     format: 16
     opcode: 0x0020
@@ -2686,6 +3326,9 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z', 'TC']
+    operation:
+      - 'TC = [loc16(bit)]'
+      - '[loc16(bit)] = 1'
   - syntax: 'UOUT *(PA),loc16'
     format: 32
     opcode: 0xB0000000
@@ -2697,6 +3340,8 @@ instructions:
     objmode: '1'
     rpt: 'Y'
     cyc: 'N+2'
+    operation:
+      - 'IOspace[0x000:PA] = loc16'
   - syntax: 'XB *AL'
     format: 16
     opcode: 0x5614
@@ -2705,6 +3350,8 @@ instructions:
     objmode: '1'
     rpt: '–'
     cyc: '7'
+    operation:
+      - 'PC = 0x3F:AL'
   - syntax: 'XB pma,*,ARPn'
     format: 32
     opcode: 0x3E700000
@@ -2716,6 +3363,9 @@ instructions:
     objmode: '1'
     rpt: '–'
     cyc: '4'
+    operation:
+      - 'PC = 0x3F:pma'
+      - 'ARP = n'
   - syntax: 'XB pma,COND'
     format: 32
     opcode: 0x56D00000
@@ -2737,6 +3387,11 @@ instructions:
     objmode: '1'
     rpt: '–'
     cyc: '7'
+    operation:
+      - 'temp(21:0) = PC + 1'
+      - '[SP] = temp(15:0)'
+      - 'SP = SP + 1'
+      - 'C = 0x3F:AL'
   - syntax: 'XCALL pma,*,ARPn'
     format: 32
     opcode: 0x3E680000
@@ -2748,6 +3403,12 @@ instructions:
     objmode: '1'
     rpt: '–'
     cyc: '4'
+    operation:
+      - 'temp(21:0) = PC + 1'
+      - '[SP] = temp(15:0)'
+      - 'SP = SP + 1'
+      - 'PC = 0x3F:pma'
+      - 'ARP = n'
   - syntax: 'XCALL pma,COND'
     format: 32
     opcode: 0x56E00000
@@ -2773,6 +3434,10 @@ instructions:
     rpt: 'Y'
     cyc: 'N+2'
     flags: ['Z', 'N', 'C', 'V', 'OVC', 'OVM', 'PM']
+    operation:
+      - 'ACC = ACC + P << PM'
+      - 'T = [loc16]'
+      - 'P = signed T * signed Prog[0x3F:pma]'
   - syntax: 'XMACD P,loc16,*(pma)'
     format: 32
     opcode: 0xA4000000
@@ -2785,6 +3450,11 @@ instructions:
     rpt: 'Y'
     cyc: 'N+2'
     flags: ['Z', 'N', 'C', 'V', 'OVC', 'OVM', 'PM']
+    operation:
+      - 'ACC = ACC + P << PM'
+      - 'T = [loc16]'
+      - 'P = signed T * signed Prog[0x3F:pma]'
+      - '[loc16 + 1] = T'
   - syntax: 'XOR ACC,loc16'
     format: 16
     opcode: 0xB700
@@ -2796,6 +3466,8 @@ instructions:
     rpt: 'Y'
     cyc: 'N+1'
     flags: ['N', 'Z']
+    operation:
+      - 'ACC = ACC XOR 0:[loc16]'
   - syntax: 'XOR AX,loc16'
     format: 16
     opcode: 0x7000
@@ -2808,6 +3480,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z']
+    operation:
+      - 'AX = AX XOR [loc16]'
   - syntax: 'XOR loc16, AX'
     format: 16
     opcode: 0xF200
@@ -2820,6 +3494,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z']
+    operation:
+      - '[loc16] = [loc16] XOR AX'
   - syntax: 'XOR loc16,#16bit'
     format: 32
     opcode: 0x1C000000
@@ -2832,6 +3508,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z']
+    operation:
+      - '[loc16] = [loc16] XOR 16bit'
   - syntax: 'XORB AX, #8bit'
     format: 16
     opcode: 0xF000
@@ -2844,6 +3522,8 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z']
+    operation:
+      - 'AX = AX XOR 0x00:8bit'
   - syntax: 'XPREAD loc16, *(pma)'
     format: 32
     opcode: 0xAC000000
@@ -2856,6 +3536,8 @@ instructions:
     rpt: 'Y'
     cyc: 'N+2'
     flags: ['N', 'Z']
+    operation:
+      - '[loc16] = Prog[0x3F:pma]'
   - syntax: 'XPREAD loc16, *AL'
     format: 32
     opcode: 0x563C0000
@@ -2867,6 +3549,8 @@ instructions:
     rpt: 'Y'
     cyc: 'N+4'
     flags: ['N', 'Z']
+    operation:
+      - '[loc16] = Prog[0x3F:AL]'
   - syntax: 'XPWRITE *A,loc16'
     format: 32
     opcode: 0x563D0000
@@ -2877,6 +3561,8 @@ instructions:
     objmode: '1'
     rpt: 'Y'
     cyc: 'N+4'
+    operation:
+      - 'Prog[0x3F:AL] = [loc16]'
   - syntax: 'XRET'
     format: 16
     opcode: 0x56FF
@@ -2886,6 +3572,9 @@ instructions:
     rpt: '–'
     cyc: '7'
     flags: ['V']
+    operation:
+      - 'SP = SP − 1'
+      - 'PC = 0x3F:[SP]'
   - syntax: 'XRETC COND'
     format: 16
     opcode: 0x56F0
@@ -2910,6 +3599,9 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z']
+    operation:
+      - 'AH = [loc16]'
+      - 'AL = 0x8000'
   - syntax: 'ZAPA'
     format: 16
     opcode: 0x5633
@@ -2919,3 +3611,7 @@ instructions:
     rpt: '–'
     cyc: '1'
     flags: ['N', 'Z']
+    operation:
+      - 'ACC = 0'
+      - 'P = 0'
+      - 'OVC = 0'

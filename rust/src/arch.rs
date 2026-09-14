@@ -349,6 +349,14 @@ pub enum FlagWrite {
     NZ,
     NZCV,
     TC,
+    /// N, Z and C but NOT V -- the compares and the shifts. SPRU430F says in
+    /// prose "The instructions CMP, CMPB and CMPL do not affect the state of
+    /// the V flag", and no shift or rotate page lists a V row either. Asserting
+    /// V told BN it was clobbered and killed the dataflow of whatever set it.
+    NZC,
+    /// N, Z and V but NOT C -- CMP64 ACC:P alone, whose page lists N, Z and V
+    /// and uses V to decide the sign of the combined 64-bit value.
+    NZV,
 }
 
 impl TryFrom<u32> for FlagWrite {
@@ -359,6 +367,8 @@ impl TryFrom<u32> for FlagWrite {
             2 => Ok(FlagWrite::NZ),
             3 => Ok(FlagWrite::NZCV),
             4 => Ok(FlagWrite::TC),
+            5 => Ok(FlagWrite::NZC),
+            6 => Ok(FlagWrite::NZV),
             _ => Err(()),
         }
     }
@@ -374,6 +384,8 @@ impl architecture::FlagWrite for FlagWrite {
             FlagWrite::NZ => "nz".into(),
             FlagWrite::NZCV => "nzcv".into(),
             FlagWrite::TC => "tc".into(),
+            FlagWrite::NZC => "nzc".into(),
+            FlagWrite::NZV => "nzv".into(),
         }
     }
 
@@ -387,6 +399,8 @@ impl architecture::FlagWrite for FlagWrite {
             FlagWrite::NZ => 2,
             FlagWrite::NZCV => 3,
             FlagWrite::TC => 4,
+            FlagWrite::NZC => 5,
+            FlagWrite::NZV => 6,
         })
     }
 
@@ -395,6 +409,8 @@ impl architecture::FlagWrite for FlagWrite {
             FlagWrite::All | FlagWrite::NZCV => vec![Flag::N, Flag::Z, Flag::C, Flag::V],
             FlagWrite::NZ => vec![Flag::N, Flag::Z],
             FlagWrite::TC => vec![Flag::TC],
+            FlagWrite::NZC => vec![Flag::N, Flag::Z, Flag::C],
+            FlagWrite::NZV => vec![Flag::N, Flag::Z, Flag::V],
         }
     }
 }
@@ -670,6 +686,8 @@ impl architecture::Architecture for TMS320C28x {
             FlagWrite::NZ,
             FlagWrite::NZCV,
             FlagWrite::TC,
+            FlagWrite::NZC,
+            FlagWrite::NZV,
         ]
     }
 

@@ -235,6 +235,9 @@ if [ -n "$BN_DIR" ]; then
 else
     skip_opt "lifter ratchet" "BN not found" "install Binary Ninja or set BINARYNINJADIR"
 fi
+# Reads the IL baseline the stage above keeps honest, not BN itself, so it is a
+# hard gate: TI's flag lists are committed and so is tests/baselines/flags.json.
+run_req "flag diff" python3 scripts/flag_diff.py
 
 # ── Stage 5c: Real firmware smoke validation ──
 echo

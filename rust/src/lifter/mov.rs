@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 //! MOV/MOVB/MOVL/MOVZ/MOVU/PUSH/POP lifter handlers.
 
-use crate::arch::Register;
+use crate::arch::{FlagWrite, Register};
 use crate::types::*;
 
 use binaryninja::low_level_il::LowLevelILMutableFunction;
@@ -267,6 +267,7 @@ pub fn lift(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
     if matches!(n, InsnId::MOVB_ACC_CONST8) {
         if let Some(op) = op_at(insn, 0) {
             il.set_reg(4, Register::ACC, il.zx(4, il.const_int(1, op.value as u64)))
+                .with_flag_write(FlagWrite::NZ)
                 .append();
         }
         return true;
@@ -276,6 +277,7 @@ pub fn lift(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
     if matches!(n, InsnId::MOVU_ACC_LOC16) {
         if let Some(op) = op_at(insn, 0) {
             il.set_reg(4, Register::ACC, il.zx(4, read_op(op, il, 2)))
+                .with_flag_write(FlagWrite::NZ)
                 .append();
         }
         return true;
@@ -311,7 +313,9 @@ pub fn lift(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
             let val = insn.operands[0].value as u64;
             let shift = insn.operands[1].value as u64;
             let shifted = il.lsl(4, il.sx(4, il.const_int(2, val)), il.const_int(4, shift));
-            il.set_reg(4, Register::ACC, shifted).append();
+            il.set_reg(4, Register::ACC, shifted)
+                .with_flag_write(FlagWrite::NZ)
+                .append();
         } else if let Some(op) = op_at(insn, 0) {
             il.set_reg(4, Register::ACC, il.sx(4, il.const_int(2, op.value as u64)))
                 .append();
@@ -525,6 +529,7 @@ pub fn lift(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
     if matches!(n, InsnId::MOV_AX_LOC16) {
         if let (Some(dst), Some(src)) = (op_at(insn, 0), op_at(insn, 1)) {
             il.set_reg(2, reg_by_name(dst.display_name()), read_op(src, il, 2))
+                .with_flag_write(FlagWrite::NZ)
                 .append();
         }
         return true;
@@ -536,6 +541,7 @@ pub fn lift(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
                 reg_by_name(dst.display_name()),
                 il.const_int(2, src.value as u64),
             )
+            .with_flag_write(FlagWrite::NZ)
             .append();
         }
         return true;
@@ -561,7 +567,9 @@ pub fn lift(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
     }
     if matches!(n, InsnId::MOVL_ACC_LOC32) {
         if let Some(src) = op_at(insn, 0) {
-            il.set_reg(4, Register::ACC, read_op(src, il, 4)).append();
+            il.set_reg(4, Register::ACC, read_op(src, il, 4))
+                .with_flag_write(FlagWrite::NZ)
+                .append();
         }
         return true;
     }
@@ -599,6 +607,7 @@ pub fn lift(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
                 reg,
                 il.and(2, read_op(src, il, 2), il.const_int(2, 0xFF)),
             )
+            .with_flag_write(FlagWrite::NZ)
             .append();
         }
         return true;
@@ -607,6 +616,7 @@ pub fn lift(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
         if let (Some(dst), Some(src)) = (op_at(insn, 0), op_at(insn, 1)) {
             let reg = reg_by_name(dst.display_name());
             il.set_reg(2, reg, il.lsr(2, read_op(src, il, 2), il.const_int(2, 8)))
+                .with_flag_write(FlagWrite::NZ)
                 .append();
         }
         return true;
@@ -716,7 +726,14 @@ pub fn lift(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
                 InsnId::MOVS_T_LOC16 => il.sub(4, il.reg(4, Register::ACC), p).build(),
                 _ => il.add(4, il.reg(4, Register::ACC), p).build(),
             };
-            il.set_reg(4, Register::ACC, acc).append();
+            let written = if matches!(n, InsnId::MOVP_T_LOC16) {
+                FlagWrite::NZ
+            } else {
+                FlagWrite::All
+            };
+            il.set_reg(4, Register::ACC, acc)
+                .with_flag_write(written)
+                .append();
         }
         return true;
     }

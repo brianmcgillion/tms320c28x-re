@@ -32,7 +32,7 @@ pub fn lift_rotate(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
         il.ror(4, acc, one)
     };
     il.set_reg(4, Register::ACC, expr)
-        .with_flag_write(FlagWrite::All)
+        .with_flag_write(FlagWrite::NZC)
         .append();
     true
 }
@@ -78,7 +78,7 @@ fn shift_common(insn: &DecodedInstruction, il: &ILFunc, op_name: &str) -> bool {
             Register::ACC,
             il.lsr(8, shifted_built, il.const_int(8, 32)),
         )
-        .with_flag_write(FlagWrite::All)
+        .with_flag_write(FlagWrite::NZC)
         .append();
         il.set_reg(4, Register::P, il.low_part(4, shifted_built))
             .append();
@@ -99,9 +99,43 @@ fn shift_common(insn: &DecodedInstruction, il: &ILFunc, op_name: &str) -> bool {
         } else {
             il.lsr(4, acc, t)
         };
+        // LSRL and ASRL load C with the last bit shifted out; the LSLL page
+        // lists only N and Z, so it is the one shift that leaves C alone.
+        let written = if matches!(n, InsnId::LSLL_ACC_T) {
+            FlagWrite::NZ
+        } else {
+            FlagWrite::NZC
+        };
         il.set_reg(4, Register::ACC, expr)
-            .with_flag_write(FlagWrite::All)
+            .with_flag_write(written)
             .append();
+        return true;
+    }
+
+    // ── LSL/LSR/ASR AX, T — 16-bit shift of AX by T(3:0) ──
+    // Only the AX selector is encoded, so these have ONE operand and used to
+    // fall into the ACC arm below, which read that selector as the shift
+    // amount: `ASR AL, T` lifted as `ACC = ACC s>> AH`. Wrong destination,
+    // wrong source, wrong amount and wrong width, all at once.
+    // SPRU430F: "...on the content of the specified AX register as specified by
+    // the four least significant bits of the T register ... The contents of
+    // higher order bits are ignored."
+    if matches!(n, InsnId::LSL_AX_T | InsnId::LSR_AX_T | InsnId::ASR_AX_T) {
+        if let Some(op) = insn.operands.first() {
+            let reg = reg_by_name(op.display_name());
+            let amt = il.and(2, il.reg(2, Register::T), il.const_int(2, 0xF));
+            let lhs = il.reg(2, reg);
+            let expr = match op_name {
+                "lsl" => il.lsl(2, lhs, amt),
+                "lsr" => il.lsr(2, lhs, amt),
+                _ => il.asr(2, lhs, amt),
+            };
+            il.set_reg(2, reg, expr)
+                .with_flag_write(FlagWrite::NZC)
+                .append();
+        } else {
+            il.unimplemented().append();
+        }
         return true;
     }
 
@@ -122,7 +156,7 @@ fn shift_common(insn: &DecodedInstruction, il: &ILFunc, op_name: &str) -> bool {
                 _ => unreachable!("shift_common called with invalid op_name"),
             };
             il.set_reg(size, reg, expr)
-                .with_flag_write(FlagWrite::All)
+                .with_flag_write(FlagWrite::NZC)
                 .append();
             return true;
         }
@@ -143,7 +177,7 @@ fn shift_common(insn: &DecodedInstruction, il: &ILFunc, op_name: &str) -> bool {
             }
         };
         il.set_reg(4, Register::ACC, expr)
-            .with_flag_write(FlagWrite::All)
+            .with_flag_write(FlagWrite::NZC)
             .append();
         return true;
     }

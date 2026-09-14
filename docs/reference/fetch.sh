@@ -18,6 +18,7 @@ for entry in "${DOCS[@]}"; do
     IFS='|' read -r name url want <<< "$entry"
     pdf="$SCRIPT_DIR/$name.pdf"
     txt="$SCRIPT_DIR/$name.txt"
+    lay="$SCRIPT_DIR/$name-layout.txt"
 
     if [ -f "$pdf" ] && [ "$(sha256sum "$pdf" | cut -d' ' -f1)" = "$want" ]; then
         echo "$name: already present"
@@ -37,6 +38,15 @@ for entry in "${DOCS[@]}"; do
 
     # Text extraction is what the transcription actually reads.
     [ -f "$txt" ] || pdftotext "$pdf" "$txt"
-    printf '  %-10s %s pages, %s lines of text\n' \
-        "$name" "$(pdfinfo "$pdf" | awk '/^Pages:/{print $2}')" "$(wc -l < "$txt")"
+    # TI draws the shift and rotate operations as figures, and the default
+    # rendering scatters their labels -- which is why spec_transcribe.py finds
+    # an operation line on 3 of 21 shift rows. `-layout` keeps the figure
+    # readable, so the semantics are recoverable by eye even where the parser
+    # gives up. Not what the parser reads: it puts the label and the value on
+    # one line, and the opcode block scan expects a bare `Opcode` line.
+    #   pdftoppm -f <page> -l <page> -r 150 -png <pdf> out   renders the page.
+    [ -f "$lay" ] || pdftotext -layout "$pdf" "$lay"
+    printf '  %-10s %s pages, %s lines of text (+%s laid out)\n' \
+        "$name" "$(pdfinfo "$pdf" | awk '/^Pages:/{print $2}')" \
+        "$(wc -l < "$txt")" "$(wc -l < "$lay")"
 done

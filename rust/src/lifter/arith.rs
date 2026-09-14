@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: MIT
 //! Arithmetic lifter: ADD, SUB, CMP, NEG, ABS, INC, DEC, SAT.
 
-use crate::arch::{FlagWrite, Register};
+use crate::arch::{Flag, FlagWrite, Register};
 use crate::types::*;
 
-use binaryninja::low_level_il::LowLevelILMutableFunction;
+use binaryninja::low_level_il::{
+    LowLevelILMutableFunction, LowLevelILRegisterKind, LowLevelILTempRegister,
+};
 
 use binaryninja::low_level_il::lifting::LowLevelILLabel;
 
@@ -22,6 +24,74 @@ pub fn lift_sub(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
 
 fn arith_common(insn: &DecodedInstruction, il: &ILFunc, is_add: bool) -> bool {
     let n = insn.id;
+
+    // ── SUBCU / SUBCUL — conditional subtract, the modulus-division step ──
+    // Not subtractions. SPRU430F prints a three-way conditional for each, and
+    // lifting them as `ACC = ACC - [loc]` was a wrong value on both branches.
+    // `read_op` is called exactly once per row: on an indirect operand it
+    // post-increments XARn, and reading twice would step the pointer twice.
+    if matches!(n, InsnId::SUBCU_ACC_LOC16 | InsnId::SUBCUL_ACC_LOC32) {
+        let Some(op) = op_at(insn, 0) else {
+            il.unimplemented().append();
+            return true;
+        };
+        let tmp = LowLevelILRegisterKind::<Register>::Temp(LowLevelILTempRegister::new(0));
+        let mut yes = LowLevelILLabel::new();
+        let mut no = LowLevelILLabel::new();
+        let mut done = LowLevelILLabel::new();
+
+        if matches!(n, InsnId::SUBCU_ACC_LOC16) {
+            // temp(32:0) = ACC << 1 - [loc16] << 16, at 64 bits so bit 32 lives
+            let lhs = il.lsl(8, il.zx(8, il.reg(4, Register::ACC)), il.const_int(8, 1));
+            let rhs = il.lsl(8, il.zx(8, read_op(op, il, 2)), il.const_int(8, 16));
+            il.set_reg(8, tmp, il.sub(8, lhs, rhs)).append();
+            let cond = il.cmp_sgt(8, il.reg(8, tmp), il.const_int(8, 0)).build();
+            il.if_expr(cond, &mut yes, &mut no).append();
+            il.mark_label(&mut yes);
+            // ACC = temp(31:0) + 1
+            let taken = il.add(4, il.low_part(4, il.reg(8, tmp)), il.const_int(4, 1));
+            il.set_reg(4, Register::ACC, taken)
+                .with_flag_write(FlagWrite::NZC)
+                .append();
+            il.goto(&mut done).append();
+            il.mark_label(&mut no);
+            // ACC = ACC << 1
+            let shifted = il.lsl(4, il.reg(4, Register::ACC), il.const_int(4, 1));
+            il.set_reg(4, Register::ACC, shifted)
+                .with_flag_write(FlagWrite::NZC)
+                .append();
+            il.mark_label(&mut done);
+        } else {
+            // temp(32:0) = ACC << 1 + P(31) - [loc32]
+            let p_msb = il.lsr(8, il.zx(8, il.reg(4, Register::P)), il.const_int(8, 31));
+            let acc2 = il.lsl(8, il.zx(8, il.reg(4, Register::ACC)), il.const_int(8, 1));
+            let rhs = il.zx(8, read_op(op, il, 4));
+            il.set_reg(8, tmp, il.sub(8, il.add(8, acc2, p_msb), rhs))
+                .append();
+            let cond = il.cmp_sge(8, il.reg(8, tmp), il.const_int(8, 0)).build();
+            il.if_expr(cond, &mut yes, &mut no).append();
+            il.mark_label(&mut yes);
+            // ACC = temp(31:0);  P = (P << 1) + 1
+            il.set_reg(4, Register::ACC, il.low_part(4, il.reg(8, tmp)))
+                .with_flag_write(FlagWrite::NZC)
+                .append();
+            let p_next = il.lsl(4, il.reg(4, Register::P), il.const_int(4, 1));
+            il.set_reg(4, Register::P, il.add(4, p_next, il.const_int(4, 1)))
+                .append();
+            il.goto(&mut done).append();
+            il.mark_label(&mut no);
+            // ACC:P = ACC:P << 1 -- ACC first, while P still holds its old bit 31
+            let carry = il.lsr(4, il.reg(4, Register::P), il.const_int(4, 31));
+            let acc_next = il.lsl(4, il.reg(4, Register::ACC), il.const_int(4, 1));
+            il.set_reg(4, Register::ACC, il.or(4, acc_next, carry))
+                .with_flag_write(FlagWrite::NZC)
+                .append();
+            let p_shifted = il.lsl(4, il.reg(4, Register::P), il.const_int(4, 1));
+            il.set_reg(4, Register::P, p_shifted).append();
+            il.mark_label(&mut done);
+        }
+        return true;
+    }
 
     // INC/DEC loc16
     if matches!(n, InsnId::INC_LOC16) {
@@ -267,7 +337,11 @@ fn arith_common(insn: &DecodedInstruction, il: &ILFunc, is_add: bool) -> bool {
     if matches!(n, InsnId::ADDB_AX_CONST8) {
         if insn.operands.len() >= 2 {
             let reg = reg_by_name(insn.operands[0].display_name());
-            let val = il.zx(2, il.const_int(1, insn.operands[1].value as u64));
+            // TI spells this one `ADDB AX, #8bitSigned` -- `AX = AX + S:8bit`,
+            // unlike the ACC form's `0:8bit`. Zero-extending made `ADDB AL, #-1`
+            // add 255. The operand is `signed: true` in the table for the same
+            // reason, so the two now agree.
+            let val = il.sx(2, il.const_int(1, insn.operands[1].value as u64));
             il.set_reg(2, reg, il.add(2, il.reg(2, reg), val))
                 .with_flag_write(FlagWrite::All)
                 .append();
@@ -292,6 +366,32 @@ fn arith_common(insn: &DecodedInstruction, il: &ILFunc, is_add: bool) -> bool {
         return true;
     }
 
+    // ── Subtract with borrow ──
+    // SPRU430F: `ACC = ACC − 0:[loc16] − ~C` (SBBU) and `ACC = ACC − [loc32] −
+    // ~C` (SUBBL). Two separate defects: the borrow was dropped entirely, and
+    // SBBU sign-extended an operand its page writes as `0:[loc16]`.
+    //
+    // The borrow polarity is not a guess. TI: "If the subtraction generates a
+    // borrow, C is cleared; otherwise C is set" -- so on this CPU C is the
+    // INVERSE of a borrow, which is why the page spells the term `~C`. BN's
+    // sbb(size, a, b, carry) is documented as subtracting `b` and the borrow
+    // from `a`, so the borrow operand is `C ^ 1`.
+    if matches!(n, InsnId::SBBU_ACC_LOC16 | InsnId::SUBBL_ACC_LOC32) {
+        if let Some(op) = op_at(insn, 0) {
+            let src = if matches!(n, InsnId::SBBU_ACC_LOC16) {
+                il.zx(4, read_op(op, il, 2)).build()
+            } else {
+                read_op(op, il, 4)
+            };
+            let borrow = il.xor(0, il.flag(Flag::C), il.const_int(0, 1));
+            let diff = il.sbb(4, il.reg(4, Register::ACC), src, borrow);
+            il.set_reg(4, Register::ACC, diff)
+                .with_flag_write(FlagWrite::All)
+                .append();
+        }
+        return true;
+    }
+
     // Add with carry
     if matches!(n, InsnId::ADDCU_ACC_LOC16 | InsnId::ADDCL_ACC_LOC32) {
         if let Some(op) = op_at(insn, 0) {
@@ -305,7 +405,11 @@ fn arith_common(insn: &DecodedInstruction, il: &ILFunc, is_add: bool) -> bool {
             } else {
                 read_op(op, il, 4)
             };
-            il.set_reg(4, Register::ACC, il.add(4, il.reg(4, Register::ACC), src))
+            // SPRU430F: `ACC = ACC + [loc32] + C`. The carry-in was dropped, so
+            // ADDCL lifted identically to ADDL and the upper word of every
+            // multi-word addition built out of them came out one short.
+            let sum = il.adc(4, il.reg(4, Register::ACC), src, il.flag(Flag::C));
+            il.set_reg(4, Register::ACC, sum)
                 .with_flag_write(FlagWrite::All)
                 .append();
         }
@@ -413,7 +517,7 @@ pub fn lift_cmp(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
     if matches!(n, InsnId::CMP64_ACC_P) {
         let lhs = il.reg_split(8, Register::ACC, Register::P);
         il.sub(8, lhs, il.const_int(8, 0))
-            .with_flag_write(FlagWrite::All)
+            .with_flag_write(FlagWrite::NZV)
             .append();
         return true;
     }
@@ -423,7 +527,7 @@ pub fn lift_cmp(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
         if let Some(op) = op_at(insn, 0) {
             let lhs = il.reg(4, Register::ACC);
             let rhs = read_op(op, il, 4);
-            il.sub(4, lhs, rhs).with_flag_write(FlagWrite::All).append();
+            il.sub(4, lhs, rhs).with_flag_write(FlagWrite::NZC).append();
         }
         return true;
     }
@@ -433,7 +537,7 @@ pub fn lift_cmp(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
         if insn.operands.len() >= 2 {
             let lhs = il.reg(2, reg_by_name(insn.operands[0].display_name()));
             let rhs = il.zx(2, il.const_int(1, insn.operands[1].value as u64));
-            il.sub(2, lhs, rhs).with_flag_write(FlagWrite::All).append();
+            il.sub(2, lhs, rhs).with_flag_write(FlagWrite::NZC).append();
         }
         return true;
     }
@@ -443,7 +547,7 @@ pub fn lift_cmp(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
         if insn.operands.len() >= 2 {
             let lhs = il.reg(2, reg_by_name(insn.operands[0].display_name()));
             let rhs = read_op(&insn.operands[1], il, 2);
-            il.sub(2, lhs, rhs).with_flag_write(FlagWrite::All).append();
+            il.sub(2, lhs, rhs).with_flag_write(FlagWrite::NZC).append();
         }
         return true;
     }
@@ -453,7 +557,7 @@ pub fn lift_cmp(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
         if insn.operands.len() >= 2 {
             let lhs = read_op(&insn.operands[0], il, 2);
             let rhs = il.const_int(2, insn.operands[1].value as u64);
-            il.sub(2, lhs, rhs).with_flag_write(FlagWrite::All).append();
+            il.sub(2, lhs, rhs).with_flag_write(FlagWrite::NZC).append();
         }
         return true;
     }
@@ -470,7 +574,7 @@ pub fn lift_cmp(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
         let lhs = read_op(op0, il, size);
         let rhs = read_op(op1, il, size);
         il.sub(size, lhs, rhs)
-            .with_flag_write(FlagWrite::All)
+            .with_flag_write(FlagWrite::NZC)
             .append();
     } else if insn.operands.len() == 1 {
         // Single-operand compare: CMP ACC, operand (implicit ACC)
@@ -486,7 +590,7 @@ pub fn lift_cmp(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
         } else {
             read_op(op, il, 4)
         };
-        il.sub(4, lhs, rhs).with_flag_write(FlagWrite::All).append();
+        il.sub(4, lhs, rhs).with_flag_write(FlagWrite::NZC).append();
     } else {
         il.unimplemented().append(); // guard: CMP with no operands
     }
@@ -528,6 +632,12 @@ pub fn lift_misc(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
             il.set_reg(4, Register::ACC, il.neg(4, il.reg(4, Register::ACC)))
                 .with_flag_write(FlagWrite::All)
                 .append();
+            // ABSTC additionally toggles TC on the branch that negates:
+            // "load the TC bit with the sign bit XORed with the previous value".
+            if matches!(insn.id, InsnId::ABSTC_ACC) {
+                il.set_flag(Flag::TC, il.xor(0, il.flag(Flag::TC), il.const_int(0, 1)))
+                    .append();
+            }
             il.mark_label(&mut done);
         }
         InsnId::NEG64_ACC_P => {
@@ -539,11 +649,19 @@ pub fn lift_misc(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
                 .append();
         }
         InsnId::NEGTC_ACC => {
-            // Negate ACC conditional on TC — simplified to unconditional negate
-            let acc = il.reg(4, Register::ACC);
-            il.set_reg(4, Register::ACC, il.neg(4, acc))
+            // SPRU430F p.337: `if( TC = 1 ) ... ACC = -ACC`. The negate was
+            // unconditional, which is a wrong value for every ACC reached with
+            // TC clear -- the same defect ABS_ACC above already carries a note
+            // about, in the one instruction whose condition is a flag.
+            let cond = il.cmp_e(0, il.flag(Flag::TC), il.const_int(0, 1)).build();
+            let mut negate = LowLevelILLabel::new();
+            let mut done = LowLevelILLabel::new();
+            il.if_expr(cond, &mut negate, &mut done).append();
+            il.mark_label(&mut negate);
+            il.set_reg(4, Register::ACC, il.neg(4, il.reg(4, Register::ACC)))
                 .with_flag_write(FlagWrite::All)
                 .append();
+            il.mark_label(&mut done);
         }
         InsnId::SAT_ACC | InsnId::SAT64_ACC_P => {
             // Saturate: clamp based on overflow — model as nop

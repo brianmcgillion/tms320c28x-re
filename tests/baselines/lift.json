@@ -1,417 +1,3022 @@
 {
-  "lifted": [
-    "ABSF32_RAH_RBH",
-    "ABSTC_ACC",
-    "ABS_ACC",
-    "ADDB_ACC_CONST8",
-    "ADDB_AX_CONST8",
-    "ADDB_SP_CONST7",
-    "ADDB_XARN_CONST7",
-    "ADDCL_ACC_LOC32",
-    "ADDCU_ACC_LOC16",
-    "ADDF32_MOV32_LOAD",
-    "ADDF32_MOV32_STORE",
-    "ADDF32_RAH_16FHI_RBH",
-    "ADDF32_RAH_RBH_RCH",
-    "ADDL_ACC_LOC32",
-    "ADDL_LOC32_ACC",
-    "ADDUL_ACC_LOC32",
-    "ADDUL_P_LOC32",
-    "ADDU_ACC_LOC16",
-    "ADD_ACC_CONST16_SHIFT",
-    "ADD_ACC_LOC16",
-    "ADD_ACC_LOC16_SHIFT16",
-    "ADD_ACC_LOC16_SHIFT1_15",
-    "ADD_ACC_LOC16_SHIFT_T",
-    "ADD_AX_LOC16",
-    "ADD_LOC16_AX",
-    "ADD_LOC16_CONST16",
-    "ANDB_AX_CONST8",
-    "AND_ACC_CONST16_SHIFT0_15",
-    "AND_ACC_IMM16_SHIFT16",
-    "AND_ACC_LOC16",
-    "AND_AX_LOC16",
-    "AND_AX_LOC16_CONST16",
-    "AND_IER_CONST16",
-    "AND_IFR_CONST16",
-    "AND_LOC16_AX",
-    "AND_LOC16_CONST16",
-    "ASR64_ACC_P_SHIFT",
-    "ASR64_ACC_P_T",
-    "ASRL_ACC_T",
-    "ASR_AX_SHIFT",
-    "ASR_AX_T",
-    "B",
-    "BANZ",
-    "BAR_OFF16_ARN_ARM_EQ",
-    "BAR_OFF16_ARN_ARM_NEQ",
-    "BF",
-    "CMP64_ACC_P",
-    "CMPB_AX_CONST8",
-    "CMPF32_RAH_0",
-    "CMPF32_RAH_16FHI",
-    "CMPF32_RAH_RBH",
-    "CMPL_ACC_LOC32",
-    "CMP_AX_LOC16",
-    "CMP_LOC16_CONST16",
-    "DEC_LOC16",
-    "EINVF32_RAH_RBH",
-    "EISQRTF32_RAH_RBH",
-    "ESTOP0",
-    "ESTOP1",
-    "F32TOI16R_RAH_RBH",
-    "F32TOI16_RAH_RBH",
-    "F32TOI32_RAH_RBH",
-    "F32TOUI16R_RAH_RBH",
-    "F32TOUI16_RAH_RBH",
-    "F32TOUI32_RAH_RBH",
-    "FFC",
-    "FRACF32_RAH_RBH",
-    "I16TOF32_RAH_MEM16",
-    "I16TOF32_RAH_RBH",
-    "I32TOF32_RAH_MEM32",
-    "I32TOF32_RAH_RBH",
-    "IMPYAL_P_XT_LOC32",
-    "IMPYL_ACC_XT_LOC32",
-    "IMPYL_P_XT_LOC32",
-    "IMPYSL_P_XT_LOC32",
-    "IMPYXUL_P_XT_LOC32",
-    "INC_LOC16",
-    "IN_LOC16_PA",
-    "IRET",
-    "LB",
-    "LB_XAR7",
-    "LC",
-    "LCR",
-    "LCR_XARN",
-    "LC_XAR7",
-    "LRET",
-    "LRETE",
-    "LRETR",
-    "LSL64_ACC_P_SHIFT",
-    "LSL64_ACC_P_T",
-    "LSLL_ACC_T",
-    "LSL_ACC_SHIFT",
-    "LSL_AX_SHIFT",
-    "LSL_AX_T",
-    "LSR64_ACC_P_SHIFT",
-    "LSR64_ACC_P_T",
-    "LSRL_ACC_T",
-    "LSR_AX_SHIFT",
-    "LSR_AX_T",
-    "MACF32_RAH_RBH_RCH",
-    "MAC_P_LOC16_XAR7",
-    "MAC_P_LOC16_XAR7_POSTINC",
-    "MAXCUL_P_LOC32",
-    "MAXF32_RAH_16FHI",
-    "MAXF32_RAH_RBH",
-    "MAXL_ACC_LOC32",
-    "MAX_AX_LOC16",
-    "MINCUL_P_LOC32",
-    "MINF32_RAH_RBH",
-    "MINL_ACC_LOC32",
-    "MIN_AX_LOC16",
-    "MOV32_LOC32_ADDR16",
-    "MOV32_MEM32_RAH",
-    "MOV32_MEM32_STF",
-    "MOV32_RAH_MEM32",
-    "MOV32_RAH_RBH",
-    "MOV32_STF_MEM32",
-    "MOVA_T_LOC16",
-    "MOVB_ACC_CONST8",
-    "MOVB_AXLSB_LOC16",
-    "MOVB_AXMSB_LOC16",
-    "MOVB_AX_CONST8",
-    "MOVB_LOC16_AXLSB",
-    "MOVB_LOC16_AXMSB",
-    "MOVB_LOC16_CONST8_COND",
-    "MOVB_XAR0_CONST8",
-    "MOVB_XAR1_CONST8",
-    "MOVB_XAR2_CONST8",
-    "MOVB_XAR3_CONST8",
-    "MOVB_XAR4_CONST8",
-    "MOVB_XAR5_CONST8",
-    "MOVB_XAR6_CONST8",
-    "MOVB_XAR7_CONST8",
-    "MOVH_LOC16_ACC_SHIFT1",
-    "MOVH_LOC16_ACC_SHIFT2_8_OBJMODE_1",
-    "MOVH_LOC16_P",
-    "MOVIZ",
-    "MOVL_ACC_LOC32",
-    "MOVL_LOC32_ACC",
-    "MOVL_LOC32_P",
-    "MOVL_LOC32_XAR0",
-    "MOVL_LOC32_XAR1",
-    "MOVL_LOC32_XAR2",
-    "MOVL_LOC32_XAR3",
-    "MOVL_LOC32_XAR4",
-    "MOVL_LOC32_XAR5",
-    "MOVL_LOC32_XAR6",
-    "MOVL_LOC32_XAR7",
-    "MOVL_LOC32_XT",
-    "MOVL_P_ACC",
-    "MOVL_P_LOC32",
-    "MOVL_XAR0_CONST22",
-    "MOVL_XAR0_LOC32",
-    "MOVL_XAR1_CONST22",
-    "MOVL_XAR1_LOC32",
-    "MOVL_XAR2_CONST22",
-    "MOVL_XAR2_LOC32",
-    "MOVL_XAR3_CONST22",
-    "MOVL_XAR3_LOC32",
-    "MOVL_XAR4_CONST22",
-    "MOVL_XAR4_LOC32",
-    "MOVL_XAR5_CONST22",
-    "MOVL_XAR5_LOC32",
-    "MOVL_XAR6_CONST22",
-    "MOVL_XAR6_LOC32",
-    "MOVL_XAR7_CONST22",
-    "MOVL_XAR7_LOC32",
-    "MOVL_XT_LOC32",
-    "MOVP_T_LOC16",
-    "MOVS_T_LOC16",
-    "MOVU_ACC_LOC16",
-    "MOVW_DP_CONST16",
-    "MOVXI",
-    "MOVZ_AR0_LOC16",
-    "MOVZ_AR1_LOC16",
-    "MOVZ_AR2_LOC16",
-    "MOVZ_AR3_LOC16",
-    "MOVZ_AR4_LOC16",
-    "MOVZ_AR5_LOC16",
-    "MOVZ_AR6_LOC16",
-    "MOVZ_AR7_LOC16",
-    "MOVZ_DP_CONST10",
-    "MOV_ACC_CONST16_SHIFT",
-    "MOV_ACC_LOC16",
-    "MOV_ACC_LOC16_SHIFT16",
-    "MOV_ACC_LOC16_SHIFT1_15_OBJMODE1",
-    "MOV_AR6_LOC16",
-    "MOV_AR7_LOC16",
-    "MOV_AX_LOC16",
-    "MOV_DP_CONST10",
-    "MOV_IER_LOC16",
-    "MOV_LOC16_0",
-    "MOV_LOC16_ACC_SHIFT2_8_OBJMODE_1",
-    "MOV_LOC16_ARN",
-    "MOV_LOC16_AX",
-    "MOV_LOC16_AX_COND",
-    "MOV_LOC16_CONST16",
-    "MOV_LOC16_IER",
-    "MOV_LOC16_MEM16",
-    "MOV_LOC16_T",
-    "MOV_MEM16_LOC16",
-    "MOV_PH_LOC16",
-    "MOV_PL_LOC16",
-    "MOV_T_LOC16",
-    "MPYA_P_LOC16_CONST16",
-    "MPYA_P_T_LOC16",
-    "MPYB_ACC_T_CONST8",
-    "MPYB_P_T_CONST8",
-    "MPYF32_ADDF32_PAR",
-    "MPYF32_MOV32_LOAD",
-    "MPYF32_MOV32_STORE",
-    "MPYF32_RAH_16FHI_RBH",
-    "MPYF32_RAH_RBH_RCH",
-    "MPYS_P_T_LOC16",
-    "MPYU_ACC_T_LOC16",
-    "MPYU_P_T_LOC16",
-    "MPYXU_ACC_T_LOC16",
-    "MPYXU_P_T_LOC16",
-    "MPY_ACC_LOC16_CONST16",
-    "MPY_ACC_T_LOC16",
-    "MPY_P_LOC16_CONST16",
-    "MPY_P_T_LOC16",
-    "NEG64_ACC_P",
-    "NEGF32_RAH_RBH",
-    "NEGTC_ACC",
-    "NEG_ACC",
-    "NEG_AX",
-    "NOT_ACC",
-    "NOT_AX",
-    "ORB_AX_CONST8",
-    "OR_ACC_CONST16_SHIFT0_15",
-    "OR_ACC_LOC16",
-    "OR_AX_LOC16",
-    "OR_IER_CONST16",
-    "OR_IFR_CONST16",
-    "OR_LOC16_AX",
-    "OR_LOC16_CONST16",
-    "OUT_PA_LOC16",
-    "POP_AR1H_AR0H",
-    "POP_AR1_AR0",
-    "POP_AR3_AR2",
-    "POP_AR5_AR4",
-    "POP_DBGIER",
-    "POP_DP",
-    "POP_DP_ST1",
-    "POP_IFR",
-    "POP_LOC16",
-    "POP_P",
-    "POP_RB",
-    "POP_RPC",
-    "POP_ST0",
-    "POP_ST1",
-    "POP_T_ST0",
-    "POP_XT",
-    "PREAD_LOC16_XAR7",
-    "PUSH_AR1H_AR0H",
-    "PUSH_AR1_AR0",
-    "PUSH_AR3_AR2",
-    "PUSH_AR5_AR4",
-    "PUSH_DBGIER",
-    "PUSH_DP",
-    "PUSH_DP_ST1",
-    "PUSH_IFR",
-    "PUSH_LOC16",
-    "PUSH_P",
-    "PUSH_RB",
-    "PUSH_RPC",
-    "PUSH_ST0",
-    "PUSH_ST1",
-    "PUSH_T_ST0",
-    "PUSH_XT",
-    "PWRITE_XAR7_LOC16",
-    "QMPYAL_P_XT_LOC32",
-    "QMPYL_ACC_XT_LOC32",
-    "QMPYL_P_XT_LOC32",
-    "QMPYSL_P_XT_LOC32",
-    "QMPYUL_P_XT_LOC32",
-    "QMPYXUL_P_XT_LOC32",
-    "ROL_ACC",
-    "ROR_ACC",
-    "SB",
-    "SBBU_ACC_LOC16",
-    "SBF",
-    "SETFLG",
-    "SFR_ACC_SHIFT",
-    "SQRA_LOC16",
-    "SQRS_LOC16",
-    "SUBBL_ACC_LOC32",
-    "SUBB_ACC_CONST8",
-    "SUBB_SP_CONST7",
-    "SUBB_XARN_CONST7",
-    "SUBCUL_ACC_LOC32",
-    "SUBCU_ACC_LOC16",
-    "SUBF32_MOV32_LOAD",
-    "SUBF32_MOV32_STORE",
-    "SUBF32_RAH_16FHI_RBH",
-    "SUBF32_RAH_RBH_RCH",
-    "SUBL_ACC_LOC32",
-    "SUBL_LOC32_ACC",
-    "SUBRL_LOC32_ACC",
-    "SUBR_LOC16_AX",
-    "SUBUL_ACC_LOC32",
-    "SUBUL_P_LOC32",
-    "SUBU_ACC_LOC16",
-    "SUB_ACC_CONST16_SHIFT",
-    "SUB_ACC_LOC16",
-    "SUB_ACC_LOC16_SHIFT16",
-    "SUB_ACC_LOC16_SHIFT1_15_OBJMODE1",
-    "SUB_ACC_LOC16_SHIFT_T",
-    "SUB_AX_LOC16",
-    "SUB_LOC16_AX",
-    "SWAPF_RAH_RBH",
-    "TBIT_LOC16_BIT",
-    "TBIT_LOC16_T",
-    "TCLR_LOC16_BIT",
-    "TEST_ACC",
-    "TSET_LOC16_BIT",
-    "UI16TOF32_RAH_MEM16",
-    "UI16TOF32_RAH_RBH",
-    "UI32TOF32_RAH_MEM32",
-    "UI32TOF32_RAH_RBH",
-    "UOUT_PA_LOC16",
-    "XB_AL",
-    "XB_PMA_COND",
-    "XCALL_AL",
-    "XCALL_PMA_COND",
-    "XMAC_P_LOC16_PMA",
-    "XORB_AX_CONST8",
-    "XOR_ACC_CONST16_SHIFT0_15",
-    "XOR_ACC_LOC16",
-    "XOR_AX_LOC16",
-    "XOR_LOC16_AX",
-    "XOR_LOC16_CONST16",
-    "XPREAD_LOC16_AL",
-    "XPREAD_LOC16_PMA",
-    "XPWRITE_AL_LOC16",
-    "XRETC_COND",
-    "ZAPA",
-    "ZERO"
-  ],
-  "no_il": [],
-  "nop_only": [
-    "ABORTI",
-    "ASP",
-    "CLRC_AMODE",
-    "CLRC_M0M1MAP",
-    "CLRC_MODE",
-    "CLRC_OBJMODE",
-    "CLRC_OVC",
-    "CLRC_XF",
-    "CSB_ACC",
-    "EALLOW",
-    "EDIS",
-    "FLIP_AX",
-    "IACK_CONST16",
-    "IDLE",
-    "INTR",
-    "INTR_EMUINT",
-    "INTR_NMI",
-    "ITRAP1",
-    "LPADDR",
-    "NASP",
-    "NOP",
-    "NOP_ZERO",
-    "NORM_ACC_IND",
-    "NORM_ACC_XARN_POSTDEC",
-    "NORM_ACC_XARN_POSTINC",
-    "RPT_CONST8",
-    "RPT_LOC16",
-    "SAT64_ACC_P",
-    "SAT_ACC",
-    "SETC_M0M1MAP",
-    "SETC_MODE",
-    "SETC_OBJMODE",
-    "SETC_XF",
-    "SPM_SHIFT",
-    "TRAP"
-  ],
-  "unimplemented": [
-    "ADRK_IMM8",
-    "CMPL_ACC_P_SHIFT_PM",
-    "CMPR_0",
-    "CMPR_1",
-    "CMPR_2",
-    "CMPR_3",
-    "DMOV_LOC16",
-    "LOOPNZ_LOC16_CONST16",
-    "LOOPZ_LOC16_CONST16",
-    "LSL_ACC_T",
-    "MOV32_ADDR16_LOC32",
-    "MOVAD_T_LOC16",
-    "MOVB_AR6_CONST8",
-    "MOVB_AR7_CONST8",
-    "MOVDL_XT_LOC32",
-    "MOVL_LOC32_ACC_COND",
-    "MOVST0",
-    "MOVU_LOC16_OVC",
-    "MOVX_TL_LOC16",
-    "MOV_ACC_LOC16_SHIFT_T",
-    "MOV_LOC16_ACC_SHIFT1",
-    "MOV_LOC16_OVC",
-    "MOV_LOC16_P",
-    "MOV_OVC_LOC16",
-    "MOV_PM_AX",
-    "MOV_TL_0",
-    "MOV_XARN_PC",
-    "RPTB",
-    "RPTB_IMM",
-    "SBRK_CONST8",
-    "SFR_ACC_T",
-    "XMACD_P_LOC16_PMA",
-    "ZALR_ACC_LOC16"
-  ],
-  "unreachable": []
+  "ABORTI": {
+    "class": "nop_only",
+    "il": [
+      "nop"
+    ],
+    "probe": "01000000"
+  },
+  "ABSF32_RAH_RBH": {
+    "class": "lifted",
+    "il": [
+      "R1H = fabs(R2H)"
+    ],
+    "probe": "95e61100"
+  },
+  "ABSTC_ACC": {
+    "class": "lifted",
+    "il": [
+      "if (ACC s< 0) then 1 else 4",
+      "ACC = neg.d(ACC) {*}",
+      "flag:TC = flag:TC ^ 1",
+      "goto 4"
+    ],
+    "probe": "5f560000"
+  },
+  "ABS_ACC": {
+    "class": "lifted",
+    "il": [
+      "if (ACC s< 0) then 1 else 3",
+      "ACC = neg.d(ACC) {*}",
+      "goto 3"
+    ],
+    "probe": "56ff0000"
+  },
+  "ADDB_ACC_CONST8": {
+    "class": "lifted",
+    "il": [
+      "ACC = ACC + zx.d(1) {*}"
+    ],
+    "probe": "01090000"
+  },
+  "ADDB_AX_CONST8": {
+    "class": "lifted",
+    "il": [
+      "AH = AH + sx.w(2) {*}"
+    ],
+    "probe": "029d0000"
+  },
+  "ADDB_SP_CONST7": {
+    "class": "lifted",
+    "il": [
+      "SP = SP + 2"
+    ],
+    "probe": "01fe0000"
+  },
+  "ADDB_XARN_CONST7": {
+    "class": "lifted",
+    "il": [
+      "XAR1 = XAR1 + 2"
+    ],
+    "probe": "02d90000"
+  },
+  "ADDCL_ACC_LOC32": {
+    "class": "lifted",
+    "il": [
+      "ACC = adc.d(ACC, [((zx.d(DP) << 6) + 1) << 1].d, flag:C) {*}"
+    ],
+    "probe": "40560100"
+  },
+  "ADDCU_ACC_LOC16": {
+    "class": "lifted",
+    "il": [
+      "ACC = adc.d(ACC, zx.d([((zx.d(DP) << 6) + 1) << 1].w), flag:C) {*}"
+    ],
+    "probe": "010c0000"
+  },
+  "ADDF32_MOV32_LOAD": {
+    "class": "lifted",
+    "il": [
+      "R1H = R2H f+ R3H",
+      "R4H = [((zx.d(DP) << 6) + 5) << 1].d"
+    ],
+    "probe": "16e3058c"
+  },
+  "ADDF32_MOV32_STORE": {
+    "class": "lifted",
+    "il": [
+      "R1H = R2H f+ R3H",
+      "[((zx.d(DP) << 6) + 4) << 1].d = R5H"
+    ],
+    "probe": "16e0048d"
+  },
+  "ADDF32_RAH_16FHI_RBH": {
+    "class": "lifted",
+    "il": [
+      "R1H = R2H"
+    ],
+    "probe": "80e8d100"
+  },
+  "ADDF32_RAH_RBH_RCH": {
+    "class": "lifted",
+    "il": [
+      "R1H = R2H f+ R3H"
+    ],
+    "probe": "10e7d100"
+  },
+  "ADDL_ACC_LOC32": {
+    "class": "lifted",
+    "il": [
+      "ACC = ACC + [((zx.d(DP) << 6) + 1) << 1].d {*}"
+    ],
+    "probe": "01070000"
+  },
+  "ADDL_LOC32_ACC": {
+    "class": "lifted",
+    "il": [
+      "[((zx.d(DP) << 6) + 1) << 1].d = add.d{*}([((zx.d(DP) << 6) + 1) << 1].d, ACC)"
+    ],
+    "probe": "01560100"
+  },
+  "ADDUL_ACC_LOC32": {
+    "class": "lifted",
+    "il": [
+      "ACC = ACC + [((zx.d(DP) << 6) + 1) << 1].d {*}"
+    ],
+    "probe": "53560100"
+  },
+  "ADDUL_P_LOC32": {
+    "class": "lifted",
+    "il": [
+      "P = P + [((zx.d(DP) << 6) + 1) << 1].d {*}"
+    ],
+    "probe": "57560100"
+  },
+  "ADDU_ACC_LOC16": {
+    "class": "lifted",
+    "il": [
+      "ACC = ACC + zx.d([((zx.d(DP) << 6) + 1) << 1].w) {*}"
+    ],
+    "probe": "010d0000"
+  },
+  "ADD_ACC_CONST16_SHIFT": {
+    "class": "lifted",
+    "il": [
+      "ACC = ACC + (sx.d(1) << 2) {*}"
+    ],
+    "probe": "12ff0100"
+  },
+  "ADD_ACC_LOC16": {
+    "class": "lifted",
+    "il": [
+      "ACC = ACC + sx.d([((zx.d(DP) << 6) + 1) << 1].w) {*}"
+    ],
+    "probe": "01810000"
+  },
+  "ADD_ACC_LOC16_SHIFT16": {
+    "class": "lifted",
+    "il": [
+      "ACC = ACC + (sx.d([((zx.d(DP) << 6) + 1) << 1].w) << 0x10) {*}"
+    ],
+    "probe": "01050000"
+  },
+  "ADD_ACC_LOC16_SHIFT1_15": {
+    "class": "lifted",
+    "il": [
+      "ACC = ACC + (sx.d([((zx.d(DP) << 6) + 1) << 1].w) << 2) {*}"
+    ],
+    "probe": "04560102"
+  },
+  "ADD_ACC_LOC16_SHIFT_T": {
+    "class": "lifted",
+    "il": [
+      "ACC = ACC + (sx.d([((zx.d(DP) << 6) + 1) << 1].w) << zx.d(T)) {*}"
+    ],
+    "probe": "23560100"
+  },
+  "ADD_AX_LOC16": {
+    "class": "lifted",
+    "il": [
+      "AH = AH + [((zx.d(DP) << 6) + 2) << 1].w {*}"
+    ],
+    "probe": "02950000"
+  },
+  "ADD_LOC16_AX": {
+    "class": "lifted",
+    "il": [
+      "[((zx.d(DP) << 6) + 1) << 1].w = add.w{*}([((zx.d(DP) << 6) + 1) << 1].w, AH)"
+    ],
+    "probe": "01730000"
+  },
+  "ADD_LOC16_CONST16": {
+    "class": "lifted",
+    "il": [
+      "[((zx.d(DP) << 6) + 1) << 1].w = add.w{*}([((zx.d(DP) << 6) + 1) << 1].w, 2)"
+    ],
+    "probe": "01080200"
+  },
+  "ADRK_IMM8": {
+    "class": "unimplemented",
+    "il": [
+      "unimplemented"
+    ],
+    "probe": "01fc0000"
+  },
+  "ANDB_AX_CONST8": {
+    "class": "lifted",
+    "il": [
+      "AH = AH & 2 {nz}"
+    ],
+    "probe": "02910000"
+  },
+  "AND_ACC_CONST16_SHIFT0_15": {
+    "class": "lifted",
+    "il": [
+      "ACC = ACC & zx.d(1) << 2 {nz}"
+    ],
+    "probe": "023e0100"
+  },
+  "AND_ACC_IMM16_SHIFT16": {
+    "class": "lifted",
+    "il": [
+      "ACC = ACC & 0x10000 {nz}"
+    ],
+    "probe": "08560100"
+  },
+  "AND_ACC_LOC16": {
+    "class": "lifted",
+    "il": [
+      "ACC = ACC & zx.d([((zx.d(DP) << 6) + 1) << 1].w) {nz}"
+    ],
+    "probe": "01890000"
+  },
+  "AND_AX_LOC16": {
+    "class": "lifted",
+    "il": [
+      "AH = AH & [((zx.d(DP) << 6) + 2) << 1].w {nz}"
+    ],
+    "probe": "02cf0000"
+  },
+  "AND_AX_LOC16_CONST16": {
+    "class": "lifted",
+    "il": [
+      "AH = [((zx.d(DP) << 6) + 2) << 1].w & 3 {nz}"
+    ],
+    "probe": "02cd0300"
+  },
+  "AND_IER_CONST16": {
+    "class": "lifted",
+    "il": [
+      "IER = IER & 1"
+    ],
+    "probe": "26760100"
+  },
+  "AND_IFR_CONST16": {
+    "class": "lifted",
+    "il": [
+      "IFR = IFR & 1"
+    ],
+    "probe": "2f760100"
+  },
+  "AND_LOC16_AX": {
+    "class": "lifted",
+    "il": [
+      "[((zx.d(DP) << 6) + 1) << 1].w = and.w{nz}([((zx.d(DP) << 6) + 1) << 1].w, AH)"
+    ],
+    "probe": "01c10000"
+  },
+  "AND_LOC16_CONST16": {
+    "class": "lifted",
+    "il": [
+      "[((zx.d(DP) << 6) + 1) << 1].w = and.w{nz}([((zx.d(DP) << 6) + 1) << 1].w, 2)"
+    ],
+    "probe": "01180200"
+  },
+  "ASP": {
+    "class": "nop_only",
+    "il": [
+      "nop"
+    ],
+    "probe": "1b760000"
+  },
+  "ASR64_ACC_P_SHIFT": {
+    "class": "lifted",
+    "il": [
+      "ACC = (zx.q(ACC) << 0x20 | zx.q(P)) s>> 2 u>> 0x20 {nzc}",
+      "P = ((zx.q(ACC) << 0x20 | zx.q(P)) s>> 2).d"
+    ],
+    "probe": "81560000"
+  },
+  "ASR64_ACC_P_T": {
+    "class": "lifted",
+    "il": [
+      "ACC = (zx.q(ACC) << 0x20 | zx.q(P)) s>> 1 u>> 0x20 {nzc}",
+      "P = ((zx.q(ACC) << 0x20 | zx.q(P)) s>> 1).d"
+    ],
+    "probe": "2c560000"
+  },
+  "ASRL_ACC_T": {
+    "class": "lifted",
+    "il": [
+      "ACC = ACC s>> zx.d(T) {nzc}"
+    ],
+    "probe": "10560000"
+  },
+  "ASR_AX_SHIFT": {
+    "class": "lifted",
+    "il": [
+      "AH = AH s>> 3 {nzc}"
+    ],
+    "probe": "b2ff0000"
+  },
+  "ASR_AX_T": {
+    "class": "lifted",
+    "il": [
+      "AH = AH s>> (T & 0xf) {nzc}"
+    ],
+    "probe": "65ff0000"
+  },
+  "B": {
+    "class": "lifted",
+    "il": [
+      "if (s>) then 1 else 2",
+      "jump(0x10006)"
+    ],
+    "probe": "e2ff0100"
+  },
+  "BANZ": {
+    "class": "lifted",
+    "il": [
+      "AR2 = AR2 - 1",
+      "if (AR2 != 0) then 2 else 3",
+      "jump(0x10006)"
+    ],
+    "probe": "0a000100"
+  },
+  "BAR_OFF16_ARN_ARM_EQ": {
+    "class": "lifted",
+    "il": [
+      "if (AR2 == AR3) then 1 else 2",
+      "jump(0x10006)"
+    ],
+    "probe": "9a8f0100"
+  },
+  "BAR_OFF16_ARN_ARM_NEQ": {
+    "class": "lifted",
+    "il": [
+      "if (AR2 != AR3) then 1 else 2",
+      "jump(0x10006)"
+    ],
+    "probe": "da8f0100"
+  },
+  "BF": {
+    "class": "lifted",
+    "il": [
+      "if (s>) then 1 else 2",
+      "jump(0x10006)"
+    ],
+    "probe": "c2560100"
+  },
+  "CLRC_AMODE": {
+    "class": "nop_only",
+    "il": [
+      "nop"
+    ],
+    "probe": "16560000"
+  },
+  "CLRC_M0M1MAP": {
+    "class": "nop_only",
+    "il": [
+      "nop"
+    ],
+    "probe": "3f560000"
+  },
+  "CLRC_MODE": {
+    "class": "nop_only",
+    "il": [
+      "nop"
+    ],
+    "probe": "01290000"
+  },
+  "CLRC_OBJMODE": {
+    "class": "nop_only",
+    "il": [
+      "nop"
+    ],
+    "probe": "36560000"
+  },
+  "CLRC_OVC": {
+    "class": "nop_only",
+    "il": [
+      "nop"
+    ],
+    "probe": "5c560000"
+  },
+  "CLRC_XF": {
+    "class": "nop_only",
+    "il": [
+      "nop"
+    ],
+    "probe": "1b560000"
+  },
+  "CMP64_ACC_P": {
+    "class": "lifted",
+    "il": [
+      "sub.q{nzv}(ACC.q:P.q, 0)"
+    ],
+    "probe": "5e560000"
+  },
+  "CMPB_AX_CONST8": {
+    "class": "lifted",
+    "il": [
+      "sub.w{nzc}(AH, zx.w(2))"
+    ],
+    "probe": "02530000"
+  },
+  "CMPF32_RAH_0": {
+    "class": "lifted",
+    "il": [
+      "R1H f- 0"
+    ],
+    "probe": "a1e50000"
+  },
+  "CMPF32_RAH_16FHI": {
+    "class": "lifted",
+    "il": [
+      "R1H = 2"
+    ],
+    "probe": "10e81100"
+  },
+  "CMPF32_RAH_RBH": {
+    "class": "lifted",
+    "il": [
+      "R1H f- R2H"
+    ],
+    "probe": "94e61100"
+  },
+  "CMPL_ACC_LOC32": {
+    "class": "lifted",
+    "il": [
+      "sub.d{nzc}(ACC, [((zx.d(DP) << 6) + 1) << 1].d)"
+    ],
+    "probe": "010f0000"
+  },
+  "CMPL_ACC_P_SHIFT_PM": {
+    "class": "unimplemented",
+    "il": [
+      "unimplemented"
+    ],
+    "probe": "59ff0000"
+  },
+  "CMPR_0": {
+    "class": "unimplemented",
+    "il": [
+      "unimplemented"
+    ],
+    "probe": "1d560000"
+  },
+  "CMPR_1": {
+    "class": "unimplemented",
+    "il": [
+      "unimplemented"
+    ],
+    "probe": "19560000"
+  },
+  "CMPR_2": {
+    "class": "unimplemented",
+    "il": [
+      "unimplemented"
+    ],
+    "probe": "18560000"
+  },
+  "CMPR_3": {
+    "class": "unimplemented",
+    "il": [
+      "unimplemented"
+    ],
+    "probe": "1c560000"
+  },
+  "CMP_AX_LOC16": {
+    "class": "lifted",
+    "il": [
+      "sub.w{nzc}(AH, [((zx.d(DP) << 6) + 2) << 1].w)"
+    ],
+    "probe": "02550000"
+  },
+  "CMP_LOC16_CONST16": {
+    "class": "lifted",
+    "il": [
+      "sub.w{nzc}([((zx.d(DP) << 6) + 1) << 1].w, 2)"
+    ],
+    "probe": "011b0200"
+  },
+  "CSB_ACC": {
+    "class": "nop_only",
+    "il": [
+      "nop"
+    ],
+    "probe": "35560000"
+  },
+  "DEC_LOC16": {
+    "class": "lifted",
+    "il": [
+      "[((zx.d(DP) << 6) + 1) << 1].w = sub.w{*}([((zx.d(DP) << 6) + 1) << 1].w, 1)"
+    ],
+    "probe": "010b0000"
+  },
+  "DMOV_LOC16": {
+    "class": "unimplemented",
+    "il": [
+      "unimplemented"
+    ],
+    "probe": "01a50000"
+  },
+  "EALLOW": {
+    "class": "nop_only",
+    "il": [
+      "nop"
+    ],
+    "probe": "22760000"
+  },
+  "EDIS": {
+    "class": "nop_only",
+    "il": [
+      "nop"
+    ],
+    "probe": "1a760000"
+  },
+  "EINVF32_RAH_RBH": {
+    "class": "unimplemented",
+    "il": [
+      "unimplemented"
+    ],
+    "probe": "93e61100"
+  },
+  "EISQRTF32_RAH_RBH": {
+    "class": "unimplemented",
+    "il": [
+      "unimplemented"
+    ],
+    "probe": "92e61100"
+  },
+  "ESTOP0": {
+    "class": "lifted",
+    "il": [
+      "breakpoint",
+      "noreturn"
+    ],
+    "probe": "25760000"
+  },
+  "ESTOP1": {
+    "class": "lifted",
+    "il": [
+      "breakpoint",
+      "noreturn"
+    ],
+    "probe": "24760000"
+  },
+  "F32TOI16R_RAH_RBH": {
+    "class": "lifted",
+    "il": [
+      "R1H = int.d(R2H)"
+    ],
+    "probe": "8ce61180"
+  },
+  "F32TOI16_RAH_RBH": {
+    "class": "lifted",
+    "il": [
+      "R1H = int.d(R2H)"
+    ],
+    "probe": "8ce61100"
+  },
+  "F32TOI32_RAH_RBH": {
+    "class": "lifted",
+    "il": [
+      "R1H = int.d(R2H)"
+    ],
+    "probe": "88e61100"
+  },
+  "F32TOUI16R_RAH_RBH": {
+    "class": "lifted",
+    "il": [
+      "R1H = int.d(R2H)"
+    ],
+    "probe": "8ee61180"
+  },
+  "F32TOUI16_RAH_RBH": {
+    "class": "lifted",
+    "il": [
+      "R1H = int.d(R2H)"
+    ],
+    "probe": "8ee61100"
+  },
+  "F32TOUI32_RAH_RBH": {
+    "class": "lifted",
+    "il": [
+      "R1H = int.d(R2H)"
+    ],
+    "probe": "8ae61100"
+  },
+  "FFC": {
+    "class": "lifted",
+    "il": [
+      "call(2)"
+    ],
+    "probe": "c0000100"
+  },
+  "FLIP_AX": {
+    "class": "nop_only",
+    "il": [
+      "nop"
+    ],
+    "probe": "71560000"
+  },
+  "FRACF32_RAH_RBH": {
+    "class": "lifted",
+    "il": [
+      "R1H = R2H"
+    ],
+    "probe": "f1e61100"
+  },
+  "I16TOF32_RAH_MEM16": {
+    "class": "lifted",
+    "il": [
+      "R1H = float.s(sx.d([((zx.d(DP) << 6) + 2) << 1].w))"
+    ],
+    "probe": "c8e20201"
+  },
+  "I16TOF32_RAH_RBH": {
+    "class": "lifted",
+    "il": [
+      "R1H = float.s(R2H)"
+    ],
+    "probe": "8de61100"
+  },
+  "I32TOF32_RAH_MEM32": {
+    "class": "lifted",
+    "il": [
+      "R1H = float.s([((zx.d(DP) << 6) + 2) << 1].d)"
+    ],
+    "probe": "88e20201"
+  },
+  "I32TOF32_RAH_RBH": {
+    "class": "lifted",
+    "il": [
+      "R1H = float.s(R2H)"
+    ],
+    "probe": "89e61100"
+  },
+  "IACK_CONST16": {
+    "class": "nop_only",
+    "il": [
+      "nop"
+    ],
+    "probe": "3f760100"
+  },
+  "IDLE": {
+    "class": "nop_only",
+    "il": [
+      "nop"
+    ],
+    "probe": "21760000"
+  },
+  "IMPYAL_P_XT_LOC32": {
+    "class": "lifted",
+    "il": [
+      "ACC = ACC + P {*}",
+      "P = XT * [((zx.d(DP) << 6) + 1) << 1].d"
+    ],
+    "probe": "4c560100"
+  },
+  "IMPYL_ACC_XT_LOC32": {
+    "class": "lifted",
+    "il": [
+      "ACC = XT * [((zx.d(DP) << 6) + 1) << 1].d {nz}"
+    ],
+    "probe": "44560100"
+  },
+  "IMPYL_P_XT_LOC32": {
+    "class": "lifted",
+    "il": [
+      "P = XT * [((zx.d(DP) << 6) + 1) << 1].d"
+    ],
+    "probe": "05560100"
+  },
+  "IMPYSL_P_XT_LOC32": {
+    "class": "lifted",
+    "il": [
+      "ACC = ACC - P {*}",
+      "P = XT * [((zx.d(DP) << 6) + 1) << 1].d"
+    ],
+    "probe": "43560100"
+  },
+  "IMPYXUL_P_XT_LOC32": {
+    "class": "lifted",
+    "il": [
+      "P = XT * [((zx.d(DP) << 6) + 1) << 1].d"
+    ],
+    "probe": "65560100"
+  },
+  "INC_LOC16": {
+    "class": "lifted",
+    "il": [
+      "[((zx.d(DP) << 6) + 1) << 1].w = add.w{*}([((zx.d(DP) << 6) + 1) << 1].w, 1)"
+    ],
+    "probe": "010a0000"
+  },
+  "INTR": {
+    "class": "nop_only",
+    "il": [
+      "nop"
+    ],
+    "probe": "11000000"
+  },
+  "INTR_EMUINT": {
+    "class": "nop_only",
+    "il": [
+      "nop"
+    ],
+    "probe": "1c760000"
+  },
+  "INTR_NMI": {
+    "class": "nop_only",
+    "il": [
+      "nop"
+    ],
+    "probe": "16760000"
+  },
+  "IN_LOC16_PA": {
+    "class": "lifted",
+    "il": [
+      "[((zx.d(DP) << 6) + 1) << 1].w = [4].w"
+    ],
+    "probe": "01b40200"
+  },
+  "IRET": {
+    "class": "lifted",
+    "il": [
+      "<return> jump(pop)"
+    ],
+    "probe": "02760000"
+  },
+  "ITRAP1": {
+    "class": "nop_only",
+    "il": [
+      "nop"
+    ],
+    "probe": "ffff0000"
+  },
+  "LB": {
+    "class": "lifted",
+    "il": [
+      "jump(2)"
+    ],
+    "probe": "40000100"
+  },
+  "LB_XAR7": {
+    "class": "lifted",
+    "il": [
+      "jump(XAR7)"
+    ],
+    "probe": "20760000"
+  },
+  "LC": {
+    "class": "lifted",
+    "il": [
+      "call(2)"
+    ],
+    "probe": "80000100"
+  },
+  "LCR": {
+    "class": "lifted",
+    "il": [
+      "call(2)"
+    ],
+    "probe": "40760100"
+  },
+  "LCR_XARN": {
+    "class": "lifted",
+    "il": [
+      "call(XAR1)"
+    ],
+    "probe": "613e0000"
+  },
+  "LC_XAR7": {
+    "class": "lifted",
+    "il": [
+      "call(XAR7)"
+    ],
+    "probe": "04760000"
+  },
+  "LOOPNZ_LOC16_CONST16": {
+    "class": "unimplemented",
+    "il": [
+      "unimplemented"
+    ],
+    "probe": "012e0200"
+  },
+  "LOOPZ_LOC16_CONST16": {
+    "class": "unimplemented",
+    "il": [
+      "unimplemented"
+    ],
+    "probe": "012c0200"
+  },
+  "LPADDR": {
+    "class": "nop_only",
+    "il": [
+      "nop"
+    ],
+    "probe": "1e560000"
+  },
+  "LRET": {
+    "class": "lifted",
+    "il": [
+      "<return> jump(RPC)"
+    ],
+    "probe": "14760000"
+  },
+  "LRETE": {
+    "class": "lifted",
+    "il": [
+      "<return> jump(RPC)"
+    ],
+    "probe": "10760000"
+  },
+  "LRETR": {
+    "class": "lifted",
+    "il": [
+      "RPC = pop",
+      "<return> jump(RPC)"
+    ],
+    "probe": "06000000"
+  },
+  "LSL64_ACC_P_SHIFT": {
+    "class": "lifted",
+    "il": [
+      "ACC = (zx.q(ACC) << 0x20 | zx.q(P)) << 2 u>> 0x20 {nzc}",
+      "P = ((zx.q(ACC) << 0x20 | zx.q(P)) << 2).d"
+    ],
+    "probe": "a1560000"
+  },
+  "LSL64_ACC_P_T": {
+    "class": "lifted",
+    "il": [
+      "ACC = (zx.q(ACC) << 0x20 | zx.q(P)) << 1 u>> 0x20 {nzc}",
+      "P = ((zx.q(ACC) << 0x20 | zx.q(P)) << 1).d"
+    ],
+    "probe": "52560000"
+  },
+  "LSLL_ACC_T": {
+    "class": "lifted",
+    "il": [
+      "ACC = ACC << zx.d(T) {nz}"
+    ],
+    "probe": "3b560000"
+  },
+  "LSL_ACC_SHIFT": {
+    "class": "lifted",
+    "il": [
+      "ACC = ACC << 2 {nzc}"
+    ],
+    "probe": "31ff0000"
+  },
+  "LSL_ACC_T": {
+    "class": "unimplemented",
+    "il": [
+      "unimplemented"
+    ],
+    "probe": "50ff0000"
+  },
+  "LSL_AX_SHIFT": {
+    "class": "lifted",
+    "il": [
+      "AH = AH << 3 {nzc}"
+    ],
+    "probe": "92ff0000"
+  },
+  "LSL_AX_T": {
+    "class": "lifted",
+    "il": [
+      "AH = AH << (T & 0xf) {nzc}"
+    ],
+    "probe": "67ff0000"
+  },
+  "LSR64_ACC_P_SHIFT": {
+    "class": "lifted",
+    "il": [
+      "ACC = (zx.q(ACC) << 0x20 | zx.q(P)) u>> 2 u>> 0x20 {nzc}",
+      "P = ((zx.q(ACC) << 0x20 | zx.q(P)) u>> 2).d"
+    ],
+    "probe": "91560000"
+  },
+  "LSR64_ACC_P_T": {
+    "class": "lifted",
+    "il": [
+      "ACC = (zx.q(ACC) << 0x20 | zx.q(P)) u>> 1 u>> 0x20 {nzc}",
+      "P = ((zx.q(ACC) << 0x20 | zx.q(P)) u>> 1).d"
+    ],
+    "probe": "5b560000"
+  },
+  "LSRL_ACC_T": {
+    "class": "lifted",
+    "il": [
+      "ACC = ACC u>> zx.d(T) {nzc}"
+    ],
+    "probe": "22560000"
+  },
+  "LSR_AX_SHIFT": {
+    "class": "lifted",
+    "il": [
+      "AH = AH u>> 3 {nzc}"
+    ],
+    "probe": "d2ff0000"
+  },
+  "LSR_AX_T": {
+    "class": "lifted",
+    "il": [
+      "AH = AH u>> (T & 0xf) {nzc}"
+    ],
+    "probe": "63ff0000"
+  },
+  "MACF32_RAH_RBH_RCH": {
+    "class": "lifted",
+    "il": [
+      "R1H = R1H f+ R2H f* R3H",
+      "R4H = R5H"
+    ],
+    "probe": "53e7d158"
+  },
+  "MAC_P_LOC16_XAR7": {
+    "class": "lifted",
+    "il": [
+      "ACC = ACC + P {*}",
+      "T = [((zx.d(DP) << 6) + 1) << 1].w",
+      "P = sx.d(T) * sx.d([XAR7 << 1].w)"
+    ],
+    "probe": "075601c7"
+  },
+  "MAC_P_LOC16_XAR7_POSTINC": {
+    "class": "lifted",
+    "il": [
+      "ACC = ACC + P {*}",
+      "T = [((zx.d(DP) << 6) + 1) << 1].w",
+      "P = sx.d(T) * sx.d([XAR7 << 1].w)",
+      "XAR7 = XAR7 + 1"
+    ],
+    "probe": "07560187"
+  },
+  "MAXCUL_P_LOC32": {
+    "class": "lifted",
+    "il": [
+      "temp0.d = [((zx.d(DP) << 6) + 1) << 1].d",
+      "sub.d{nzv}(P, temp0.d)",
+      "if (P u>= temp0.d) then 5 else 3",
+      "P = temp0.d",
+      "goto 5"
+    ],
+    "probe": "51560100"
+  },
+  "MAXF32_RAH_16FHI": {
+    "class": "lifted",
+    "il": [
+      "R1H = 2"
+    ],
+    "probe": "20e81100"
+  },
+  "MAXF32_RAH_RBH": {
+    "class": "lifted",
+    "il": [
+      "if (R1H f>= R2H) then 3 else 1",
+      "R1H = R2H",
+      "goto 3"
+    ],
+    "probe": "96e61100"
+  },
+  "MAXL_ACC_LOC32": {
+    "class": "lifted",
+    "il": [
+      "temp0.d = [((zx.d(DP) << 6) + 1) << 1].d",
+      "sub.d{*}(ACC, temp0.d)",
+      "if (ACC s>= temp0.d) then 5 else 3",
+      "ACC = temp0.d",
+      "goto 5"
+    ],
+    "probe": "61560100"
+  },
+  "MAX_AX_LOC16": {
+    "class": "lifted",
+    "il": [
+      "temp0.w = [((zx.d(DP) << 6) + 2) << 1].w",
+      "sub.w{nzv}(AH, temp0.w)",
+      "if (AH s>= temp0.w) then 5 else 3",
+      "AH = temp0.w",
+      "goto 5"
+    ],
+    "probe": "73560200"
+  },
+  "MINCUL_P_LOC32": {
+    "class": "lifted",
+    "il": [
+      "temp0.d = [((zx.d(DP) << 6) + 1) << 1].d",
+      "sub.d{nzv}(P, temp0.d)",
+      "if (P u<= temp0.d) then 5 else 3",
+      "P = temp0.d",
+      "goto 5"
+    ],
+    "probe": "59560100"
+  },
+  "MINF32_RAH_RBH": {
+    "class": "lifted",
+    "il": [
+      "if (R1H f<= R2H) then 3 else 1",
+      "R1H = R2H",
+      "goto 3"
+    ],
+    "probe": "97e61100"
+  },
+  "MINL_ACC_LOC32": {
+    "class": "lifted",
+    "il": [
+      "temp0.d = [((zx.d(DP) << 6) + 1) << 1].d",
+      "sub.d{*}(ACC, temp0.d)",
+      "if (ACC s<= temp0.d) then 5 else 3",
+      "ACC = temp0.d",
+      "goto 5"
+    ],
+    "probe": "50560100"
+  },
+  "MIN_AX_LOC16": {
+    "class": "lifted",
+    "il": [
+      "temp0.w = [((zx.d(DP) << 6) + 2) << 1].w",
+      "sub.w{nzv}(AH, temp0.w)",
+      "if (AH s<= temp0.w) then 5 else 3",
+      "AH = temp0.w",
+      "goto 5"
+    ],
+    "probe": "75560200"
+  },
+  "MOV32_ADDR16_LOC32": {
+    "class": "unimplemented",
+    "il": [
+      "unimplemented"
+    ],
+    "probe": "02bd0100"
+  },
+  "MOV32_LOC32_ADDR16": {
+    "class": "lifted",
+    "il": [
+      "[((zx.d(DP) << 6) + 1) << 1].d = 2"
+    ],
+    "probe": "01bf0200"
+  },
+  "MOV32_MEM32_RAH": {
+    "class": "lifted",
+    "il": [
+      "[((zx.d(DP) << 6) + 1) << 1].d = R2H"
+    ],
+    "probe": "03e20102"
+  },
+  "MOV32_MEM32_STF": {
+    "class": "lifted",
+    "il": [
+      "[SP].d = STF",
+      "SP = SP + 4"
+    ],
+    "probe": "00e20100"
+  },
+  "MOV32_RAH_MEM32": {
+    "class": "lifted",
+    "il": [
+      "if (s>=) then 1 else 3",
+      "R1H = [((zx.d(DP) << 6) + 2) << 1].d",
+      "goto 3"
+    ],
+    "probe": "a3e20201"
+  },
+  "MOV32_RAH_RBH": {
+    "class": "lifted",
+    "il": [
+      "if (s>=) then 1 else 3",
+      "R1H = R2H",
+      "goto 3"
+    ],
+    "probe": "c3e61100"
+  },
+  "MOV32_STF_MEM32": {
+    "class": "lifted",
+    "il": [
+      "SP = SP - 4",
+      "STF = [SP].d"
+    ],
+    "probe": "80e20100"
+  },
+  "MOVAD_T_LOC16": {
+    "class": "unimplemented",
+    "il": [
+      "unimplemented"
+    ],
+    "probe": "01a70000"
+  },
+  "MOVA_T_LOC16": {
+    "class": "lifted",
+    "il": [
+      "T = [((zx.d(DP) << 6) + 1) << 1].w",
+      "ACC = ACC + P {*}"
+    ],
+    "probe": "01100000"
+  },
+  "MOVB_ACC_CONST8": {
+    "class": "lifted",
+    "il": [
+      "ACC = zx.d(1) {nz}"
+    ],
+    "probe": "01020000"
+  },
+  "MOVB_AR6_CONST8": {
+    "class": "unimplemented",
+    "il": [
+      "unimplemented"
+    ],
+    "probe": "01d60000"
+  },
+  "MOVB_AR7_CONST8": {
+    "class": "unimplemented",
+    "il": [
+      "unimplemented"
+    ],
+    "probe": "01d70000"
+  },
+  "MOVB_AXLSB_LOC16": {
+    "class": "lifted",
+    "il": [
+      "AH = [((zx.d(DP) << 6) + 2) << 1].w & 0xff {nz}"
+    ],
+    "probe": "02c70000"
+  },
+  "MOVB_AXMSB_LOC16": {
+    "class": "lifted",
+    "il": [
+      "AH = [((zx.d(DP) << 6) + 2) << 1].w u>> 8 {nz}"
+    ],
+    "probe": "02390000"
+  },
+  "MOVB_AX_CONST8": {
+    "class": "lifted",
+    "il": [
+      "AH = 2 {nz}"
+    ],
+    "probe": "029b0000"
+  },
+  "MOVB_LOC16_AXLSB": {
+    "class": "lifted",
+    "il": [
+      "[((zx.d(DP) << 6) + 1) << 1].w = AH"
+    ],
+    "probe": "013d0000"
+  },
+  "MOVB_LOC16_AXMSB": {
+    "class": "lifted",
+    "il": [
+      "[((zx.d(DP) << 6) + 1) << 1].w = AH"
+    ],
+    "probe": "01c90000"
+  },
+  "MOVB_LOC16_CONST8_COND": {
+    "class": "lifted",
+    "il": [
+      "if (s>=) then 1 else 3",
+      "[((zx.d(DP) << 6) + 1) << 1].w = 2",
+      "goto 3"
+    ],
+    "probe": "b3560102"
+  },
+  "MOVB_XAR0_CONST8": {
+    "class": "lifted",
+    "il": [
+      "XAR0 = zx.d(1)"
+    ],
+    "probe": "01d00000"
+  },
+  "MOVB_XAR1_CONST8": {
+    "class": "lifted",
+    "il": [
+      "XAR1 = zx.d(1)"
+    ],
+    "probe": "01d10000"
+  },
+  "MOVB_XAR2_CONST8": {
+    "class": "lifted",
+    "il": [
+      "XAR2 = zx.d(1)"
+    ],
+    "probe": "01d20000"
+  },
+  "MOVB_XAR3_CONST8": {
+    "class": "lifted",
+    "il": [
+      "XAR3 = zx.d(1)"
+    ],
+    "probe": "01d30000"
+  },
+  "MOVB_XAR4_CONST8": {
+    "class": "lifted",
+    "il": [
+      "XAR4 = zx.d(1)"
+    ],
+    "probe": "01d40000"
+  },
+  "MOVB_XAR5_CONST8": {
+    "class": "lifted",
+    "il": [
+      "XAR5 = zx.d(1)"
+    ],
+    "probe": "01d50000"
+  },
+  "MOVB_XAR6_CONST8": {
+    "class": "lifted",
+    "il": [
+      "XAR6 = zx.d(1)"
+    ],
+    "probe": "01be0000"
+  },
+  "MOVB_XAR7_CONST8": {
+    "class": "lifted",
+    "il": [
+      "XAR7 = zx.d(1)"
+    ],
+    "probe": "01b60000"
+  },
+  "MOVDL_XT_LOC32": {
+    "class": "unimplemented",
+    "il": [
+      "unimplemented"
+    ],
+    "probe": "01a60000"
+  },
+  "MOVH_LOC16_ACC_SHIFT1": {
+    "class": "lifted",
+    "il": [
+      "[((zx.d(DP) << 6) + 1) << 1].w = AH"
+    ],
+    "probe": "01b30000"
+  },
+  "MOVH_LOC16_ACC_SHIFT2_8_OBJMODE_1": {
+    "class": "lifted",
+    "il": [
+      "[((zx.d(DP) << 6) + 1) << 1].w = ACC << 2 u>> 0x10"
+    ],
+    "probe": "2f560102"
+  },
+  "MOVH_LOC16_P": {
+    "class": "lifted",
+    "il": [
+      "[((zx.d(DP) << 6) + 1) << 1].w = PH"
+    ],
+    "probe": "01570000"
+  },
+  "MOVIZ": {
+    "class": "lifted",
+    "il": [
+      "R1H = 0x20000"
+    ],
+    "probe": "00e81100"
+  },
+  "MOVL_ACC_LOC32": {
+    "class": "lifted",
+    "il": [
+      "ACC = [((zx.d(DP) << 6) + 1) << 1].d {nz}"
+    ],
+    "probe": "01060000"
+  },
+  "MOVL_LOC32_ACC": {
+    "class": "lifted",
+    "il": [
+      "[((zx.d(DP) << 6) + 1) << 1].d = ACC"
+    ],
+    "probe": "011e0000"
+  },
+  "MOVL_LOC32_ACC_COND": {
+    "class": "unimplemented",
+    "il": [
+      "if (s>) then 1 else 4",
+      "unimplemented",
+      "[((zx.d(DP) << 6) + 1) << 1].d = 0",
+      "goto 4"
+    ],
+    "probe": "48560102"
+  },
+  "MOVL_LOC32_P": {
+    "class": "lifted",
+    "il": [
+      "[((zx.d(DP) << 6) + 1) << 1].d = P"
+    ],
+    "probe": "01a90000"
+  },
+  "MOVL_LOC32_XAR0": {
+    "class": "lifted",
+    "il": [
+      "[((zx.d(DP) << 6) + 1) << 1].d = XAR0"
+    ],
+    "probe": "013a0000"
+  },
+  "MOVL_LOC32_XAR1": {
+    "class": "lifted",
+    "il": [
+      "[((zx.d(DP) << 6) + 1) << 1].d = XAR1"
+    ],
+    "probe": "01b20000"
+  },
+  "MOVL_LOC32_XAR2": {
+    "class": "lifted",
+    "il": [
+      "[((zx.d(DP) << 6) + 1) << 1].d = XAR2"
+    ],
+    "probe": "01aa0000"
+  },
+  "MOVL_LOC32_XAR3": {
+    "class": "lifted",
+    "il": [
+      "[((zx.d(DP) << 6) + 1) << 1].d = XAR3"
+    ],
+    "probe": "01a20000"
+  },
+  "MOVL_LOC32_XAR4": {
+    "class": "lifted",
+    "il": [
+      "[((zx.d(DP) << 6) + 1) << 1].d = XAR4"
+    ],
+    "probe": "01a80000"
+  },
+  "MOVL_LOC32_XAR5": {
+    "class": "lifted",
+    "il": [
+      "[((zx.d(DP) << 6) + 1) << 1].d = XAR5"
+    ],
+    "probe": "01a00000"
+  },
+  "MOVL_LOC32_XAR6": {
+    "class": "lifted",
+    "il": [
+      "[((zx.d(DP) << 6) + 1) << 1].d = XAR6"
+    ],
+    "probe": "01c20000"
+  },
+  "MOVL_LOC32_XAR7": {
+    "class": "lifted",
+    "il": [
+      "[((zx.d(DP) << 6) + 1) << 1].d = XAR7"
+    ],
+    "probe": "01c30000"
+  },
+  "MOVL_LOC32_XT": {
+    "class": "lifted",
+    "il": [
+      "[((zx.d(DP) << 6) + 1) << 1].d = XT"
+    ],
+    "probe": "01ab0000"
+  },
+  "MOVL_P_ACC": {
+    "class": "lifted",
+    "il": [
+      "P = ACC"
+    ],
+    "probe": "5aff0000"
+  },
+  "MOVL_P_LOC32": {
+    "class": "lifted",
+    "il": [
+      "P = [((zx.d(DP) << 6) + 1) << 1].d"
+    ],
+    "probe": "01a30000"
+  },
+  "MOVL_XAR0_CONST22": {
+    "class": "lifted",
+    "il": [
+      "XAR0 = 1"
+    ],
+    "probe": "008d0100"
+  },
+  "MOVL_XAR0_LOC32": {
+    "class": "lifted",
+    "il": [
+      "XAR0 = [((zx.d(DP) << 6) + 1) << 1].d"
+    ],
+    "probe": "018e0000"
+  },
+  "MOVL_XAR1_CONST22": {
+    "class": "lifted",
+    "il": [
+      "XAR1 = 1"
+    ],
+    "probe": "408d0100"
+  },
+  "MOVL_XAR1_LOC32": {
+    "class": "lifted",
+    "il": [
+      "XAR1 = [((zx.d(DP) << 6) + 1) << 1].d"
+    ],
+    "probe": "018b0000"
+  },
+  "MOVL_XAR2_CONST22": {
+    "class": "lifted",
+    "il": [
+      "XAR2 = 1"
+    ],
+    "probe": "808d0100"
+  },
+  "MOVL_XAR2_LOC32": {
+    "class": "lifted",
+    "il": [
+      "XAR2 = [((zx.d(DP) << 6) + 1) << 1].d"
+    ],
+    "probe": "01860000"
+  },
+  "MOVL_XAR3_CONST22": {
+    "class": "lifted",
+    "il": [
+      "XAR3 = 1"
+    ],
+    "probe": "c08d0100"
+  },
+  "MOVL_XAR3_LOC32": {
+    "class": "lifted",
+    "il": [
+      "XAR3 = [((zx.d(DP) << 6) + 1) << 1].d"
+    ],
+    "probe": "01820000"
+  },
+  "MOVL_XAR4_CONST22": {
+    "class": "lifted",
+    "il": [
+      "XAR4 = 1"
+    ],
+    "probe": "008f0100"
+  },
+  "MOVL_XAR4_LOC32": {
+    "class": "lifted",
+    "il": [
+      "XAR4 = [((zx.d(DP) << 6) + 1) << 1].d"
+    ],
+    "probe": "018a0000"
+  },
+  "MOVL_XAR5_CONST22": {
+    "class": "lifted",
+    "il": [
+      "XAR5 = 1"
+    ],
+    "probe": "408f0100"
+  },
+  "MOVL_XAR5_LOC32": {
+    "class": "lifted",
+    "il": [
+      "XAR5 = [((zx.d(DP) << 6) + 1) << 1].d"
+    ],
+    "probe": "01830000"
+  },
+  "MOVL_XAR6_CONST22": {
+    "class": "lifted",
+    "il": [
+      "XAR6 = 1"
+    ],
+    "probe": "80760100"
+  },
+  "MOVL_XAR6_LOC32": {
+    "class": "lifted",
+    "il": [
+      "XAR6 = [((zx.d(DP) << 6) + 1) << 1].d"
+    ],
+    "probe": "01c40000"
+  },
+  "MOVL_XAR7_CONST22": {
+    "class": "lifted",
+    "il": [
+      "XAR7 = 1"
+    ],
+    "probe": "c0760100"
+  },
+  "MOVL_XAR7_LOC32": {
+    "class": "lifted",
+    "il": [
+      "XAR7 = [((zx.d(DP) << 6) + 1) << 1].d"
+    ],
+    "probe": "01c50000"
+  },
+  "MOVL_XT_LOC32": {
+    "class": "lifted",
+    "il": [
+      "XT = [((zx.d(DP) << 6) + 1) << 1].d"
+    ],
+    "probe": "01870000"
+  },
+  "MOVP_T_LOC16": {
+    "class": "lifted",
+    "il": [
+      "T = [((zx.d(DP) << 6) + 1) << 1].w",
+      "ACC = P {nz}"
+    ],
+    "probe": "01160000"
+  },
+  "MOVST0": {
+    "class": "unimplemented",
+    "il": [
+      "unimplemented"
+    ],
+    "probe": "01ad0000"
+  },
+  "MOVS_T_LOC16": {
+    "class": "lifted",
+    "il": [
+      "T = [((zx.d(DP) << 6) + 1) << 1].w",
+      "ACC = ACC - P {*}"
+    ],
+    "probe": "01110000"
+  },
+  "MOVU_ACC_LOC16": {
+    "class": "lifted",
+    "il": [
+      "ACC = zx.d([((zx.d(DP) << 6) + 1) << 1].w) {nz}"
+    ],
+    "probe": "010e0000"
+  },
+  "MOVU_LOC16_OVC": {
+    "class": "unimplemented",
+    "il": [
+      "unimplemented"
+    ],
+    "probe": "28560100"
+  },
+  "MOVW_DP_CONST16": {
+    "class": "lifted",
+    "il": [
+      "DP = 1"
+    ],
+    "probe": "1f760100"
+  },
+  "MOVXI": {
+    "class": "lifted",
+    "il": [
+      "R1H = (R1H & 0xffff0000) | 2"
+    ],
+    "probe": "08e81100"
+  },
+  "MOVX_TL_LOC16": {
+    "class": "unimplemented",
+    "il": [
+      "unimplemented"
+    ],
+    "probe": "21560100"
+  },
+  "MOVZ_AR0_LOC16": {
+    "class": "lifted",
+    "il": [
+      "AR0 = [((zx.d(DP) << 6) + 1) << 1].w"
+    ],
+    "probe": "01580000"
+  },
+  "MOVZ_AR1_LOC16": {
+    "class": "lifted",
+    "il": [
+      "AR1 = [((zx.d(DP) << 6) + 1) << 1].w"
+    ],
+    "probe": "01590000"
+  },
+  "MOVZ_AR2_LOC16": {
+    "class": "lifted",
+    "il": [
+      "AR2 = [((zx.d(DP) << 6) + 1) << 1].w"
+    ],
+    "probe": "015a0000"
+  },
+  "MOVZ_AR3_LOC16": {
+    "class": "lifted",
+    "il": [
+      "AR3 = [((zx.d(DP) << 6) + 1) << 1].w"
+    ],
+    "probe": "015b0000"
+  },
+  "MOVZ_AR4_LOC16": {
+    "class": "lifted",
+    "il": [
+      "AR4 = [((zx.d(DP) << 6) + 1) << 1].w"
+    ],
+    "probe": "015c0000"
+  },
+  "MOVZ_AR5_LOC16": {
+    "class": "lifted",
+    "il": [
+      "AR5 = [((zx.d(DP) << 6) + 1) << 1].w"
+    ],
+    "probe": "015d0000"
+  },
+  "MOVZ_AR6_LOC16": {
+    "class": "lifted",
+    "il": [
+      "AR6 = [((zx.d(DP) << 6) + 1) << 1].w"
+    ],
+    "probe": "01880000"
+  },
+  "MOVZ_AR7_LOC16": {
+    "class": "lifted",
+    "il": [
+      "AR7 = [((zx.d(DP) << 6) + 1) << 1].w"
+    ],
+    "probe": "01800000"
+  },
+  "MOVZ_DP_CONST10": {
+    "class": "lifted",
+    "il": [
+      "DP = 1"
+    ],
+    "probe": "01b80000"
+  },
+  "MOV_ACC_CONST16_SHIFT": {
+    "class": "lifted",
+    "il": [
+      "ACC = sx.d(1) << 2 {nz}"
+    ],
+    "probe": "22ff0100"
+  },
+  "MOV_ACC_LOC16": {
+    "class": "lifted",
+    "il": [
+      "ACC = sx.d([((zx.d(DP) << 6) + 1) << 1].w)"
+    ],
+    "probe": "01850000"
+  },
+  "MOV_ACC_LOC16_SHIFT16": {
+    "class": "lifted",
+    "il": [
+      "ACC = sx.d([((zx.d(DP) << 6) + 1) << 1].w) << 0x10"
+    ],
+    "probe": "01250000"
+  },
+  "MOV_ACC_LOC16_SHIFT1_15_OBJMODE1": {
+    "class": "lifted",
+    "il": [
+      "ACC = sx.d([((zx.d(DP) << 6) + 1) << 1].w) << 2"
+    ],
+    "probe": "03560102"
+  },
+  "MOV_ACC_LOC16_SHIFT_T": {
+    "class": "unimplemented",
+    "il": [
+      "unimplemented"
+    ],
+    "probe": "06560100"
+  },
+  "MOV_AR6_LOC16": {
+    "class": "lifted",
+    "il": [
+      "AR6 = [((zx.d(DP) << 6) + 1) << 1].w"
+    ],
+    "probe": "015e0000"
+  },
+  "MOV_AR7_LOC16": {
+    "class": "lifted",
+    "il": [
+      "AR7 = [((zx.d(DP) << 6) + 1) << 1].w"
+    ],
+    "probe": "015f0000"
+  },
+  "MOV_AX_LOC16": {
+    "class": "lifted",
+    "il": [
+      "AH = [((zx.d(DP) << 6) + 2) << 1].w {nz}"
+    ],
+    "probe": "02930000"
+  },
+  "MOV_DP_CONST10": {
+    "class": "lifted",
+    "il": [
+      "DP = 1"
+    ],
+    "probe": "01f80000"
+  },
+  "MOV_IER_LOC16": {
+    "class": "lifted",
+    "il": [
+      "IER = [((zx.d(DP) << 6) + 1) << 1].w"
+    ],
+    "probe": "01230000"
+  },
+  "MOV_LOC16_0": {
+    "class": "lifted",
+    "il": [
+      "[((zx.d(DP) << 6) + 1) << 1].w = 0"
+    ],
+    "probe": "012b0000"
+  },
+  "MOV_LOC16_ACC_SHIFT1": {
+    "class": "unimplemented",
+    "il": [
+      "unimplemented"
+    ],
+    "probe": "01b10000"
+  },
+  "MOV_LOC16_ACC_SHIFT2_8_OBJMODE_1": {
+    "class": "lifted",
+    "il": [
+      "[((zx.d(DP) << 6) + 1) << 1].w = ACC << 2"
+    ],
+    "probe": "2d560102"
+  },
+  "MOV_LOC16_ARN": {
+    "class": "lifted",
+    "il": [
+      "[((zx.d(DP) << 6) + 1) << 1].w = AR2"
+    ],
+    "probe": "017a0000"
+  },
+  "MOV_LOC16_AX": {
+    "class": "lifted",
+    "il": [
+      "[((zx.d(DP) << 6) + 1) << 1].w = AH"
+    ],
+    "probe": "01970000"
+  },
+  "MOV_LOC16_AX_COND": {
+    "class": "lifted",
+    "il": [
+      "if (s>=) then 1 else 3",
+      "[((zx.d(DP) << 6) + 1) << 1].w = AH",
+      "goto 3"
+    ],
+    "probe": "2b560103"
+  },
+  "MOV_LOC16_CONST16": {
+    "class": "lifted",
+    "il": [
+      "[((zx.d(DP) << 6) + 1) << 1].w = 2"
+    ],
+    "probe": "01280200"
+  },
+  "MOV_LOC16_IER": {
+    "class": "lifted",
+    "il": [
+      "[((zx.d(DP) << 6) + 1) << 1].w = IER"
+    ],
+    "probe": "01200000"
+  },
+  "MOV_LOC16_MEM16": {
+    "class": "lifted",
+    "il": [
+      "[((zx.d(DP) << 6) + 1) << 1].w = [4].w"
+    ],
+    "probe": "01f50200"
+  },
+  "MOV_LOC16_OVC": {
+    "class": "unimplemented",
+    "il": [
+      "unimplemented"
+    ],
+    "probe": "29560100"
+  },
+  "MOV_LOC16_P": {
+    "class": "unimplemented",
+    "il": [
+      "unimplemented"
+    ],
+    "probe": "013f0000"
+  },
+  "MOV_LOC16_T": {
+    "class": "lifted",
+    "il": [
+      "[((zx.d(DP) << 6) + 1) << 1].w = T"
+    ],
+    "probe": "01210000"
+  },
+  "MOV_MEM16_LOC16": {
+    "class": "lifted",
+    "il": [
+      "[4].w = [((zx.d(DP) << 6) + 1) << 1].w"
+    ],
+    "probe": "01f40200"
+  },
+  "MOV_OVC_LOC16": {
+    "class": "unimplemented",
+    "il": [
+      "unimplemented"
+    ],
+    "probe": "02560100"
+  },
+  "MOV_PH_LOC16": {
+    "class": "lifted",
+    "il": [
+      "PH = [((zx.d(DP) << 6) + 1) << 1].w"
+    ],
+    "probe": "012f0000"
+  },
+  "MOV_PL_LOC16": {
+    "class": "lifted",
+    "il": [
+      "PL = [((zx.d(DP) << 6) + 1) << 1].w"
+    ],
+    "probe": "01270000"
+  },
+  "MOV_PM_AX": {
+    "class": "unimplemented",
+    "il": [
+      "unimplemented"
+    ],
+    "probe": "39560000"
+  },
+  "MOV_TL_0": {
+    "class": "unimplemented",
+    "il": [
+      "unimplemented"
+    ],
+    "probe": "56560000"
+  },
+  "MOV_T_LOC16": {
+    "class": "lifted",
+    "il": [
+      "T = [((zx.d(DP) << 6) + 1) << 1].w"
+    ],
+    "probe": "012d0000"
+  },
+  "MOV_XARN_PC": {
+    "class": "unimplemented",
+    "il": [
+      "unimplemented"
+    ],
+    "probe": "593e0000"
+  },
+  "MPYA_P_LOC16_CONST16": {
+    "class": "lifted",
+    "il": [
+      "ACC = ACC + P {*}",
+      "T = [((zx.d(DP) << 6) + 1) << 1].w",
+      "P = sx.d(T) * sx.d(2)"
+    ],
+    "probe": "01150200"
+  },
+  "MPYA_P_T_LOC16": {
+    "class": "lifted",
+    "il": [
+      "ACC = ACC + P {*}",
+      "P = sx.d(T) * sx.d([((zx.d(DP) << 6) + 1) << 1].w)"
+    ],
+    "probe": "01170000"
+  },
+  "MPYB_ACC_T_CONST8": {
+    "class": "lifted",
+    "il": [
+      "ACC = sx.d(T) * zx.d(1) {nz}"
+    ],
+    "probe": "01350000"
+  },
+  "MPYB_P_T_CONST8": {
+    "class": "lifted",
+    "il": [
+      "P = sx.d(T) * zx.d(1)"
+    ],
+    "probe": "01310000"
+  },
+  "MPYF32_ADDF32_PAR": {
+    "class": "lifted",
+    "il": [
+      "R1H = R2H f* R3H",
+      "R4H = R5H"
+    ],
+    "probe": "43e7d158"
+  },
+  "MPYF32_MOV32_LOAD": {
+    "class": "lifted",
+    "il": [
+      "R1H = R2H f* R3H",
+      "R4H = [((zx.d(DP) << 6) + 5) << 1].d"
+    ],
+    "probe": "06e3058c"
+  },
+  "MPYF32_MOV32_STORE": {
+    "class": "lifted",
+    "il": [
+      "R1H = R2H f* R3H",
+      "[((zx.d(DP) << 6) + 4) << 1].d = R5H"
+    ],
+    "probe": "06e0048d"
+  },
+  "MPYF32_RAH_16FHI_RBH": {
+    "class": "lifted",
+    "il": [
+      "R1H = R2H"
+    ],
+    "probe": "40e8d100"
+  },
+  "MPYF32_RAH_RBH_RCH": {
+    "class": "lifted",
+    "il": [
+      "R1H = R2H f* R3H"
+    ],
+    "probe": "00e7d100"
+  },
+  "MPYS_P_T_LOC16": {
+    "class": "lifted",
+    "il": [
+      "ACC = ACC - P {*}",
+      "P = sx.d(T) * sx.d([((zx.d(DP) << 6) + 1) << 1].w)"
+    ],
+    "probe": "01130000"
+  },
+  "MPYU_ACC_T_LOC16": {
+    "class": "lifted",
+    "il": [
+      "ACC = zx.d(T) * zx.d([((zx.d(DP) << 6) + 1) << 1].w) {nz}"
+    ],
+    "probe": "01360000"
+  },
+  "MPYU_P_T_LOC16": {
+    "class": "lifted",
+    "il": [
+      "P = zx.d(T) * zx.d([((zx.d(DP) << 6) + 1) << 1].w)"
+    ],
+    "probe": "01370000"
+  },
+  "MPYXU_ACC_T_LOC16": {
+    "class": "lifted",
+    "il": [
+      "ACC = sx.d(T) * sx.d([((zx.d(DP) << 6) + 1) << 1].w) {nz}"
+    ],
+    "probe": "01300000"
+  },
+  "MPYXU_P_T_LOC16": {
+    "class": "lifted",
+    "il": [
+      "P = sx.d(T) * sx.d([((zx.d(DP) << 6) + 1) << 1].w)"
+    ],
+    "probe": "01320000"
+  },
+  "MPY_ACC_LOC16_CONST16": {
+    "class": "lifted",
+    "il": [
+      "ACC = sx.d([((zx.d(DP) << 6) + 1) << 1].w) * sx.d(2) {nz}"
+    ],
+    "probe": "01340200"
+  },
+  "MPY_ACC_T_LOC16": {
+    "class": "lifted",
+    "il": [
+      "ACC = sx.d(T) * sx.d([((zx.d(DP) << 6) + 1) << 1].w) {nz}"
+    ],
+    "probe": "01120000"
+  },
+  "MPY_P_LOC16_CONST16": {
+    "class": "lifted",
+    "il": [
+      "P = sx.d([((zx.d(DP) << 6) + 1) << 1].w) * sx.d(2)"
+    ],
+    "probe": "018c0200"
+  },
+  "MPY_P_T_LOC16": {
+    "class": "lifted",
+    "il": [
+      "P = sx.d(T) * sx.d([((zx.d(DP) << 6) + 1) << 1].w)"
+    ],
+    "probe": "01330000"
+  },
+  "NASP": {
+    "class": "nop_only",
+    "il": [
+      "nop"
+    ],
+    "probe": "17760000"
+  },
+  "NEG64_ACC_P": {
+    "class": "lifted",
+    "il": [
+      "ACC = neg.d(ACC) {*}",
+      "P = neg.d(P)"
+    ],
+    "probe": "58560000"
+  },
+  "NEGF32_RAH_RBH": {
+    "class": "lifted",
+    "il": [
+      "if (s>=) then 1 else 3",
+      "R1H = fneg(R2H)",
+      "goto 3"
+    ],
+    "probe": "a3e61100"
+  },
+  "NEGTC_ACC": {
+    "class": "lifted",
+    "il": [
+      "if (flag:TC == 1) then 1 else 3",
+      "ACC = neg.d(ACC) {*}",
+      "goto 3"
+    ],
+    "probe": "32560000"
+  },
+  "NEG_ACC": {
+    "class": "lifted",
+    "il": [
+      "ACC = neg.d(ACC) {*}"
+    ],
+    "probe": "54ff0000"
+  },
+  "NEG_AX": {
+    "class": "lifted",
+    "il": [
+      "AH = neg.w(AH) {*}"
+    ],
+    "probe": "5dff0000"
+  },
+  "NOP": {
+    "class": "nop_only",
+    "il": [
+      "nop"
+    ],
+    "probe": "00770000"
+  },
+  "NOP_ZERO": {
+    "class": "nop_only",
+    "il": [
+      "nop"
+    ],
+    "probe": "00000000"
+  },
+  "NORM_ACC_IND": {
+    "class": "nop_only",
+    "il": [
+      "nop"
+    ],
+    "probe": "24560000"
+  },
+  "NORM_ACC_XARN_POSTDEC": {
+    "class": "nop_only",
+    "il": [
+      "nop"
+    ],
+    "probe": "71ff0000"
+  },
+  "NORM_ACC_XARN_POSTINC": {
+    "class": "nop_only",
+    "il": [
+      "nop"
+    ],
+    "probe": "79ff0000"
+  },
+  "NOT_ACC": {
+    "class": "lifted",
+    "il": [
+      "ACC = not.d(ACC) {nz}"
+    ],
+    "probe": "55ff0000"
+  },
+  "NOT_AX": {
+    "class": "lifted",
+    "il": [
+      "AH = not.w(AH) {nz}"
+    ],
+    "probe": "5fff0000"
+  },
+  "ORB_AX_CONST8": {
+    "class": "lifted",
+    "il": [
+      "AH = AH | 2 {nz}"
+    ],
+    "probe": "02510000"
+  },
+  "OR_ACC_CONST16_SHIFT0_15": {
+    "class": "lifted",
+    "il": [
+      "ACC = ACC | zx.d(1) << 2 {nz}"
+    ],
+    "probe": "123e0100"
+  },
+  "OR_ACC_LOC16": {
+    "class": "lifted",
+    "il": [
+      "ACC = ACC | zx.d([((zx.d(DP) << 6) + 1) << 1].w) {nz}"
+    ],
+    "probe": "01af0000"
+  },
+  "OR_AX_LOC16": {
+    "class": "lifted",
+    "il": [
+      "AH = AH | [((zx.d(DP) << 6) + 2) << 1].w {nz}"
+    ],
+    "probe": "02cb0000"
+  },
+  "OR_IER_CONST16": {
+    "class": "lifted",
+    "il": [
+      "IER = IER | 1"
+    ],
+    "probe": "23760100"
+  },
+  "OR_IFR_CONST16": {
+    "class": "lifted",
+    "il": [
+      "IFR = IFR | 1"
+    ],
+    "probe": "27760100"
+  },
+  "OR_LOC16_AX": {
+    "class": "lifted",
+    "il": [
+      "[((zx.d(DP) << 6) + 1) << 1].w = or.w{nz}([((zx.d(DP) << 6) + 1) << 1].w, AH)"
+    ],
+    "probe": "01990000"
+  },
+  "OR_LOC16_CONST16": {
+    "class": "lifted",
+    "il": [
+      "[((zx.d(DP) << 6) + 1) << 1].w = or.w{nz}([((zx.d(DP) << 6) + 1) << 1].w, 2)"
+    ],
+    "probe": "011a0200"
+  },
+  "OUT_PA_LOC16": {
+    "class": "lifted",
+    "il": [
+      "[2].w = [((zx.d(DP) << 6) + 2) << 1].w"
+    ],
+    "probe": "02bc0100"
+  },
+  "POP_AR1H_AR0H": {
+    "class": "lifted",
+    "il": [
+      "SP = SP - 2",
+      "XAR1 = (XAR1 & 0xffff) | zx.d([SP].w) << 0x10",
+      "SP = SP - 2",
+      "XAR0 = (XAR0 & 0xffff) | zx.d([SP].w) << 0x10"
+    ],
+    "probe": "03000000"
+  },
+  "POP_AR1_AR0": {
+    "class": "lifted",
+    "il": [
+      "SP = SP - 2",
+      "AR1 = [SP].w",
+      "SP = SP - 2",
+      "AR0 = [SP].w"
+    ],
+    "probe": "07760000"
+  },
+  "POP_AR3_AR2": {
+    "class": "lifted",
+    "il": [
+      "SP = SP - 2",
+      "AR3 = [SP].w",
+      "SP = SP - 2",
+      "AR2 = [SP].w"
+    ],
+    "probe": "05760000"
+  },
+  "POP_AR5_AR4": {
+    "class": "lifted",
+    "il": [
+      "SP = SP - 2",
+      "AR5 = [SP].w",
+      "SP = SP - 2",
+      "AR4 = [SP].w"
+    ],
+    "probe": "06760000"
+  },
+  "POP_DBGIER": {
+    "class": "lifted",
+    "il": [
+      "SP = SP - 2",
+      "DBGIER = [SP].w"
+    ],
+    "probe": "12760000"
+  },
+  "POP_DP": {
+    "class": "lifted",
+    "il": [
+      "SP = SP - 2",
+      "DP = [SP].w"
+    ],
+    "probe": "03760000"
+  },
+  "POP_DP_ST1": {
+    "class": "lifted",
+    "il": [
+      "SP = SP - 2",
+      "DP = [SP].w",
+      "SP = SP - 2",
+      "ST1 = [SP].w"
+    ],
+    "probe": "01760000"
+  },
+  "POP_IFR": {
+    "class": "lifted",
+    "il": [
+      "SP = SP - 2",
+      "IFR = [SP].w"
+    ],
+    "probe": "02000000"
+  },
+  "POP_LOC16": {
+    "class": "lifted",
+    "il": [
+      "SP = SP - 2",
+      "[((zx.d(DP) << 6) + 1) << 1].w = [SP].w"
+    ],
+    "probe": "012a0000"
+  },
+  "POP_P": {
+    "class": "lifted",
+    "il": [
+      "SP = SP - 4",
+      "P = [SP].d"
+    ],
+    "probe": "11760000"
+  },
+  "POP_RB": {
+    "class": "lifted",
+    "il": [
+      "SP = SP - 2",
+      "RB = [SP].w"
+    ],
+    "probe": "f1ff0000"
+  },
+  "POP_RPC": {
+    "class": "lifted",
+    "il": [
+      "SP = SP - 4",
+      "RPC = [SP].d"
+    ],
+    "probe": "07000000"
+  },
+  "POP_ST0": {
+    "class": "lifted",
+    "il": [
+      "SP = SP - 2",
+      "ST0 = [SP].w"
+    ],
+    "probe": "13760000"
+  },
+  "POP_ST1": {
+    "class": "lifted",
+    "il": [
+      "SP = SP - 2",
+      "ST1 = [SP].w"
+    ],
+    "probe": "00760000"
+  },
+  "POP_T_ST0": {
+    "class": "lifted",
+    "il": [
+      "SP = SP - 2",
+      "T = [SP].w",
+      "SP = SP - 2",
+      "ST0 = [SP].w"
+    ],
+    "probe": "15760000"
+  },
+  "POP_XT": {
+    "class": "lifted",
+    "il": [
+      "SP = SP - 4",
+      "XT = [SP].d"
+    ],
+    "probe": "be870000"
+  },
+  "PREAD_LOC16_XAR7": {
+    "class": "lifted",
+    "il": [
+      "[((zx.d(DP) << 6) + 1) << 1].w = [XAR7 << 1].w"
+    ],
+    "probe": "01240000"
+  },
+  "PUSH_AR1H_AR0H": {
+    "class": "lifted",
+    "il": [
+      "[SP].w = XAR0 u>> 0x10",
+      "SP = SP + 2",
+      "[SP].w = XAR1 u>> 0x10",
+      "SP = SP + 2"
+    ],
+    "probe": "05000000"
+  },
+  "PUSH_AR1_AR0": {
+    "class": "lifted",
+    "il": [
+      "[SP].w = AR0",
+      "SP = SP + 2",
+      "[SP].w = AR1",
+      "SP = SP + 2"
+    ],
+    "probe": "0d760000"
+  },
+  "PUSH_AR3_AR2": {
+    "class": "lifted",
+    "il": [
+      "[SP].w = AR2",
+      "SP = SP + 2",
+      "[SP].w = AR3",
+      "SP = SP + 2"
+    ],
+    "probe": "0f760000"
+  },
+  "PUSH_AR5_AR4": {
+    "class": "lifted",
+    "il": [
+      "[SP].w = AR4",
+      "SP = SP + 2",
+      "[SP].w = AR5",
+      "SP = SP + 2"
+    ],
+    "probe": "0c760000"
+  },
+  "PUSH_DBGIER": {
+    "class": "lifted",
+    "il": [
+      "[SP].w = DBGIER",
+      "SP = SP + 2"
+    ],
+    "probe": "0e760000"
+  },
+  "PUSH_DP": {
+    "class": "lifted",
+    "il": [
+      "[SP].w = DP",
+      "SP = SP + 2"
+    ],
+    "probe": "0b760000"
+  },
+  "PUSH_DP_ST1": {
+    "class": "lifted",
+    "il": [
+      "[SP].w = ST1",
+      "SP = SP + 2",
+      "[SP].w = DP",
+      "SP = SP + 2"
+    ],
+    "probe": "09760000"
+  },
+  "PUSH_IFR": {
+    "class": "lifted",
+    "il": [
+      "[SP].w = IFR",
+      "SP = SP + 2"
+    ],
+    "probe": "0a760000"
+  },
+  "PUSH_LOC16": {
+    "class": "lifted",
+    "il": [
+      "[SP].w = [((zx.d(DP) << 6) + 1) << 1].w",
+      "SP = SP + 2"
+    ],
+    "probe": "01220000"
+  },
+  "PUSH_P": {
+    "class": "lifted",
+    "il": [
+      "[SP].d = P",
+      "SP = SP + 4"
+    ],
+    "probe": "1d760000"
+  },
+  "PUSH_RB": {
+    "class": "lifted",
+    "il": [
+      "[SP].w = RB",
+      "SP = SP + 2"
+    ],
+    "probe": "f0ff0000"
+  },
+  "PUSH_RPC": {
+    "class": "lifted",
+    "il": [
+      "[SP].d = RPC",
+      "SP = SP + 4"
+    ],
+    "probe": "04000000"
+  },
+  "PUSH_ST0": {
+    "class": "lifted",
+    "il": [
+      "[SP].w = ST0",
+      "SP = SP + 2"
+    ],
+    "probe": "18760000"
+  },
+  "PUSH_ST1": {
+    "class": "lifted",
+    "il": [
+      "[SP].w = ST1",
+      "SP = SP + 2"
+    ],
+    "probe": "08760000"
+  },
+  "PUSH_T_ST0": {
+    "class": "lifted",
+    "il": [
+      "[SP].w = ST0",
+      "SP = SP + 2",
+      "[SP].w = T",
+      "SP = SP + 2"
+    ],
+    "probe": "19760000"
+  },
+  "PUSH_XT": {
+    "class": "lifted",
+    "il": [
+      "[SP].d = XT",
+      "SP = SP + 4"
+    ],
+    "probe": "bdab0000"
+  },
+  "PWRITE_XAR7_LOC16": {
+    "class": "lifted",
+    "il": [
+      "[XAR7 << 1].w = [((zx.d(DP) << 6) + 1) << 1].w"
+    ],
+    "probe": "01260000"
+  },
+  "QMPYAL_P_XT_LOC32": {
+    "class": "lifted",
+    "il": [
+      "ACC = ACC + P {*}",
+      "P = XT * [((zx.d(DP) << 6) + 1) << 1].d"
+    ],
+    "probe": "46560100"
+  },
+  "QMPYL_ACC_XT_LOC32": {
+    "class": "lifted",
+    "il": [
+      "ACC = XT * [((zx.d(DP) << 6) + 1) << 1].d {nz}"
+    ],
+    "probe": "63560100"
+  },
+  "QMPYL_P_XT_LOC32": {
+    "class": "lifted",
+    "il": [
+      "P = XT * [((zx.d(DP) << 6) + 1) << 1].d"
+    ],
+    "probe": "67560100"
+  },
+  "QMPYSL_P_XT_LOC32": {
+    "class": "lifted",
+    "il": [
+      "ACC = ACC - P {*}",
+      "P = XT * [((zx.d(DP) << 6) + 1) << 1].d"
+    ],
+    "probe": "45560100"
+  },
+  "QMPYUL_P_XT_LOC32": {
+    "class": "lifted",
+    "il": [
+      "P = sx.d(T) * sx.d([((zx.d(DP) << 6) + 1) << 1].d)"
+    ],
+    "probe": "47560100"
+  },
+  "QMPYXUL_P_XT_LOC32": {
+    "class": "lifted",
+    "il": [
+      "P = sx.d(T) * sx.d([((zx.d(DP) << 6) + 1) << 1].d)"
+    ],
+    "probe": "42560100"
+  },
+  "ROL_ACC": {
+    "class": "lifted",
+    "il": [
+      "ACC = rol.d(ACC, 1) {nzc}"
+    ],
+    "probe": "53ff0000"
+  },
+  "ROR_ACC": {
+    "class": "lifted",
+    "il": [
+      "ACC = ror.d(ACC, 1) {nzc}"
+    ],
+    "probe": "52ff0000"
+  },
+  "RPTB": {
+    "class": "unimplemented",
+    "il": [
+      "unimplemented"
+    ],
+    "probe": "01b50200"
+  },
+  "RPTB_IMM": {
+    "class": "unimplemented",
+    "il": [
+      "unimplemented"
+    ],
+    "probe": "81b50200"
+  },
+  "RPT_CONST8": {
+    "class": "nop_only",
+    "il": [
+      "nop"
+    ],
+    "probe": "01f60000"
+  },
+  "RPT_LOC16": {
+    "class": "nop_only",
+    "il": [
+      "nop"
+    ],
+    "probe": "01f70000"
+  },
+  "SAT64_ACC_P": {
+    "class": "nop_only",
+    "il": [
+      "nop"
+    ],
+    "probe": "3e560000"
+  },
+  "SAT_ACC": {
+    "class": "nop_only",
+    "il": [
+      "nop"
+    ],
+    "probe": "57ff0000"
+  },
+  "SB": {
+    "class": "lifted",
+    "il": [
+      "if (s>) then 1 else 2",
+      "jump(0x10004)"
+    ],
+    "probe": "01620000"
+  },
+  "SBBU_ACC_LOC16": {
+    "class": "lifted",
+    "il": [
+      "ACC = sbb.d(ACC, zx.d([((zx.d(DP) << 6) + 1) << 1].w), flag:C ^ 1) {*}"
+    ],
+    "probe": "011d0000"
+  },
+  "SBF": {
+    "class": "lifted",
+    "il": [
+      "if (==) then 1 else 2",
+      "jump(0x10004)"
+    ],
+    "probe": "01ec0000"
+  },
+  "SBRK_CONST8": {
+    "class": "unimplemented",
+    "il": [
+      "unimplemented"
+    ],
+    "probe": "01fd0000"
+  },
+  "SETC_M0M1MAP": {
+    "class": "nop_only",
+    "il": [
+      "nop"
+    ],
+    "probe": "1a560000"
+  },
+  "SETC_MODE": {
+    "class": "nop_only",
+    "il": [
+      "nop"
+    ],
+    "probe": "013b0000"
+  },
+  "SETC_OBJMODE": {
+    "class": "nop_only",
+    "il": [
+      "nop"
+    ],
+    "probe": "1f560000"
+  },
+  "SETC_XF": {
+    "class": "nop_only",
+    "il": [
+      "nop"
+    ],
+    "probe": "26560000"
+  },
+  "SETFLG": {
+    "class": "lifted",
+    "il": [
+      "STF = __setflg(1)"
+    ],
+    "probe": "00e60100"
+  },
+  "SFR_ACC_SHIFT": {
+    "class": "lifted",
+    "il": [
+      "ACC = ACC s>> 2 {nzc}"
+    ],
+    "probe": "41ff0000"
+  },
+  "SFR_ACC_T": {
+    "class": "unimplemented",
+    "il": [
+      "unimplemented"
+    ],
+    "probe": "51ff0000"
+  },
+  "SPM_SHIFT": {
+    "class": "nop_only",
+    "il": [
+      "nop"
+    ],
+    "probe": "69ff0000"
+  },
+  "SQRA_LOC16": {
+    "class": "lifted",
+    "il": [
+      "ACC = ACC + P {*}",
+      "P = sx.d([((zx.d(DP) << 6) + 1) << 1].w) * sx.d([((zx.d(DP) << 6) + 1) << 1].w)"
+    ],
+    "probe": "15560100"
+  },
+  "SQRS_LOC16": {
+    "class": "lifted",
+    "il": [
+      "ACC = ACC - P {*}",
+      "P = sx.d([((zx.d(DP) << 6) + 1) << 1].w) * sx.d([((zx.d(DP) << 6) + 1) << 1].w)"
+    ],
+    "probe": "11560100"
+  },
+  "SUBBL_ACC_LOC32": {
+    "class": "lifted",
+    "il": [
+      "ACC = sbb.d(ACC, [((zx.d(DP) << 6) + 1) << 1].d, flag:C ^ 1) {*}"
+    ],
+    "probe": "54560100"
+  },
+  "SUBB_ACC_CONST8": {
+    "class": "lifted",
+    "il": [
+      "ACC = ACC - zx.d(1) {*}"
+    ],
+    "probe": "01190000"
+  },
+  "SUBB_SP_CONST7": {
+    "class": "lifted",
+    "il": [
+      "SP = SP - 2"
+    ],
+    "probe": "81fe0000"
+  },
+  "SUBB_XARN_CONST7": {
+    "class": "lifted",
+    "il": [
+      "XAR1 = XAR1 - 2"
+    ],
+    "probe": "82d90000"
+  },
+  "SUBCUL_ACC_LOC32": {
+    "class": "lifted",
+    "il": [
+      "temp0.q = (zx.q(ACC) << 1) + (zx.q(P) u>> 0x1f) - zx.q([((zx.d(DP) << 6) + 1) << 1].d)",
+      "if (temp0.q s>= 0) then 2 else 5",
+      "ACC = temp0.q.d {nzc}",
+      "P = (P << 1) + 1",
+      "goto 8",
+      "ACC = ACC << 1 | P u>> 0x1f {nzc}",
+      "P = P << 1",
+      "goto 8"
+    ],
+    "probe": "17560100"
+  },
+  "SUBCU_ACC_LOC16": {
+    "class": "lifted",
+    "il": [
+      "temp0.q = (zx.q(ACC) << 1) - (zx.q([((zx.d(DP) << 6) + 1) << 1].w) << 0x10)",
+      "if (temp0.q s> 0) then 2 else 4",
+      "ACC = temp0.q.d + 1 {nzc}",
+      "goto 6",
+      "ACC = ACC << 1 {nzc}",
+      "goto 6"
+    ],
+    "probe": "011f0000"
+  },
+  "SUBF32_MOV32_LOAD": {
+    "class": "lifted",
+    "il": [
+      "R1H = R2H f- R3H",
+      "R4H = [((zx.d(DP) << 6) + 5) << 1].d"
+    ],
+    "probe": "26e3058c"
+  },
+  "SUBF32_MOV32_STORE": {
+    "class": "lifted",
+    "il": [
+      "R1H = R2H f- R3H",
+      "[((zx.d(DP) << 6) + 4) << 1].d = R5H"
+    ],
+    "probe": "26e0048d"
+  },
+  "SUBF32_RAH_16FHI_RBH": {
+    "class": "lifted",
+    "il": [
+      "R1H = R2H"
+    ],
+    "probe": "c0e8d100"
+  },
+  "SUBF32_RAH_RBH_RCH": {
+    "class": "lifted",
+    "il": [
+      "R1H = R2H f- R3H"
+    ],
+    "probe": "20e7d100"
+  },
+  "SUBL_ACC_LOC32": {
+    "class": "lifted",
+    "il": [
+      "ACC = ACC - [((zx.d(DP) << 6) + 1) << 1].d {*}"
+    ],
+    "probe": "01030000"
+  },
+  "SUBL_LOC32_ACC": {
+    "class": "lifted",
+    "il": [
+      "[((zx.d(DP) << 6) + 1) << 1].d = sub.d{*}([((zx.d(DP) << 6) + 1) << 1].d, ACC)"
+    ],
+    "probe": "41560100"
+  },
+  "SUBRL_LOC32_ACC": {
+    "class": "lifted",
+    "il": [
+      "[((zx.d(DP) << 6) + 1) << 1].d = sub.d{*}(ACC, [((zx.d(DP) << 6) + 1) << 1].d)"
+    ],
+    "probe": "49560100"
+  },
+  "SUBR_LOC16_AX": {
+    "class": "lifted",
+    "il": [
+      "[((zx.d(DP) << 6) + 1) << 1].w = sub.w{*}(AH, [((zx.d(DP) << 6) + 1) << 1].w)"
+    ],
+    "probe": "01eb0000"
+  },
+  "SUBUL_ACC_LOC32": {
+    "class": "lifted",
+    "il": [
+      "ACC = ACC - [((zx.d(DP) << 6) + 1) << 1].d {*}"
+    ],
+    "probe": "55560100"
+  },
+  "SUBUL_P_LOC32": {
+    "class": "lifted",
+    "il": [
+      "P = P - [((zx.d(DP) << 6) + 1) << 1].d {*}"
+    ],
+    "probe": "5d560100"
+  },
+  "SUBU_ACC_LOC16": {
+    "class": "lifted",
+    "il": [
+      "ACC = ACC - zx.d([((zx.d(DP) << 6) + 1) << 1].w) {*}"
+    ],
+    "probe": "01010000"
+  },
+  "SUB_ACC_CONST16_SHIFT": {
+    "class": "lifted",
+    "il": [
+      "ACC = ACC - (sx.d(1) << 2) {*}"
+    ],
+    "probe": "02ff0100"
+  },
+  "SUB_ACC_LOC16": {
+    "class": "lifted",
+    "il": [
+      "ACC = ACC - sx.d([((zx.d(DP) << 6) + 1) << 1].w) {*}"
+    ],
+    "probe": "01ae0000"
+  },
+  "SUB_ACC_LOC16_SHIFT16": {
+    "class": "lifted",
+    "il": [
+      "ACC = ACC - (sx.d([((zx.d(DP) << 6) + 1) << 1].w) << 0x10) {*}"
+    ],
+    "probe": "01040000"
+  },
+  "SUB_ACC_LOC16_SHIFT1_15_OBJMODE1": {
+    "class": "lifted",
+    "il": [
+      "ACC = ACC - (sx.d([((zx.d(DP) << 6) + 1) << 1].w) << 2) {*}"
+    ],
+    "probe": "00560102"
+  },
+  "SUB_ACC_LOC16_SHIFT_T": {
+    "class": "lifted",
+    "il": [
+      "ACC = ACC - (sx.d([((zx.d(DP) << 6) + 1) << 1].w) << zx.d(T)) {*}"
+    ],
+    "probe": "27560100"
+  },
+  "SUB_AX_LOC16": {
+    "class": "lifted",
+    "il": [
+      "AH = AH - [((zx.d(DP) << 6) + 2) << 1].w {*}"
+    ],
+    "probe": "029f0000"
+  },
+  "SUB_LOC16_AX": {
+    "class": "lifted",
+    "il": [
+      "[((zx.d(DP) << 6) + 1) << 1].w = sub.w{*}([((zx.d(DP) << 6) + 1) << 1].w, AH)"
+    ],
+    "probe": "01750000"
+  },
+  "SWAPF_RAH_RBH": {
+    "class": "lifted",
+    "il": [
+      "if (s>=) then 1 else 3",
+      "R1H = R2H",
+      "goto 3"
+    ],
+    "probe": "e3e61100"
+  },
+  "TBIT_LOC16_BIT": {
+    "class": "lifted",
+    "il": [
+      "and.w{tc}([((zx.d(DP) << 6) + 1) << 1].w u>> 2, 1)"
+    ],
+    "probe": "01420000"
+  },
+  "TBIT_LOC16_T": {
+    "class": "lifted",
+    "il": [
+      "and.w{tc}([((zx.d(DP) << 6) + 1) << 1].w u>> zx.w(T), 1)"
+    ],
+    "probe": "25560100"
+  },
+  "TCLR_LOC16_BIT": {
+    "class": "lifted",
+    "il": [
+      "and.w{tc}([((zx.d(DP) << 6) + 1) << 1].w u>> 2, 1)",
+      "[((zx.d(DP) << 6) + 1) << 1].w = and.w{nz}([((zx.d(DP) << 6) + 1) << 1].w, 0xfff8)"
+    ],
+    "probe": "09560102"
+  },
+  "TEST_ACC": {
+    "class": "lifted",
+    "il": [
+      "sub.d{nz}(ACC, 0)"
+    ],
+    "probe": "58ff0000"
+  },
+  "TRAP": {
+    "class": "nop_only",
+    "il": [
+      "nop"
+    ],
+    "probe": "21000000"
+  },
+  "TSET_LOC16_BIT": {
+    "class": "lifted",
+    "il": [
+      "and.w{tc}([((zx.d(DP) << 6) + 1) << 1].w u>> 2, 1)",
+      "[((zx.d(DP) << 6) + 1) << 1].w = or.w{nz}([((zx.d(DP) << 6) + 1) << 1].w, 4)"
+    ],
+    "probe": "0d560102"
+  },
+  "UI16TOF32_RAH_MEM16": {
+    "class": "lifted",
+    "il": [
+      "R1H = float.s(sx.d([((zx.d(DP) << 6) + 2) << 1].w))"
+    ],
+    "probe": "c4e20201"
+  },
+  "UI16TOF32_RAH_RBH": {
+    "class": "lifted",
+    "il": [
+      "R1H = float.s(R2H)"
+    ],
+    "probe": "8fe61100"
+  },
+  "UI32TOF32_RAH_MEM32": {
+    "class": "lifted",
+    "il": [
+      "R1H = [((zx.d(DP) << 6) + 2) << 1].d"
+    ],
+    "probe": "84e20201"
+  },
+  "UI32TOF32_RAH_RBH": {
+    "class": "lifted",
+    "il": [
+      "R1H = float.s(R2H)"
+    ],
+    "probe": "8be61100"
+  },
+  "UOUT_PA_LOC16": {
+    "class": "lifted",
+    "il": [
+      "[2].w = [((zx.d(DP) << 6) + 2) << 1].w"
+    ],
+    "probe": "02b00100"
+  },
+  "XB_AL": {
+    "class": "lifted",
+    "il": [
+      "jump(zx.d(AL))"
+    ],
+    "probe": "14560000"
+  },
+  "XB_PMA_COND": {
+    "class": "lifted",
+    "il": [
+      "if (s>) then 1 else 2",
+      "jump(2)"
+    ],
+    "probe": "d2560100"
+  },
+  "XCALL_AL": {
+    "class": "lifted",
+    "il": [
+      "call(zx.d(AL))"
+    ],
+    "probe": "34560000"
+  },
+  "XCALL_PMA_COND": {
+    "class": "lifted",
+    "il": [
+      "call(2)"
+    ],
+    "probe": "e2560100"
+  },
+  "XMACD_P_LOC16_PMA": {
+    "class": "unimplemented",
+    "il": [
+      "unimplemented"
+    ],
+    "probe": "01a40200"
+  },
+  "XMAC_P_LOC16_PMA": {
+    "class": "lifted",
+    "il": [
+      "ACC = ACC + P {*}",
+      "T = [((zx.d(DP) << 6) + 1) << 1].w",
+      "P = sx.d(T) * sx.d([0x3f0002 << 1].w)"
+    ],
+    "probe": "01840200"
+  },
+  "XORB_AX_CONST8": {
+    "class": "lifted",
+    "il": [
+      "AH = AH ^ 2 {nz}"
+    ],
+    "probe": "02f10000"
+  },
+  "XOR_ACC_CONST16_SHIFT0_15": {
+    "class": "lifted",
+    "il": [
+      "ACC = ACC ^ zx.d(1) << 2 {nz}"
+    ],
+    "probe": "223e0100"
+  },
+  "XOR_ACC_LOC16": {
+    "class": "lifted",
+    "il": [
+      "ACC = ACC ^ zx.d([((zx.d(DP) << 6) + 1) << 1].w) {nz}"
+    ],
+    "probe": "01b70000"
+  },
+  "XOR_AX_LOC16": {
+    "class": "lifted",
+    "il": [
+      "AH = AH ^ [((zx.d(DP) << 6) + 2) << 1].w {nz}"
+    ],
+    "probe": "02710000"
+  },
+  "XOR_LOC16_AX": {
+    "class": "lifted",
+    "il": [
+      "[((zx.d(DP) << 6) + 1) << 1].w = xor.w{nz}([((zx.d(DP) << 6) + 1) << 1].w, AH)"
+    ],
+    "probe": "01f30000"
+  },
+  "XOR_LOC16_CONST16": {
+    "class": "lifted",
+    "il": [
+      "[((zx.d(DP) << 6) + 1) << 1].w = xor.w{nz}([((zx.d(DP) << 6) + 1) << 1].w, 2)"
+    ],
+    "probe": "011c0200"
+  },
+  "XPREAD_LOC16_AL": {
+    "class": "lifted",
+    "il": [
+      "[((zx.d(DP) << 6) + 1) << 1].w = [(zx.d(AL) | 0x3f0000) << 1].w"
+    ],
+    "probe": "3c560100"
+  },
+  "XPREAD_LOC16_PMA": {
+    "class": "lifted",
+    "il": [
+      "[((zx.d(DP) << 6) + 1) << 1].w = 2"
+    ],
+    "probe": "01ac0200"
+  },
+  "XPWRITE_AL_LOC16": {
+    "class": "lifted",
+    "il": [
+      "[(zx.d(AL) | 0x3f0000) << 1].w = [((zx.d(DP) << 6) + 1) << 1].w"
+    ],
+    "probe": "3d560100"
+  },
+  "XRETC_COND": {
+    "class": "lifted",
+    "il": [
+      "if (==) then 1 else 2",
+      "<return> jump(RPC)"
+    ],
+    "probe": "f1560000"
+  },
+  "ZALR_ACC_LOC16": {
+    "class": "unimplemented",
+    "il": [
+      "unimplemented"
+    ],
+    "probe": "13560100"
+  },
+  "ZAPA": {
+    "class": "lifted",
+    "il": [
+      "ACC = 0 {nz}",
+      "P = 0"
+    ],
+    "probe": "33560000"
+  },
+  "ZERO": {
+    "class": "lifted",
+    "il": [
+      "R1H = 0"
+    ],
+    "probe": "91e50000"
+  }
 }

@@ -245,6 +245,14 @@ pub fn lift(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
             return true;
         }
 
+        // EINVF32 and EISQRTF32 compute a Newton-Raphson *estimate* of 1/x and
+        // 1/sqrt(x). The reg-to-reg fallback below copied the source, asserting
+        // RaH == RbH -- a wrong value, and the last blind guesser in this file.
+        if matches!(n, InsnId::EINVF32_RAH_RBH | InsnId::EISQRTF32_RAH_RBH) {
+            il.unimplemented().append();
+            return true;
+        }
+
         let result = if matches!(n, InsnId::ABSF32_RAH_RBH) {
             il.fabs(4, src).build()
         } else if matches!(n, InsnId::NEGF32_RAH_RBH) {

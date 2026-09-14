@@ -56,20 +56,49 @@ pub fn lift_not(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
 }
 
 fn bitwise_common(insn: &DecodedInstruction, il: &ILFunc, op_name: &str) -> bool {
-    // ACC OP loc16 (single-operand: destination is implicit ACC)
+    // ACC OP loc16 (single-operand: destination is implicit ACC).
+    // SPRU430F prints `ACC = ACC AND 0:[loc16]` and the prose says "the
+    // zero-extended content": these are unsigned, unlike ADD's `S:16bit`, so
+    // sign-extending set all 32 bits from a loc16 whose bit 15 was 1.
     let n = insn.id;
     if matches!(
         (op_name, n),
         ("and", InsnId::AND_ACC_LOC16)
             | ("or", InsnId::OR_ACC_LOC16)
             | ("xor", InsnId::XOR_ACC_LOC16)
-            | ("and", InsnId::AND_ACC_CONST16_SHIFT0_15)
+    ) {
+        if let Some(op) = op_at(insn, 0) {
+            let acc = il.reg(4, Register::ACC);
+            let src = il.zx(4, read_op(op, il, 2));
+            let expr = match op_name {
+                "and" => il.and(4, acc, src),
+                "or" => il.or(4, acc, src),
+                _ => il.xor(4, acc, src),
+            };
+            il.set_reg(4, Register::ACC, expr)
+                .with_flag_write(FlagWrite::NZ)
+                .append();
+        }
+        return true;
+    }
+
+    // ACC OP #16bit << #0..15 — `ACC = ACC AND (0:16bit << shift value)`.
+    // The shift was discarded, exactly as it once was for the ADD/SUB shifted
+    // forms in arith.rs, so `AND ACC, #0xFF << 8` masked with 0xFF instead of
+    // 0xFF00 and cleared the byte it was meant to keep.
+    if matches!(
+        (op_name, n),
+        ("and", InsnId::AND_ACC_CONST16_SHIFT0_15)
             | ("or", InsnId::OR_ACC_CONST16_SHIFT0_15)
             | ("xor", InsnId::XOR_ACC_CONST16_SHIFT0_15)
     ) {
         if let Some(op) = op_at(insn, 0) {
+            let value = il.zx(4, read_op(op, il, 2)).build();
+            let src = match op_at(insn, 1) {
+                Some(sh) => il.lsl(4, value, il.const_int(4, sh.value as u64)).build(),
+                None => value,
+            };
             let acc = il.reg(4, Register::ACC);
-            let src = il.sx(4, read_op(op, il, 2));
             let expr = match op_name {
                 "and" => il.and(4, acc, src),
                 "or" => il.or(4, acc, src),

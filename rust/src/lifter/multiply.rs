@@ -58,7 +58,9 @@ pub fn lift(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
         if let Some(op) = op_at(insn, 0) {
             let t = il.sx(4, il.reg(2, Register::T));
             let c = il.zx(4, il.const_int(1, op.value as u64));
-            il.set_reg(4, Register::ACC, il.mul(4, t, c)).append();
+            il.set_reg(4, Register::ACC, il.mul(4, t, c))
+                .with_flag_write(FlagWrite::NZ)
+                .append();
         }
         return true;
     }
@@ -91,6 +93,28 @@ pub fn lift(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
         return true;
     }
 
+    // ── MPYA P, loc16, #16bit ──
+    // SPRU430F p.324 prints three steps: `ACC = ACC + P << PM; T = [loc16];
+    // P = signed T * signed 16bit`. There was no arm for this row at all, so a
+    // generic path emitted the product alone -- the accumulate was missing and
+    // T was never loaded, leaving the multiply reading a stale T.
+    if matches!(n, InsnId::MPYA_P_LOC16_CONST16) {
+        if let (Some(loc), Some(imm)) = (op_at(insn, 0), op_at(insn, 1)) {
+            il.set_reg(
+                4,
+                Register::ACC,
+                il.add(4, il.reg(4, Register::ACC), il.reg(4, Register::P)),
+            )
+            .with_flag_write(FlagWrite::All)
+            .append();
+            il.set_reg(2, Register::T, read_op(loc, il, 2)).append();
+            let t = il.sx(4, il.reg(2, Register::T));
+            let c = il.sx(4, il.const_int(2, imm.value as u64));
+            il.set_reg(4, Register::P, il.mul(4, t, c)).append();
+        }
+        return true;
+    }
+
     // ── Multiply-accumulate: ACC += P; P = T * loc16 ──
     if matches!(n, InsnId::MPYA_P_T_LOC16) {
         if let Some(op) = op_at(insn, 0) {
@@ -100,6 +124,7 @@ pub fn lift(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
                 Register::ACC,
                 il.add(4, il.reg(4, Register::ACC), il.reg(4, Register::P)),
             )
+            .with_flag_write(FlagWrite::All)
             .append();
             // P = T * loc16
             let src = read_op(op, il, 2);
@@ -122,6 +147,7 @@ pub fn lift(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
                 Register::ACC,
                 il.sub(4, il.reg(4, Register::ACC), il.reg(4, Register::P)),
             )
+            .with_flag_write(FlagWrite::All)
             .append();
             // P = T * loc16
             let src = read_op(op, il, 2);
@@ -140,11 +166,18 @@ pub fn lift(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
         if let Some(op) = op_at(insn, 0) {
             let src = read_op(op, il, 4);
             il.set_reg(4, Register::ACC, il.mul(4, il.reg(4, Register::XT), src))
+                .with_flag_write(FlagWrite::NZ)
                 .append();
         }
         return true;
     }
-    if matches!(n, InsnId::IMPYL_P_XT_LOC32 | InsnId::QMPYL_P_XT_LOC32) {
+    // IMPYXUL joins these: TI prints `signed XT * unsigned [loc32]`, and the low
+    // 32 bits of a product do not depend on either sign, but it was falling into
+    // a generic arm that multiplied **T** -- a different, 16-bit register.
+    if matches!(
+        n,
+        InsnId::IMPYL_P_XT_LOC32 | InsnId::QMPYL_P_XT_LOC32 | InsnId::IMPYXUL_P_XT_LOC32
+    ) {
         if let Some(op) = op_at(insn, 0) {
             let src = read_op(op, il, 4);
             il.set_reg(4, Register::P, il.mul(4, il.reg(4, Register::XT), src))
@@ -162,6 +195,7 @@ pub fn lift(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
                 Register::ACC,
                 il.add(4, il.reg(4, Register::ACC), il.reg(4, Register::P)),
             )
+            .with_flag_write(FlagWrite::All)
             .append();
             il.set_reg(
                 4,
@@ -179,6 +213,7 @@ pub fn lift(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
                 Register::ACC,
                 il.sub(4, il.reg(4, Register::ACC), il.reg(4, Register::P)),
             )
+            .with_flag_write(FlagWrite::All)
             .append();
             il.set_reg(
                 4,
@@ -198,6 +233,7 @@ pub fn lift(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
                 Register::ACC,
                 il.add(4, il.reg(4, Register::ACC), il.reg(4, Register::P)),
             )
+            .with_flag_write(FlagWrite::All)
             .append();
             let src = read_op(op, il, 2);
             il.set_reg(
@@ -216,6 +252,7 @@ pub fn lift(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
                 Register::ACC,
                 il.sub(4, il.reg(4, Register::ACC), il.reg(4, Register::P)),
             )
+            .with_flag_write(FlagWrite::All)
             .append();
             let src = read_op(op, il, 2);
             il.set_reg(
@@ -250,6 +287,7 @@ pub fn lift(insn: &DecodedInstruction, _addr: u64, il: &ILFunc) -> bool {
                 Register::ACC,
                 il.add(4, il.reg(4, Register::ACC), il.reg(4, Register::P)),
             )
+            .with_flag_write(FlagWrite::All)
             .append();
             let value = read_op(loc, il, 2);
             il.set_reg(2, Register::T, value).append();

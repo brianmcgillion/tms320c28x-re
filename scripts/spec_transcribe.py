@@ -16,6 +16,16 @@ Digits are fixed bits, letters are operand fields. So opcode and mask are
 computed, and each distinct letter yields a [high, low] bit range -- which is the
 part no other oracle can supply.
 
+Each page also closes its Description with TI's own operation notation --
+`ACC = ACC + [loc32];`, `[loc32] = ACC - [loc32];`, `Modify flags on (ACC - P)` --
+which is the only statement anywhere of what an instruction *computes*. dis2000
+never says, and the encoding says nothing about direction: `MOVL loc32, P` and
+`MOVL P, loc32` differ only in which side is the operand. That is captured here
+as `operation`, with the coverage and the caveats in `--check`. It is a reading
+aid for a human writing a `lift:` block, NOT a checkable gate: the notation is
+irregular, occasionally a table rather than an operation, and sometimes simply
+wrong (the `AND AX, loc16` page prints `AX = AX AND 16bit`, meaning `[loc16]`).
+
 Run: nix develop -c python3 scripts/spec_transcribe.py [--check]
 
   (default)  regenerate isa/reference/*.yaml
@@ -86,6 +96,32 @@ BOILERPLATE = (
     "Submit",
     "Instruction Set",
     "Central Processing",
+)
+
+# Headings that end the Description prose. "Flags" alone is SPRUEO2B's spelling
+# of SPRU430F's "Flags and Modes", and both manuals reuse "Description" as the
+# column header *inside* that table, so it has to stop the block too.
+SECTION = (
+    "Flags and Modes",
+    "Flags",
+    "Example",
+    "Repeat",
+    "Restrictions",
+    "Syntax Options",
+    "Opcode",
+    "Operands",
+    "Objmode",
+    "RPT",
+    "CYC",
+    "Description",
+)
+# A formal left-hand side is a register, a memory reference or a flag: short,
+# and with none of the connective words that make a line prose.
+LHS = re.compile(r"^[A-Za-z_\[][A-Za-z0-9_ ()\[\].:*]{0,26}$")
+PROSE = re.compile(
+    r"\b(the|is|are|of|to|then|if|and|or|this|that|which|be|by|for|with"
+    r"|value|bit|register|instruction)\b",
+    re.I,
 )
 
 
@@ -161,18 +197,91 @@ def _labelled(lines, start, label, limit=14):
 
 
 def _flags(lines, start):
-    """Flag letters listed under the Flags and Modes table."""
+    """Flag letters listed under the Flags and Modes table.
+
+    Matched case-insensitively: the LSL64 and LSR64 pages print their N row as
+    a lowercase `n`, and reading the column as typed dropped the flag and made
+    the lifter look like it wrote one TI never mentions.
+    """
     for k in range(start, min(start + 120, len(lines))):
         if lines[k].strip() == "Flags and Modes":
             found = []
             for j in range(k + 1, min(k + 90, len(lines))):
                 t = lines[j].strip()
-                if t in FLAG_NAMES and t not in found:
-                    found.append(t)
+                # "Flags and Modes: None" -- FFC and AND IFR say exactly this.
+                # Without it the scan ran past the end of the page and read the
+                # NEXT instruction's table, so a call came out setting N and Z.
+                if t == "None" and not found:
+                    return []
+                # Nor may it run into the following page even when that page
+                # has no None marker.
+                if t in ("Syntax Options", "Opcode") and found:
+                    break
+                # Only the flag cell is case-folded. The section break must not
+                # be: the CMP pages open a sentence with "example, consider the
+                # subtraction ...", which upper-cases into the Example heading
+                # and ended the table after its first flag.
+                name = t.upper()
+                if name in FLAG_NAMES and name not in found:
+                    found.append(name)
                 elif t.startswith(("Example", "Repeat")) and found:
                     break
             return found
     return []
+
+
+def _description(lines, start):
+    """Prose under the page's own Description heading, or None."""
+    for k in range(start, min(start + 90, len(lines))):
+        t = lines[k].strip()
+        if t in ("Flags and Modes", "Flags"):
+            return None  # the flags table came first; this page has no prose
+        if t == "Description":
+            body = []
+            for j in range(k + 1, min(k + 80, len(lines))):
+                s = lines[j].strip()
+                if s in SECTION:
+                    break
+                if s.startswith(BOILERPLATE):
+                    continue
+                body.append(s)
+            return body
+    return None
+
+
+def _is_assignment(text):
+    """`RaH = RbH + #16FHi:0` yes; `If(OVM = 0, enabled) then ...` no."""
+    lhs, sep, rhs = text.partition("=")
+    if not sep or not rhs.strip():
+        return False
+    lhs = lhs.strip()
+    return bool(lhs) and bool(LHS.match(lhs)) and not PROSE.search(lhs)
+
+
+def _operation(lines, start):
+    """TI's operation notation from the Description block.
+
+    Two shapes, because the manuals punctuate differently: SPRU430F closes the
+    statement with `;`, SPRUEO2B drops the assignment into the prose with no
+    punctuation at all -- which is why matching on `;` alone found the operation
+    on 14% of the FPU pages and 82% of the arithmetic ones.
+    """
+    body = _description(lines, start)
+    if not body:
+        return []
+    out = []
+    for s in body:
+        core = s.rstrip(";").strip()
+        if not core:
+            continue
+        if not s.endswith(";") and (s.endswith(".") or not _is_assignment(core)):
+            continue
+        # A wholly parenthesised line is a figure caption -- the C28MAP page's
+        # `(M0M1MAP = 0)` labels a memory-map table, it is not an operation.
+        if core.startswith("(") and core.endswith(")"):
+            continue
+        out.append(core)
+    return out
 
 
 def _syntax(lines, opcode_idx):
@@ -235,6 +344,7 @@ def parse(doc):
                 "rpt": _labelled(lines, j, "RPT"),
                 "cyc": _labelled(lines, j, "CYC"),
                 "flags": _flags(lines, j),
+                "operation": _operation(lines, j),
                 "bit_pattern": raw,
             }
         )
@@ -269,6 +379,12 @@ def emit(doc, title, entries):
         )
         fh.write("# the bit span is still correct. See _fields() in the script.\n")
         fh.write(
+            "# `operation` is TI's own notation for what the instruction computes, quoted\n"
+        )
+        fh.write(
+            "# verbatim. It is a reading aid, not a gate: see _operation() for why.\n"
+        )
+        fh.write(
             "# Regenerate with: nix develop -c python3 scripts/spec_transcribe.py\n\n"
         )
         fh.write("instructions:\n")
@@ -289,6 +405,10 @@ def emit(doc, title, entries):
                     fh.write(f"    {k}: {e[k]!r}\n")
             if e["flags"]:
                 fh.write(f"    flags: {e['flags']}\n")
+            if e["operation"]:
+                fh.write("    operation:\n")
+                for line in e["operation"]:
+                    fh.write(f"      - {line!r}\n")
     return path
 
 
@@ -303,6 +423,70 @@ RESERVED_AS_ZERO = {
     0x56210000,  # MOVX   TL,loc16
     0x56110000,  # SQRS   loc16
 }
+
+
+# The four lifter families a declarative `lift:` block could replace, by the
+# `semantics.type` their rows carry. Reported separately because that is the
+# population the migration would touch, and its coverage is nothing like the
+# whole table's.
+LIFTER_FAMILIES = {
+    "arith": {
+        "add",
+        "addc",
+        "sub",
+        "subb",
+        "subcu",
+        "cmp",
+        "neg",
+        "abs",
+        "sat",
+        "test",
+    },
+    "bitwise": {"and", "or", "xor", "not"},
+    "shift": {"lsl", "lsr", "asr", "rol", "ror"},
+    "fpu": {"fpu", "fpu_parallel"},
+}
+
+
+def _family(sem_type):
+    for name, types in LIFTER_FAMILIES.items():
+        if sem_type in types:
+            return name
+    return "other"
+
+
+def _report_operation(entries_by_doc, ours):
+    """Operation-line coverage, per manual and per row of our own table."""
+    have = {}
+    entries = 0
+    for entries_ in entries_by_doc.values():
+        for e in entries_:
+            entries += 1
+            if e["operation"] and not have.get(e["opcode"]):
+                have[e["opcode"]] = True
+    with_op = sum(1 for es in entries_by_doc.values() for e in es if e["operation"])
+
+    counts = {k: [0, 0] for k in (*LIFTER_FAMILIES, "other")}
+    for rows in ours.values():
+        for _fname, row in rows:
+            fam = _family((row.get("semantics") or {}).get("type", ""))
+            counts[fam][0] += 1
+            counts[fam][1] += bool(have.get(row["opcode"]))
+
+    rows_n = sum(c[0] for c in counts.values())
+    rows_w = sum(c[1] for c in counts.values())
+    print(
+        f"operation: {with_op}/{entries} manual entries "
+        f"({100 * with_op / max(entries, 1):.1f}%),  "
+        f"{rows_w}/{rows_n} of our rows ({100 * rows_w / max(rows_n, 1):.1f}%)"
+    )
+    mig_n = sum(counts[k][0] for k in LIFTER_FAMILIES)
+    mig_w = sum(counts[k][1] for k in LIFTER_FAMILIES)
+    per = "  ".join(f"{k} {counts[k][1]}/{counts[k][0]}" for k in LIFTER_FAMILIES)
+    print(
+        f"  lifter families {mig_w}/{mig_n} "
+        f"({100 * mig_w / max(mig_n, 1):.1f}%):  {per}"
+    )
 
 
 def check(entries_by_doc):
@@ -359,6 +543,7 @@ def check(entries_by_doc):
     print(
         f"exact {exact}   ours-looser {looser}   disagree {tighter}   absent {absent}"
     )
+    _report_operation(entries_by_doc, ours)
     for kind, name, op, ourmask, specmask in (
         (p[0], p[1], p[2], p[3], p[4]) for p in problems
     ):

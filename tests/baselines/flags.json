@@ -1,0 +1,146 @@
+{
+  "IN_LOC16_PA": {
+    "less": [
+      "N",
+      "Z"
+    ],
+    "more": []
+  },
+  "IRET": {
+    "less": [
+      "C",
+      "TC",
+      "Z"
+    ],
+    "more": []
+  },
+  "MOVB_LOC16_AXLSB": {
+    "less": [
+      "N",
+      "Z"
+    ],
+    "more": []
+  },
+  "MOVB_LOC16_AXMSB": {
+    "less": [
+      "N",
+      "Z"
+    ],
+    "more": []
+  },
+  "MOVH_LOC16_P": {
+    "less": [
+      "N",
+      "Z"
+    ],
+    "more": []
+  },
+  "MOVL_LOC32_ACC": {
+    "less": [
+      "N",
+      "Z"
+    ],
+    "more": []
+  },
+  "MOVL_LOC32_P": {
+    "less": [
+      "N",
+      "Z"
+    ],
+    "more": []
+  },
+  "MOVL_LOC32_XT": {
+    "less": [
+      "N",
+      "Z"
+    ],
+    "more": []
+  },
+  "MOV_LOC16_0": {
+    "less": [
+      "N",
+      "Z"
+    ],
+    "more": []
+  },
+  "MOV_LOC16_ARN": {
+    "less": [
+      "N",
+      "Z"
+    ],
+    "more": []
+  },
+  "MOV_LOC16_AX": {
+    "less": [
+      "N",
+      "Z"
+    ],
+    "more": []
+  },
+  "MOV_LOC16_CONST16": {
+    "less": [
+      "N",
+      "Z"
+    ],
+    "more": []
+  },
+  "MOV_LOC16_IER": {
+    "less": [
+      "N",
+      "Z"
+    ],
+    "more": []
+  },
+  "MOV_LOC16_MEM16": {
+    "less": [
+      "N",
+      "Z"
+    ],
+    "more": []
+  },
+  "MOV_LOC16_T": {
+    "less": [
+      "N",
+      "Z"
+    ],
+    "more": []
+  },
+  "POP_LOC16": {
+    "less": [
+      "N",
+      "Z"
+    ],
+    "more": []
+  },
+  "POP_ST0": {
+    "less": [
+      "C",
+      "N",
+      "TC",
+      "V",
+      "Z"
+    ],
+    "more": []
+  },
+  "PREAD_LOC16_XAR7": {
+    "less": [
+      "N",
+      "Z"
+    ],
+    "more": []
+  },
+  "XPREAD_LOC16_AL": {
+    "less": [
+      "N",
+      "Z"
+    ],
+    "more": []
+  },
+  "XPREAD_LOC16_PMA": {
+    "less": [
+      "N",
+      "Z"
+    ],
+    "more": []
+  }
+}
