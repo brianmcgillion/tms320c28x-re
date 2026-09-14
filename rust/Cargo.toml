@@ -15,11 +15,8 @@ default = ["bn-link"]
 bn-link = ["binaryninja/core"]
 
 [dependencies]
+c28x-core = { path = "../core/c28x-core" }
 # Pinned to ABI 187 to match BN 6.1.10603 (rev from its api_REVISION.txt)
 # default-features = false so our bn-link feature controls the "core" flag
 binaryninja = { git = "https://github.com/Vector35/binaryninja-api", rev = "b6cdbaf9e8d2c0e3f4d688b24982377e9da1e02e", default-features = false }
 log = "0.4"
-
-[build-dependencies]
-serde = { version = "1", features = ["derive"] }
-serde_yaml = "0.9"
