@@ -10,6 +10,8 @@
       systems = [ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" ];
       forAllSystems = f: nixpkgs.lib.genAttrs systems (system: f nixpkgs.legacyPackages.${system});
 
+      version = "0.2.0";
+
       # TI C2000 Code Generation Tools (cl2000 compiler) — x86_64-linux only
       ti-cgt-c2000 = { pkgs }: pkgs.stdenv.mkDerivation rec {
         pname = "ti-cgt-c2000";
@@ -38,36 +40,32 @@
       };
     in
     {
-      # BREAKING in 0.2.0: the `python3Packages.c28x` overlay is gone.
-      #
-      # It packaged a second decoder, generated from the same YAML as the Rust
-      # one and compared against it by nothing, so the two could drift silently.
-      # It was also broken as shipped: c28x/isa.py returned quietly when the ISA
-      # directory was missing and pyproject.toml packaged no YAML, so an install
-      # decoded every input to None without raising. What replaces it is the
-      # binary the tests themselves now use.
+      # Attribute `c28x`, distribution `tms320c28x-re`, module `c28x_rs`.
+      overlays.default = final: prev: {
+        c28xdec = final.callPackage ./nix/c28xdec.nix { src = self; inherit version; };
+
+        tms320c28x-binja = final.callPackage ./nix/plugin.nix {
+          src = self;
+          inherit version;
+        };
+
+        pythonPackagesExtensions = (prev.pythonPackagesExtensions or [ ]) ++ [
+          (pyfinal: _pyprev: {
+            c28x = pyfinal.callPackage ./nix/python.nix {
+              src = self;
+              inherit version;
+              inherit (final) c28xdec;
+            };
+          })
+        ];
+      };
+
+      homeModules.default = import ./nix/home-module.nix { inherit self version; };
+
       packages = forAllSystems (pkgs: rec {
         default = c28xdec;
-        c28xdec = pkgs.rustPlatform.buildRustPackage {
-          pname = "c28xdec";
-          version = "0.2.0";
-          src = self;
-          # core/ is its own workspace, deliberately free of the binaryninja
-          # dependency, so this needs no cmake, ninja or libclang. cargoRoot
-          # rather than buildAndTestSubdir: the vendor hook looks for
-          # Cargo.lock relative to the source root, and ours is in core/.
-          cargoRoot = "core";
-          buildAndTestSubdir = "core";
-          cargoLock.lockFile = ./core/Cargo.lock;
-          # build.rs reads ../../isa/instructions relative to CARGO_MANIFEST_DIR,
-          # which is why src is the whole tree rather than core/ alone.
-          meta = {
-            description = "TMS320C28x decoder CLI: NDJSON disassembly, COFF parsing, addressing tables";
-            homepage = "https://github.com/brianmcgillion/tms320c28x-re";
-            license = nixpkgs.lib.licenses.mit;
-            mainProgram = "c28xdec";
-          };
-        };
+        c28xdec = pkgs.callPackage ./nix/c28xdec.nix { src = self; inherit version; };
+        tms320c28x-binja = pkgs.callPackage ./nix/plugin.nix { src = self; inherit version; };
       });
 
       # nix run .#tests — full test suite (run from repo root)
